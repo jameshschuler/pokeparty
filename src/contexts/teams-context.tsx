@@ -8,13 +8,13 @@ import {
 } from "react";
 import { createTeam } from "../lib/team";
 import { loadTeams, saveTeams, TEAMS_STORAGE_KEY } from "../lib/team-storage";
-import type { Team } from "../types/team";
+import type { Team, TeamMember } from "../types/team";
 import { useToastContext } from "./toast-context";
 
 export type TeamsContextValue = {
   teams: Team[];
-  createTeam: (pokemonIds: number[]) => Team;
-  updateTeam: (teamId: string, pokemonIds: number[]) => void;
+  createTeam: (members: TeamMember[]) => Team;
+  updateTeam: (teamId: string, members: TeamMember[]) => void;
   deleteTeam: (teamId: string) => void;
 };
 
@@ -46,16 +46,16 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
 
     return {
       teams,
-      createTeam: (pokemonIds) => {
-        const team = createTeam(pokemonIds, Date.now());
+      createTeam: (members) => {
+        const team = createTeam(members, Date.now());
         commit([team, ...teams]);
         return team;
       },
-      updateTeam: (teamId, pokemonIds) => {
+      updateTeam: (teamId, members) => {
         commit(
           teams.map((team) =>
             team.id === teamId
-              ? { ...team, pokemonIds, updatedAt: Date.now() }
+              ? { ...team, members, updatedAt: Date.now() }
               : team,
           ),
         );

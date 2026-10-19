@@ -42,8 +42,8 @@ export function isValidPokemonId(id: number): boolean {
   return Number.isSafeInteger(id) && id >= 1;
 }
 
-export function spriteUrl(id: number): string {
-  return `${SPRITE_BASE_URL}/${id}.png`;
+export function spriteUrl(id: number, shiny: boolean): string {
+  return `${SPRITE_BASE_URL}${shiny ? "/shiny" : ""}/${id}.png`;
 }
 
 function titleCase(name: string): string {
@@ -75,6 +75,10 @@ export function pokemonNameParts(name: string): PokemonNameParts {
 export function formatPokemonName(name: string): string {
   const parts = pokemonNameParts(name);
   return parts.variant ? `${parts.name} (${parts.variant})` : parts.name;
+}
+
+export function formatMemberName(name: string, shiny: boolean): string {
+  return `${shiny ? "shiny " : ""}${formatPokemonName(name)}`;
 }
 
 export function formatPokemonNumber(speciesId: number): string {
