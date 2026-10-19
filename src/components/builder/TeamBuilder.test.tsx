@@ -1,15 +1,11 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { loadTeams, saveTeams } from "../../lib/team-storage";
-import { mockPokemonList, renderApp } from "../../test/renderApp";
+import { renderApp } from "../../test/renderApp";
 import { regularMembers } from "../../test/members";
 
 describe("team builder", () => {
-  beforeEach(() => {
-    mockPokemonList();
-  });
-
   it("saves a new team on the first pick and moves to its URL", async () => {
     const user = userEvent.setup();
     const router = renderApp("/team/new");
@@ -142,6 +138,88 @@ describe("team builder", () => {
       .getAllByRole("button")
       .map((button) => button.getAttribute("aria-label"));
     expect(cards).toEqual(["Add Darumaka", "Add Galarian Darumaka"]);
+  });
+
+  function gridLabels() {
+    return within(screen.getByRole("list", { name: "Pokémon" }))
+      .getAllByRole("button", { pressed: false })
+      .map((button) => button.getAttribute("aria-label"));
+  }
+
+  it("shows only legendaries with the Legendary chip", async () => {
+    const user = userEvent.setup();
+    renderApp("/team/new");
+
+    const legendary = await screen.findByRole("button", { name: "Legendary" });
+    await user.click(legendary);
+
+    expect(gridLabels().slice(0, 4)).toEqual([
+      "Add Articuno",
+      "Add Galarian Articuno",
+      "Add Zapdos",
+      "Add Galarian Zapdos",
+    ]);
+    expect(
+      screen.queryByRole("button", { name: "Add Bulbasaur" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("filters by region, counting regional forms in their region", async () => {
+    const user = userEvent.setup();
+    renderApp("/team/new");
+
+    const searchInput = await screen.findByLabelText("Search Pokémon");
+    await user.type(searchInput, "darumaka");
+    await user.click(screen.getByRole("button", { name: "galar" }));
+
+    expect(gridLabels()).toEqual(["Add Galarian Darumaka"]);
+
+    await user.click(screen.getByRole("button", { name: "unova" }));
+
+    expect(gridLabels()).toEqual(["Add Darumaka"]);
+  });
+
+  it("picks alternate forms like Origin Giratina", async () => {
+    const user = userEvent.setup();
+    renderApp("/team/new");
+
+    const searchInput = await screen.findByLabelText("Search Pokémon");
+    await user.type(searchInput, "giratina");
+    await user.click(
+      screen.getByRole("button", { name: "Add Giratina (Origin Forme)" }),
+    );
+
+    expect(loadTeams()[0].members).toEqual(regularMembers(10007));
+  });
+
+  it("adds picks as shiny in shiny mode", async () => {
+    const user = userEvent.setup();
+    renderApp("/team/new");
+
+    const shinyMode = await screen.findByRole("button", { name: "Shiny mode" });
+    await user.click(shinyMode);
+    await user.click(
+      screen.getByRole("button", { name: "Add shiny Bulbasaur" }),
+    );
+
+    expect(shinyMode).toHaveAttribute("aria-pressed", "true");
+    expect(loadTeams()[0].members).toEqual([{ pokemonId: 1, shiny: true }]);
+  });
+
+  it("keeps existing members' colors when shiny mode changes", async () => {
+    saveTeams([
+      { id: "t1", members: regularMembers(4), createdAt: 1, updatedAt: 1 },
+    ]);
+    const user = userEvent.setup();
+    renderApp("/team/t1");
+
+    const shinyMode = await screen.findByRole("button", { name: "Shiny mode" });
+    await user.click(shinyMode);
+
+    expect(
+      screen.getAllByRole("button", { name: "Remove Charmander" }),
+    ).toHaveLength(2);
+    expect(loadTeams()[0].members).toEqual(regularMembers(4));
   });
 
   it("filters the grid by search", async () => {

@@ -11,11 +11,15 @@ import {
 
 describe("addPokemon", () => {
   it("adds a regular member to an empty team", () => {
-    expect(addPokemon([], 25)).toEqual(regularMembers(25));
+    expect(addPokemon([], 25, false)).toEqual(regularMembers(25));
+  });
+
+  it("adds a shiny member", () => {
+    expect(addPokemon([], 25, true)).toEqual([{ pokemonId: 25, shiny: true }]);
   });
 
   it("appends in pick order", () => {
-    expect(addPokemon(regularMembers(1, 4), 7)).toEqual(
+    expect(addPokemon(regularMembers(1, 4), 7, false)).toEqual(
       regularMembers(1, 4, 7),
     );
   });
@@ -23,13 +27,13 @@ describe("addPokemon", () => {
   it("ignores a Pokémon already on the team", () => {
     const members = [{ pokemonId: 25, shiny: true }];
 
-    expect(addPokemon(members, 25)).toBe(members);
+    expect(addPokemon(members, 25, false)).toBe(members);
   });
 
   it("ignores a seventh Pokémon", () => {
     const full = regularMembers(1, 2, 3, 4, 5, 6);
 
-    expect(addPokemon(full, 7)).toBe(full);
+    expect(addPokemon(full, 7, false)).toBe(full);
   });
 });
 

@@ -1,4 +1,4 @@
-import { usePokemonSummary } from "../../hooks/usePokemonList";
+import { findPokemon } from "../../lib/pokedex";
 import { formatPokemonNumber } from "../../lib/pokemon";
 import type { TeamMember } from "../../types/team";
 import { PokemonName } from "../pokemon/PokemonName";
@@ -6,7 +6,7 @@ import { PokemonSprite } from "../pokemon/PokemonSprite";
 import { ShinyBadge } from "../pokemon/ShinyBadge";
 
 export function SharedPokemon({ member }: { member: TeamMember }) {
-  const pokemon = usePokemonSummary(member.pokemonId);
+  const pokemon = findPokemon(member.pokemonId);
   if (!pokemon) {
     return null;
   }
@@ -22,7 +22,7 @@ export function SharedPokemon({ member }: { member: TeamMember }) {
       <span className="text-ink/60 text-xs font-medium">
         {formatPokemonNumber(pokemon.speciesId)}
       </span>
-      <PokemonName name={pokemon.name} />
+      <PokemonName pokemon={pokemon} />
       {member.shiny && (
         <>
           <ShinyBadge className="top-2 right-2 size-7" />

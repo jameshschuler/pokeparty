@@ -1,21 +1,71 @@
 import { describe, expect, it } from "vitest";
+import type { PokemonSummary } from "../types/pokemon";
 import {
+  buildSearchText,
   compareDexOrder,
   filterPokemon,
   formatMemberName,
-  formatPokemonName,
+  formatPokemonLabel,
   formatPokemonNumber,
   isValidPokemonId,
   matchesSearch,
-  parseRegionalForm,
-  pokemonNameParts,
   spriteUrl,
 } from "./pokemon";
 
-const pikachu = { id: 25, speciesId: 25, name: "pikachu" };
-const mrMime = { id: 122, speciesId: 122, name: "mr-mime" };
-const darumaka = { id: 554, speciesId: 554, name: "darumaka" };
-const galarianDarumaka = { id: 10176, speciesId: 554, name: "darumaka-galar" };
+function summary(
+  overrides: Partial<Omit<PokemonSummary, "searchText">>,
+): PokemonSummary {
+  const entry = {
+    id: 1,
+    speciesId: 1,
+    name: "bulbasaur",
+    displayName: "Bulbasaur",
+    variant: null,
+    region: "kanto" as const,
+    legendary: false,
+    ...overrides,
+  };
+  return {
+    ...entry,
+    searchText: buildSearchText(entry.name, formatPokemonLabel(entry)),
+  };
+}
+
+const pikachu = summary({
+  id: 25,
+  speciesId: 25,
+  name: "pikachu",
+  displayName: "Pikachu",
+});
+const mrMime = summary({
+  id: 122,
+  speciesId: 122,
+  name: "mr-mime",
+  displayName: "Mr. Mime",
+});
+const darumaka = summary({
+  id: 554,
+  speciesId: 554,
+  name: "darumaka",
+  displayName: "Darumaka",
+  region: "unova",
+});
+const galarianDarumaka = summary({
+  id: 10176,
+  speciesId: 554,
+  name: "darumaka-galar",
+  displayName: "Galarian Darumaka",
+  region: "galar",
+});
+const originGiratina = summary({
+  id: 10007,
+  speciesId: 487,
+  name: "giratina-origin",
+  displayName: "Giratina",
+  variant: "Origin Forme",
+  region: "sinnoh",
+  legendary: true,
+});
 
 describe("isValidPokemonId", () => {
   it.each([
@@ -41,69 +91,29 @@ describe("spriteUrl", () => {
   });
 });
 
-describe("parseRegionalForm", () => {
-  it.each([
-    ["darumaka-galar", { baseName: "darumaka", region: "galar" }],
-    ["mr-mime-galar", { baseName: "mr-mime", region: "galar" }],
-    [
-      "tauros-paldea-combat-breed",
-      { baseName: "tauros", region: "paldea", variant: "combat-breed" },
-    ],
-    ["growlithe-hisui", { baseName: "growlithe", region: "hisui" }],
-  ])("parses %s", (name, expected) => {
-    expect(parseRegionalForm(name)).toMatchObject(expected);
-  });
-
-  it.each([
-    "pikachu",
-    "mr-mime",
-    "charizard-mega-x",
-    "pikachu-alola-cap",
-    "darmanitan-galar-zen",
-  ])("rejects %s", (name) => {
-    expect(parseRegionalForm(name)).toBeNull();
+describe("buildSearchText", () => {
+  it("joins the slug and label in lowercase", () => {
+    expect(buildSearchText("mr-mime", "Mr. Mime")).toBe("mr mime mr. mime");
   });
 });
 
-describe("formatPokemonName", () => {
-  it.each([
-    ["pikachu", "Pikachu"],
-    ["mr-mime", "Mr Mime"],
-    ["tapu-koko", "Tapu Koko"],
-    ["darumaka-galar", "Galarian Darumaka"],
-    ["vulpix-alola", "Alolan Vulpix"],
-    ["mr-mime-galar", "Galarian Mr Mime"],
-    ["darmanitan-galar-standard", "Galarian Darmanitan"],
-    ["tauros-paldea-combat-breed", "Paldean Tauros (Combat Breed)"],
-  ])("%s -> %s", (name, expected) => {
-    expect(formatPokemonName(name)).toBe(expected);
+describe("formatPokemonLabel", () => {
+  it("uses the display name alone without a variant", () => {
+    expect(formatPokemonLabel(galarianDarumaka)).toBe("Galarian Darumaka");
   });
-});
 
-describe("pokemonNameParts", () => {
-  it.each([
-    ["pikachu", { name: "Pikachu", variant: null }],
-    ["darumaka-galar", { name: "Galarian Darumaka", variant: null }],
-    [
-      "darmanitan-galar-standard",
-      { name: "Galarian Darmanitan", variant: null },
-    ],
-    [
-      "tauros-paldea-aqua-breed",
-      { name: "Paldean Tauros", variant: "Aqua Breed" },
-    ],
-  ])("%s -> %o", (name, expected) => {
-    expect(pokemonNameParts(name)).toEqual(expected);
+  it("adds the variant in parentheses", () => {
+    expect(formatPokemonLabel(originGiratina)).toBe("Giratina (Origin Forme)");
   });
 });
 
 describe("formatMemberName", () => {
   it.each([
-    ["charmander", false, "Charmander"],
-    ["charmander", true, "shiny Charmander"],
-    ["darumaka-galar", true, "shiny Galarian Darumaka"],
-  ])("%s shiny=%s -> %s", (name, shiny, expected) => {
-    expect(formatMemberName(name, shiny)).toBe(expected);
+    [pikachu, false, "Pikachu"],
+    [pikachu, true, "shiny Pikachu"],
+    [galarianDarumaka, true, "shiny Galarian Darumaka"],
+  ])("%o shiny=%s -> %s", (pokemon, shiny, expected) => {
+    expect(formatMemberName(pokemon, shiny)).toBe(expected);
   });
 });
 
@@ -118,7 +128,7 @@ describe("formatPokemonNumber", () => {
 });
 
 describe("compareDexOrder", () => {
-  it("puts regional forms right after their species", () => {
+  it("puts forms right after their species", () => {
     const sorted = [galarianDarumaka, pikachu, darumaka].sort(compareDexOrder);
 
     expect(sorted.map((pokemon) => pokemon.id)).toEqual([25, 554, 10176]);
@@ -148,41 +158,56 @@ describe("matchesSearch", () => {
     [galarianDarumaka, "galar", true],
     [galarianDarumaka, "554", true],
     [galarianDarumaka, "10176", false],
+    [originGiratina, "origin", true],
+    [originGiratina, "giratina origin", true],
+    [originGiratina, "forme", true],
   ])("%o with %j -> %s", (pokemon, query, expected) => {
     expect(matchesSearch(pokemon, query)).toBe(expected);
   });
 });
 
 describe("filterPokemon", () => {
-  const list = [
-    { id: 1, speciesId: 1, name: "bulbasaur" },
-    { id: 4, speciesId: 4, name: "charmander" },
-    { id: 6, speciesId: 6, name: "charizard" },
-  ];
+  const list = [pikachu, darumaka, galarianDarumaka, originGiratina];
+  const noFilter = {
+    query: "",
+    typeIds: undefined,
+    region: null,
+    legendaryOnly: false,
+  };
 
-  it("returns everything with no query or type", () => {
-    expect(filterPokemon(list, "", undefined)).toEqual(list);
+  function ids(filter: Partial<Parameters<typeof filterPokemon>[1]>) {
+    return filterPokemon(list, { ...noFilter, ...filter }).map((p) => p.id);
+  }
+
+  it("returns everything with no filter", () => {
+    expect(ids({})).toEqual([25, 554, 10176, 10007]);
   });
 
   it("filters by query", () => {
-    expect(filterPokemon(list, "char", undefined).map((p) => p.id)).toEqual([
-      4, 6,
-    ]);
+    expect(ids({ query: "darumaka" })).toEqual([554, 10176]);
   });
 
   it("filters by type ids", () => {
-    expect(filterPokemon(list, "", new Set([1, 6])).map((p) => p.id)).toEqual([
-      1, 6,
-    ]);
+    expect(ids({ typeIds: new Set([25, 10176]) })).toEqual([25, 10176]);
   });
 
-  it("combines query and type", () => {
+  it("filters by region, including regional forms", () => {
+    expect(ids({ region: "galar" })).toEqual([10176]);
+    expect(ids({ region: "unova" })).toEqual([554]);
+  });
+
+  it("filters to legendaries", () => {
+    expect(ids({ legendaryOnly: true })).toEqual([10007]);
+  });
+
+  it("combines every filter", () => {
     expect(
-      filterPokemon(list, "char", new Set([1, 6])).map((p) => p.id),
-    ).toEqual([6]);
+      ids({ query: "dar", region: "galar", typeIds: new Set([10176]) }),
+    ).toEqual([10176]);
+    expect(ids({ region: "kanto", legendaryOnly: true })).toEqual([]);
   });
 
   it("returns nothing for an empty type set", () => {
-    expect(filterPokemon(list, "", new Set())).toEqual([]);
+    expect(ids({ typeIds: new Set() })).toEqual([]);
   });
 });

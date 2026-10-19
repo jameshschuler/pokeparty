@@ -72,34 +72,25 @@ describe("parseSharedTeam", () => {
 });
 
 describe("resolveSharedTeam", () => {
-  const pokedex = [1, 4, 6, 7, 9, 25, 10176].map((id) => ({
-    id,
-    speciesId: id,
-    name: `pokemon-${id}`,
-  }));
-
-  it("keeps link order and drops unknown ids", () => {
-    expect(resolveSharedTeam(regularMembers(25, 9999, 1), pokedex)).toEqual(
+  it("keeps link order and drops ids that aren't in the Pokédex", () => {
+    expect(resolveSharedTeam(regularMembers(25, 99999, 1, 10178))).toEqual(
       regularMembers(25, 1),
     );
   });
 
   it("caps at six after dropping unknown ids", () => {
     expect(
-      resolveSharedTeam(
-        regularMembers(9999, 1, 4, 7, 25, 6, 9, 10176),
-        pokedex,
-      ),
+      resolveSharedTeam(regularMembers(99999, 1, 4, 7, 25, 6, 9, 10176)),
     ).toEqual(regularMembers(1, 4, 7, 25, 6, 9));
   });
 
   it("keeps the shiny flag", () => {
-    const members = [{ pokemonId: 25, shiny: true }];
+    const members = [{ pokemonId: 10007, shiny: true }];
 
-    expect(resolveSharedTeam(members, pokedex)).toEqual(members);
+    expect(resolveSharedTeam(members)).toEqual(members);
   });
 
   it("returns nothing when no id is known", () => {
-    expect(resolveSharedTeam(regularMembers(9999), pokedex)).toEqual([]);
+    expect(resolveSharedTeam(regularMembers(99999))).toEqual([]);
   });
 });

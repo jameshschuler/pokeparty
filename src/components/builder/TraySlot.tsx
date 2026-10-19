@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { useTeamBuilderContext } from "../../contexts/team-builder-context";
-import { usePokemonSummary } from "../../hooks/usePokemonList";
+import { findPokemon } from "../../lib/pokedex";
 import { formatMemberName } from "../../lib/pokemon";
 import type { TeamMember } from "../../types/team";
 import { PokemonSprite } from "../pokemon/PokemonSprite";
@@ -8,10 +8,8 @@ import { ShinyBadge } from "../pokemon/ShinyBadge";
 
 export function TraySlot({ member }: { member: TeamMember }) {
   const { togglePokemon } = useTeamBuilderContext();
-  const pokemon = usePokemonSummary(member.pokemonId);
-  const name = pokemon
-    ? formatMemberName(pokemon.name, member.shiny)
-    : "Pokémon";
+  const pokemon = findPokemon(member.pokemonId);
+  const name = pokemon ? formatMemberName(pokemon, member.shiny) : "Pokémon";
 
   return (
     <button

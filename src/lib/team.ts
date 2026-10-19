@@ -15,11 +15,12 @@ export function isTeamFull(members: TeamMember[]): boolean {
 export function addPokemon(
   members: TeamMember[],
   pokemonId: number,
+  shiny: boolean,
 ): TeamMember[] {
   if (hasPokemon(members, pokemonId) || isTeamFull(members)) {
     return members;
   }
-  return [...members, { pokemonId, shiny: false }];
+  return [...members, { pokemonId, shiny }];
 }
 
 export function removePokemon(

@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Shuffle } from "lucide-react";
 import { useTeamsContext } from "../../contexts/teams-context";
-import { usePokemonList } from "../../hooks/usePokemonList";
 import { resolveSharedTeam } from "../../lib/share";
 import type { TeamMember } from "../../types/team";
 import { SharedPokemon } from "./SharedPokemon";
@@ -9,20 +8,7 @@ import { SharedPokemon } from "./SharedPokemon";
 export function SharedTeam({ members }: { members: TeamMember[] }) {
   const { createTeam } = useTeamsContext();
   const navigate = useNavigate();
-  const list = usePokemonList();
-
-  if (list.isPending) {
-    return <p className="py-12 text-center text-lg">Loading team…</p>;
-  }
-  if (list.isError) {
-    return (
-      <p className="py-12 text-center text-lg">
-        Couldn't reach PokeAPI. Check your connection and try again.
-      </p>
-    );
-  }
-
-  const team = resolveSharedTeam(members, list.data);
+  const team = resolveSharedTeam(members);
 
   function handleRemix() {
     const created = createTeam(team);

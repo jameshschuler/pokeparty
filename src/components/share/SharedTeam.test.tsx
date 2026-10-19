@@ -1,15 +1,11 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { loadTeams } from "../../lib/team-storage";
-import { mockPokemonList, renderApp } from "../../test/renderApp";
+import { renderApp } from "../../test/renderApp";
 import { regularMembers } from "../../test/members";
 
 describe("shared team", () => {
-  beforeEach(() => {
-    mockPokemonList();
-  });
-
   it("shows the Pokémon from the link", async () => {
     renderApp("/share?team=1,4");
 
