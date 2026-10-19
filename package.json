@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "generate:pokedex": "node scripts/generate-pokedex.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.4",

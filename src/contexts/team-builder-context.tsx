@@ -8,7 +8,7 @@ import {
   removePokemon,
   toggleShiny,
 } from "../lib/team";
-import type { PokemonType } from "../types/pokemon";
+import type { PokemonType, Region } from "../types/pokemon";
 import type { TeamMember } from "../types/team";
 import { useTeamsContext } from "./teams-context";
 import { useToastContext } from "./toast-context";
@@ -21,6 +21,12 @@ export type TeamBuilderContextValue = {
   setQuery: (query: string) => void;
   type: PokemonType | null;
   setType: (type: PokemonType | null) => void;
+  region: Region | null;
+  setRegion: (region: Region | null) => void;
+  legendaryOnly: boolean;
+  setLegendaryOnly: (legendaryOnly: boolean) => void;
+  shinyMode: boolean;
+  setShinyMode: (shinyMode: boolean) => void;
 };
 
 const TeamBuilderContext = createContext<TeamBuilderContextValue | null>(null);
@@ -39,6 +45,9 @@ export function TeamBuilderProvider({
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [type, setType] = useState<PokemonType | null>(null);
+  const [region, setRegion] = useState<Region | null>(null);
+  const [legendaryOnly, setLegendaryOnly] = useState(false);
+  const [shinyMode, setShinyMode] = useState(false);
   const [createdTeamId, setCreatedTeamId] = useState<string | null>(null);
   const activeTeamId = teamId === NEW_TEAM_ID ? createdTeamId : teamId;
   const team = teams.find((entry) => entry.id === activeTeamId);
@@ -67,7 +76,7 @@ export function TeamBuilderProvider({
       showToast("Party's full! Remove one first.");
       return;
     }
-    saveTeam(addPokemon(members, pokemonId));
+    saveTeam(addPokemon(members, pokemonId, shinyMode));
   }
 
   function toggleShinyPokemon(pokemonId: number) {
@@ -84,6 +93,12 @@ export function TeamBuilderProvider({
         setQuery,
         type,
         setType,
+        region,
+        setRegion,
+        legendaryOnly,
+        setLegendaryOnly,
+        shinyMode,
+        setShinyMode,
       }}
     >
       {children}

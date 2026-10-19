@@ -2,14 +2,10 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadTeams, saveTeams } from "../../lib/team-storage";
-import { mockPokemonList, renderApp } from "../../test/renderApp";
+import { renderApp } from "../../test/renderApp";
 import { regularMembers } from "../../test/members";
 
 describe("my teams", () => {
-  beforeEach(() => {
-    mockPokemonList();
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
   });

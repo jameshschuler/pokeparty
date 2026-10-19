@@ -1,5 +1,5 @@
-import type { PokemonSummary } from "../types/pokemon";
 import type { TeamMember } from "../types/team";
+import { findPokemon } from "./pokedex";
 import { isValidPokemonId } from "./pokemon";
 import { TEAM_SIZE } from "./team";
 
@@ -29,12 +29,8 @@ export function parseSharedTeam(param: string): TeamMember[] {
   return members;
 }
 
-export function resolveSharedTeam(
-  members: TeamMember[],
-  pokedex: PokemonSummary[],
-): TeamMember[] {
-  const knownIds = new Set(pokedex.map((pokemon) => pokemon.id));
+export function resolveSharedTeam(members: TeamMember[]): TeamMember[] {
   return members
-    .filter((member) => knownIds.has(member.pokemonId))
+    .filter((member) => findPokemon(member.pokemonId))
     .slice(0, TEAM_SIZE);
 }

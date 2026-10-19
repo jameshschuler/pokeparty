@@ -1,42 +1,7 @@
-import type { PokemonSummary } from "../types/pokemon";
-
-export const SPECIES_COUNT = 1025;
+import type { PokemonFilter, PokemonSummary } from "../types/pokemon";
 
 const SPRITE_BASE_URL =
   "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork";
-
-const REGION_ADJECTIVES = {
-  alola: "Alolan",
-  galar: "Galarian",
-  hisui: "Hisuian",
-  paldea: "Paldean",
-} as const;
-
-type Region = keyof typeof REGION_ADJECTIVES;
-
-const REGIONAL_FORM_PATTERN = /^(.+)-(alola|galar|hisui|paldea)(?:-(.+))?$/;
-
-const EXCLUDED_FORM_VARIANTS = ["cap", "zen"];
-
-const DEFAULT_FORM_VARIANT = "standard";
-
-export type RegionalForm = {
-  baseName: string;
-  region: Region;
-  variant: string | undefined;
-};
-
-export function parseRegionalForm(name: string): RegionalForm | null {
-  const match = name.match(REGIONAL_FORM_PATTERN);
-  if (!match) {
-    return null;
-  }
-  const [, baseName, region, variant] = match;
-  if (variant && EXCLUDED_FORM_VARIANTS.includes(variant)) {
-    return null;
-  }
-  return { baseName, region: region as Region, variant };
-}
 
 export function isValidPokemonId(id: number): boolean {
   return Number.isSafeInteger(id) && id >= 1;
@@ -46,39 +11,23 @@ export function spriteUrl(id: number, shiny: boolean): string {
   return `${SPRITE_BASE_URL}${shiny ? "/shiny" : ""}/${id}.png`;
 }
 
-function titleCase(name: string): string {
-  return name
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+export function buildSearchText(name: string, label: string): string {
+  return `${name.replaceAll("-", " ")} ${label}`.toLowerCase();
 }
 
-export type PokemonNameParts = {
-  name: string;
-  variant: string | null;
-};
-
-export function pokemonNameParts(name: string): PokemonNameParts {
-  const form = parseRegionalForm(name);
-  if (!form) {
-    return { name: titleCase(name), variant: null };
-  }
-  return {
-    name: `${REGION_ADJECTIVES[form.region]} ${titleCase(form.baseName)}`,
-    variant:
-      form.variant && form.variant !== DEFAULT_FORM_VARIANT
-        ? titleCase(form.variant)
-        : null,
-  };
+export function formatPokemonLabel(
+  pokemon: Pick<PokemonSummary, "displayName" | "variant">,
+): string {
+  return pokemon.variant
+    ? `${pokemon.displayName} (${pokemon.variant})`
+    : pokemon.displayName;
 }
 
-export function formatPokemonName(name: string): string {
-  const parts = pokemonNameParts(name);
-  return parts.variant ? `${parts.name} (${parts.variant})` : parts.name;
-}
-
-export function formatMemberName(name: string, shiny: boolean): string {
-  return `${shiny ? "shiny " : ""}${formatPokemonName(name)}`;
+export function formatMemberName(
+  pokemon: PokemonSummary,
+  shiny: boolean,
+): string {
+  return `${shiny ? "shiny " : ""}${formatPokemonLabel(pokemon)}`;
 }
 
 export function formatPokemonNumber(speciesId: number): string {
@@ -100,17 +49,18 @@ export function matchesSearch(pokemon: PokemonSummary, query: string): boolean {
       String(pokemon.speciesId).startsWith(String(Number(normalized)))
     );
   }
-  const searchable = `${pokemon.name.replaceAll("-", " ")} ${formatPokemonName(pokemon.name).toLowerCase()}`;
-  return searchable.includes(normalized.replaceAll("-", " "));
+  return pokemon.searchText.includes(normalized.replaceAll("-", " "));
 }
 
 export function filterPokemon(
   pokemon: PokemonSummary[],
-  query: string,
-  typeIds: Set<number> | undefined,
+  filter: PokemonFilter,
 ): PokemonSummary[] {
   return pokemon.filter(
     (entry) =>
-      matchesSearch(entry, query) && (!typeIds || typeIds.has(entry.id)),
+      matchesSearch(entry, filter.query) &&
+      (!filter.typeIds || filter.typeIds.has(entry.id)) &&
+      (!filter.region || entry.region === filter.region) &&
+      (!filter.legendaryOnly || entry.legendary),
   );
 }

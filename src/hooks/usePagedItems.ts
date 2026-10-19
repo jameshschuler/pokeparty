@@ -4,6 +4,11 @@ const PAGE_SIZE = 48;
 
 export function usePagedItems<T>(items: T[]) {
   const [count, setCount] = useState(PAGE_SIZE);
+  const [pagedItems, setPagedItems] = useState(items);
+  if (items !== pagedItems) {
+    setPagedItems(items);
+    setCount(PAGE_SIZE);
+  }
   const sentinelRef = useRef<HTMLDivElement>(null);
   const hasMore = count < items.length;
 
