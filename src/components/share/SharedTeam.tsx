@@ -3,9 +3,10 @@ import { Shuffle } from "lucide-react";
 import { useTeamsContext } from "../../contexts/teams-context";
 import { usePokemonList } from "../../hooks/usePokemonList";
 import { resolveSharedTeam } from "../../lib/share";
+import type { TeamMember } from "../../types/team";
 import { SharedPokemon } from "./SharedPokemon";
 
-export function SharedTeam({ pokemonIds }: { pokemonIds: number[] }) {
+export function SharedTeam({ members }: { members: TeamMember[] }) {
   const { createTeam } = useTeamsContext();
   const navigate = useNavigate();
   const list = usePokemonList();
@@ -21,10 +22,10 @@ export function SharedTeam({ pokemonIds }: { pokemonIds: number[] }) {
     );
   }
 
-  const team = resolveSharedTeam(pokemonIds, list.data);
+  const team = resolveSharedTeam(members, list.data);
 
   function handleRemix() {
-    const created = createTeam(team.map((pokemon) => pokemon.id));
+    const created = createTeam(team);
     navigate({ to: "/team/$teamId", params: { teamId: created.id } });
   }
 
@@ -43,8 +44,8 @@ export function SharedTeam({ pokemonIds }: { pokemonIds: number[] }) {
     <section className="flex flex-col gap-5">
       <h1 className="text-3xl font-bold">Check out this party!</h1>
       <ul className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-        {team.map((pokemon) => (
-          <SharedPokemon key={pokemon.id} pokemon={pokemon} />
+        {team.map((member) => (
+          <SharedPokemon key={member.pokemonId} member={member} />
         ))}
       </ul>
       <button

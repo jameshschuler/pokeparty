@@ -6,7 +6,7 @@ import { ShareActions } from "../share/ShareActions";
 import { TraySlot } from "./TraySlot";
 
 export function TeamTray() {
-  const { pokemonIds } = useTeamBuilderContext();
+  const { members } = useTeamBuilderContext();
 
   return (
     <aside
@@ -16,13 +16,13 @@ export function TeamTray() {
       <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3">
         <ul className="grid grid-cols-6 gap-2">
           {Array.from({ length: TEAM_SIZE }, (_, index) => {
-            const id = pokemonIds[index];
+            const member = members[index];
             return (
-              <li key={id ?? `empty-${index}`}>
-                {id === undefined ? (
+              <li key={member?.pokemonId ?? `empty-${index}`}>
+                {member === undefined ? (
                   <div className="aspect-square w-full rounded-full border-[3px] border-dashed border-white/70" />
                 ) : (
-                  <TraySlot pokemonId={id} />
+                  <TraySlot member={member} />
                 )}
               </li>
             );
@@ -30,10 +30,10 @@ export function TeamTray() {
         </ul>
         <div className="flex items-center justify-between gap-2">
           <span className="text-lg font-bold text-white [text-shadow:1px_1px_0_var(--color-ink)]">
-            {pokemonIds.length}/{TEAM_SIZE}
+            {members.length}/{TEAM_SIZE}
           </span>
           <div className="flex items-center gap-2">
-            <ShareActions pokemonIds={pokemonIds} />
+            <ShareActions members={members} />
             <Link
               to="/"
               className="border-ink shadow-sticker-sm flex min-h-11 items-center gap-1.5 rounded-full border-[3px] bg-white px-4 font-semibold transition active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"

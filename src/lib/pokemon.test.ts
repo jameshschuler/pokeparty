@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   compareDexOrder,
   filterPokemon,
+  formatMemberName,
   formatPokemonName,
   formatPokemonNumber,
   isValidPokemonId,
@@ -32,7 +33,11 @@ describe("isValidPokemonId", () => {
 
 describe("spriteUrl", () => {
   it("points at the official artwork for the id", () => {
-    expect(spriteUrl(10176)).toMatch(/official-artwork\/10176\.png$/);
+    expect(spriteUrl(10176, false)).toMatch(/official-artwork\/10176\.png$/);
+  });
+
+  it("points at the shiny artwork for shiny Pokémon", () => {
+    expect(spriteUrl(25, true)).toMatch(/official-artwork\/shiny\/25\.png$/);
   });
 });
 
@@ -89,6 +94,16 @@ describe("pokemonNameParts", () => {
     ],
   ])("%s -> %o", (name, expected) => {
     expect(pokemonNameParts(name)).toEqual(expected);
+  });
+});
+
+describe("formatMemberName", () => {
+  it.each([
+    ["charmander", false, "Charmander"],
+    ["charmander", true, "shiny Charmander"],
+    ["darumaka-galar", true, "shiny Galarian Darumaka"],
+  ])("%s shiny=%s -> %s", (name, shiny, expected) => {
+    expect(formatMemberName(name, shiny)).toBe(expected);
   });
 });
 

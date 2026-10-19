@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { loadTeams } from "../../lib/team-storage";
 import { mockPokemonList, renderApp } from "../../test/renderApp";
+import { regularMembers } from "../../test/members";
 
 describe("shared team", () => {
   beforeEach(() => {
@@ -26,7 +27,7 @@ describe("shared team", () => {
     await user.click(button);
 
     const [team] = loadTeams();
-    expect(team.pokemonIds).toEqual([1, 4]);
+    expect(team.members).toEqual(regularMembers(1, 4));
     await waitFor(() =>
       expect(router.state.location.pathname).toBe(`/team/${team.id}`),
     );
@@ -61,7 +62,27 @@ describe("shared team", () => {
     });
     await user.click(button);
 
-    expect(loadTeams()[0].pokemonIds).toEqual([1]);
+    expect(loadTeams()[0].members).toEqual(regularMembers(1));
+  });
+
+  it("shows and remixes shiny members", async () => {
+    const user = userEvent.setup();
+    const router = renderApp("/share?team=1s,4");
+
+    const remix = await screen.findByRole("button", {
+      name: "Remix this team",
+    });
+    expect(screen.getAllByText("Shiny")).toHaveLength(1);
+    await user.click(remix);
+
+    const [team] = loadTeams();
+    expect(team.members).toEqual([
+      { pokemonId: 1, shiny: true },
+      { pokemonId: 4, shiny: false },
+    ]);
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe(`/team/${team.id}`),
+    );
   });
 
   it("reads a single-Pokémon link", async () => {

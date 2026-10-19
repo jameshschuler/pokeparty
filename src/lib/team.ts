@@ -1,32 +1,45 @@
-import type { Team } from "../types/team";
+import type { Team, TeamMember } from "../types/team";
 
 export const TEAM_SIZE = 6;
 
-export function isTeamFull(pokemonIds: number[]): boolean {
-  return pokemonIds.length >= TEAM_SIZE;
+export const NEW_TEAM_ID = "new";
+
+export function hasPokemon(members: TeamMember[], pokemonId: number): boolean {
+  return members.some((member) => member.pokemonId === pokemonId);
 }
 
-export function addPokemon(pokemonIds: number[], pokemonId: number): number[] {
-  if (pokemonIds.includes(pokemonId) || isTeamFull(pokemonIds)) {
-    return pokemonIds;
+export function isTeamFull(members: TeamMember[]): boolean {
+  return members.length >= TEAM_SIZE;
+}
+
+export function addPokemon(
+  members: TeamMember[],
+  pokemonId: number,
+): TeamMember[] {
+  if (hasPokemon(members, pokemonId) || isTeamFull(members)) {
+    return members;
   }
-  return [...pokemonIds, pokemonId];
+  return [...members, { pokemonId, shiny: false }];
 }
 
 export function removePokemon(
-  pokemonIds: number[],
+  members: TeamMember[],
   pokemonId: number,
-): number[] {
-  return pokemonIds.filter((id) => id !== pokemonId);
+): TeamMember[] {
+  return members.filter((member) => member.pokemonId !== pokemonId);
 }
 
-export function createTeam(pokemonIds: number[], now: number): Team {
-  return {
-    id: crypto.randomUUID(),
-    pokemonIds,
-    createdAt: now,
-    updatedAt: now,
-  };
+export function toggleShiny(
+  members: TeamMember[],
+  pokemonId: number,
+): TeamMember[] {
+  return members.map((member) =>
+    member.pokemonId === pokemonId
+      ? { ...member, shiny: !member.shiny }
+      : member,
+  );
 }
 
-export const NEW_TEAM_ID = "new";
+export function createTeam(members: TeamMember[], now: number): Team {
+  return { id: crypto.randomUUID(), members, createdAt: now, updatedAt: now };
+}

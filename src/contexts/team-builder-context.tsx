@@ -2,17 +2,21 @@ import { useNavigate } from "@tanstack/react-router";
 import { createContext, useContext, useState, type ReactNode } from "react";
 import {
   addPokemon,
+  hasPokemon,
   isTeamFull,
   NEW_TEAM_ID,
   removePokemon,
+  toggleShiny,
 } from "../lib/team";
 import type { PokemonType } from "../types/pokemon";
+import type { TeamMember } from "../types/team";
 import { useTeamsContext } from "./teams-context";
 import { useToastContext } from "./toast-context";
 
 export type TeamBuilderContextValue = {
-  pokemonIds: number[];
+  members: TeamMember[];
   togglePokemon: (pokemonId: number) => void;
+  toggleShinyPokemon: (pokemonId: number) => void;
   query: string;
   setQuery: (query: string) => void;
   type: PokemonType | null;
@@ -38,14 +42,14 @@ export function TeamBuilderProvider({
   const [createdTeamId, setCreatedTeamId] = useState<string | null>(null);
   const activeTeamId = teamId === NEW_TEAM_ID ? createdTeamId : teamId;
   const team = teams.find((entry) => entry.id === activeTeamId);
-  const pokemonIds = team?.pokemonIds ?? [];
+  const members = team?.members ?? [];
 
-  function saveTeam(nextIds: number[]) {
+  function saveTeam(nextMembers: TeamMember[]) {
     if (team) {
-      updateTeam(team.id, nextIds);
+      updateTeam(team.id, nextMembers);
       return;
     }
-    const created = createTeam(nextIds);
+    const created = createTeam(nextMembers);
     setCreatedTeamId(created.id);
     navigate({
       to: "/team/$teamId",
@@ -55,22 +59,27 @@ export function TeamBuilderProvider({
   }
 
   function togglePokemon(pokemonId: number) {
-    if (pokemonIds.includes(pokemonId)) {
-      saveTeam(removePokemon(pokemonIds, pokemonId));
+    if (hasPokemon(members, pokemonId)) {
+      saveTeam(removePokemon(members, pokemonId));
       return;
     }
-    if (isTeamFull(pokemonIds)) {
+    if (isTeamFull(members)) {
       showToast("Party's full! Remove one first.");
       return;
     }
-    saveTeam(addPokemon(pokemonIds, pokemonId));
+    saveTeam(addPokemon(members, pokemonId));
+  }
+
+  function toggleShinyPokemon(pokemonId: number) {
+    saveTeam(toggleShiny(members, pokemonId));
   }
 
   return (
     <TeamBuilderContext
       value={{
-        pokemonIds,
+        members,
         togglePokemon,
+        toggleShinyPokemon,
         query,
         setQuery,
         type,

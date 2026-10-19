@@ -17,10 +17,10 @@ export function TeamListItem({ team }: { team: Team }) {
       <Link
         to="/team/$teamId"
         params={{ teamId: team.id }}
-        aria-label={`Edit team with ${team.pokemonIds.length} Pokémon`}
+        aria-label={`Edit team with ${team.members.length} Pokémon`}
         className="block"
       >
-        <TeamSlots pokemonIds={team.pokemonIds} />
+        <TeamSlots members={team.members} />
       </Link>
       <div className="mt-3">
         {confirmingDelete ? (
@@ -31,10 +31,10 @@ export function TeamListItem({ team }: { team: Team }) {
         ) : (
           <div className="flex items-center justify-between gap-2">
             <span className="font-semibold">
-              {team.pokemonIds.length}/{TEAM_SIZE}
+              {team.members.length}/{TEAM_SIZE}
             </span>
             <div className="flex items-center gap-2">
-              <ShareActions pokemonIds={team.pokemonIds} />
+              <ShareActions members={team.members} />
               <button
                 type="button"
                 onClick={() => setConfirmingDelete(true)}

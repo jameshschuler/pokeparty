@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { loadTeams, saveTeams } from "../../lib/team-storage";
 import { mockPokemonList, renderApp } from "../../test/renderApp";
+import { regularMembers } from "../../test/members";
 
 describe("team builder", () => {
   beforeEach(() => {
@@ -17,7 +18,7 @@ describe("team builder", () => {
     await user.click(button);
 
     const [team] = loadTeams();
-    expect(team.pokemonIds).toEqual([1]);
+    expect(team.members).toEqual(regularMembers(1));
     await waitFor(() =>
       expect(router.state.location.pathname).toBe(`/team/${team.id}`),
     );
@@ -34,7 +35,7 @@ describe("team builder", () => {
 
     const teams = loadTeams();
     expect(teams).toHaveLength(1);
-    expect(teams[0].pokemonIds).toEqual([1, 4]);
+    expect(teams[0].members).toEqual(regularMembers(1, 4));
   });
 
   it("keeps the search and type filter after the first pick", async () => {
@@ -56,7 +57,12 @@ describe("team builder", () => {
 
   it("shows a toast instead of adding a seventh Pokémon", async () => {
     saveTeams([
-      { id: "t1", pokemonIds: [1, 2, 3, 4, 5, 6], createdAt: 1, updatedAt: 1 },
+      {
+        id: "t1",
+        members: regularMembers(1, 2, 3, 4, 5, 6),
+        createdAt: 1,
+        updatedAt: 1,
+      },
     ]);
     const user = userEvent.setup();
     renderApp("/team/t1");
@@ -65,7 +71,7 @@ describe("team builder", () => {
     await user.click(button);
 
     expect(screen.getByRole("status")).toHaveTextContent("Party's full!");
-    expect(loadTeams()[0].pokemonIds).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(loadTeams()[0].members).toEqual(regularMembers(1, 2, 3, 4, 5, 6));
   });
 
   it.each([
@@ -75,7 +81,9 @@ describe("team builder", () => {
       () => screen.getByRole("complementary", { name: "Your team" }),
     ],
   ])("removes a Pokémon from %s", async (_, getContainer) => {
-    saveTeams([{ id: "t1", pokemonIds: [1, 4], createdAt: 1, updatedAt: 1 }]);
+    saveTeams([
+      { id: "t1", members: regularMembers(1, 4), createdAt: 1, updatedAt: 1 },
+    ]);
     const user = userEvent.setup();
     renderApp("/team/t1");
     await screen.findByRole("button", { name: "Add Squirtle" });
@@ -84,7 +92,43 @@ describe("team builder", () => {
       within(getContainer()).getByRole("button", { name: "Remove Charmander" }),
     );
 
-    expect(loadTeams()[0].pokemonIds).toEqual([1]);
+    expect(loadTeams()[0].members).toEqual(regularMembers(1));
+  });
+
+  it("makes a team member shiny and back", async () => {
+    saveTeams([
+      { id: "t1", members: regularMembers(4), createdAt: 1, updatedAt: 1 },
+    ]);
+    const user = userEvent.setup();
+    renderApp("/team/t1");
+
+    const shinyToggle = await screen.findByRole("button", {
+      name: "Shiny Charmander",
+    });
+    await user.click(shinyToggle);
+
+    expect(shinyToggle).toHaveAttribute("aria-pressed", "true");
+    expect(loadTeams()[0].members).toEqual([{ pokemonId: 4, shiny: true }]);
+    expect(
+      screen.getAllByRole("button", { name: "Remove shiny Charmander" }),
+    ).toHaveLength(2);
+
+    await user.click(shinyToggle);
+
+    expect(loadTeams()[0].members).toEqual(regularMembers(4));
+  });
+
+  it("only offers shiny for Pokémon on the team", async () => {
+    saveTeams([
+      { id: "t1", members: regularMembers(4), createdAt: 1, updatedAt: 1 },
+    ]);
+    renderApp("/team/t1");
+
+    await screen.findByRole("button", { name: "Shiny Charmander" });
+
+    expect(
+      screen.queryByRole("button", { name: "Shiny Bulbasaur" }),
+    ).not.toBeInTheDocument();
   });
 
   it("lists a regional form right after its species", async () => {

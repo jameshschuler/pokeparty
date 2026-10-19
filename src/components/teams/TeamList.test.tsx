@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadTeams, saveTeams } from "../../lib/team-storage";
 import { mockPokemonList, renderApp } from "../../test/renderApp";
+import { regularMembers } from "../../test/members";
 
 describe("my teams", () => {
   beforeEach(() => {
@@ -33,7 +34,9 @@ describe("my teams", () => {
   });
 
   it("keeps working and warns when storage can't be written", async () => {
-    saveTeams([{ id: "t1", pokemonIds: [1], createdAt: 1, updatedAt: 1 }]);
+    saveTeams([
+      { id: "t1", members: regularMembers(1), createdAt: 1, updatedAt: 1 },
+    ]);
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new DOMException("full", "QuotaExceededError");
     });
@@ -52,7 +55,9 @@ describe("my teams", () => {
     renderApp("/");
     await screen.findByText("No teams yet");
 
-    saveTeams([{ id: "t1", pokemonIds: [1], createdAt: 1, updatedAt: 1 }]);
+    saveTeams([
+      { id: "t1", members: regularMembers(1), createdAt: 1, updatedAt: 1 },
+    ]);
     window.dispatchEvent(
       new StorageEvent("storage", { key: "pokeparty:teams" }),
     );
@@ -64,8 +69,13 @@ describe("my teams", () => {
 
   it("lists saved teams, most recently edited first", async () => {
     saveTeams([
-      { id: "old", pokemonIds: [1], createdAt: 1, updatedAt: 1 },
-      { id: "new", pokemonIds: [1, 4, 7], createdAt: 2, updatedAt: 5 },
+      { id: "old", members: regularMembers(1), createdAt: 1, updatedAt: 1 },
+      {
+        id: "new",
+        members: regularMembers(1, 4, 7),
+        createdAt: 2,
+        updatedAt: 5,
+      },
     ]);
     renderApp("/");
 
@@ -77,7 +87,9 @@ describe("my teams", () => {
   });
 
   it("deletes a team after confirming", async () => {
-    saveTeams([{ id: "t1", pokemonIds: [1], createdAt: 1, updatedAt: 1 }]);
+    saveTeams([
+      { id: "t1", members: regularMembers(1), createdAt: 1, updatedAt: 1 },
+    ]);
     const user = userEvent.setup();
     renderApp("/");
 
@@ -92,7 +104,9 @@ describe("my teams", () => {
   });
 
   it("keeps the team when delete is cancelled", async () => {
-    saveTeams([{ id: "t1", pokemonIds: [1], createdAt: 1, updatedAt: 1 }]);
+    saveTeams([
+      { id: "t1", members: regularMembers(1), createdAt: 1, updatedAt: 1 },
+    ]);
     const user = userEvent.setup();
     renderApp("/");
 
@@ -108,7 +122,9 @@ describe("my teams", () => {
   });
 
   it("copies the share link", async () => {
-    saveTeams([{ id: "t1", pokemonIds: [25, 6], createdAt: 1, updatedAt: 1 }]);
+    saveTeams([
+      { id: "t1", members: regularMembers(25, 6), createdAt: 1, updatedAt: 1 },
+    ]);
     const user = userEvent.setup();
     renderApp("/");
 
@@ -123,8 +139,33 @@ describe("my teams", () => {
     );
   });
 
+  it("marks shiny members in the copied link", async () => {
+    saveTeams([
+      {
+        id: "t1",
+        members: [
+          { pokemonId: 25, shiny: true },
+          { pokemonId: 6, shiny: false },
+        ],
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    ]);
+    const user = userEvent.setup();
+    renderApp("/");
+
+    const button = await screen.findByRole("button", { name: "Copy link" });
+    await user.click(button);
+
+    await expect(navigator.clipboard.readText()).resolves.toBe(
+      `${window.location.origin}/share?team=25s,6`,
+    );
+  });
+
   it("hides the native share button when the browser has none", async () => {
-    saveTeams([{ id: "t1", pokemonIds: [25], createdAt: 1, updatedAt: 1 }]);
+    saveTeams([
+      { id: "t1", members: regularMembers(25), createdAt: 1, updatedAt: 1 },
+    ]);
     renderApp("/");
 
     await screen.findByRole("button", { name: "Copy link" });
@@ -152,7 +193,12 @@ describe("my teams", () => {
     it("opens the share sheet with the team link", async () => {
       share.mockResolvedValue(undefined);
       saveTeams([
-        { id: "t1", pokemonIds: [25, 6], createdAt: 1, updatedAt: 1 },
+        {
+          id: "t1",
+          members: regularMembers(25, 6),
+          createdAt: 1,
+          updatedAt: 1,
+        },
       ]);
       const user = userEvent.setup();
       renderApp("/");
@@ -169,7 +215,9 @@ describe("my teams", () => {
 
     it("stays quiet when the user cancels the share sheet", async () => {
       share.mockRejectedValue(new DOMException("cancelled", "AbortError"));
-      saveTeams([{ id: "t1", pokemonIds: [25], createdAt: 1, updatedAt: 1 }]);
+      saveTeams([
+        { id: "t1", members: regularMembers(25), createdAt: 1, updatedAt: 1 },
+      ]);
       const user = userEvent.setup();
       renderApp("/");
 

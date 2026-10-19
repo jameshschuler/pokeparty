@@ -2,14 +2,20 @@ import { spriteUrl } from "../../lib/pokemon";
 
 type PokemonSpriteProps = {
   id: number;
+  shiny: boolean;
   alt: string;
   className?: string;
 };
 
-export function PokemonSprite({ id, alt, className = "" }: PokemonSpriteProps) {
+export function PokemonSprite({
+  id,
+  shiny,
+  alt,
+  className = "",
+}: PokemonSpriteProps) {
   return (
     <img
-      src={spriteUrl(id)}
+      src={spriteUrl(id, shiny)}
       alt={alt}
       loading="lazy"
       decoding="async"

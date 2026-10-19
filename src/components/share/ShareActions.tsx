@@ -1,11 +1,12 @@
+import type { TeamMember } from "../../types/team";
 import { CopyLinkButton } from "./CopyLinkButton";
 import { ShareButton } from "./ShareButton";
 
-export function ShareActions({ pokemonIds }: { pokemonIds: number[] }) {
+export function ShareActions({ members }: { members: TeamMember[] }) {
   return (
     <>
-      <CopyLinkButton pokemonIds={pokemonIds} />
-      <ShareButton pokemonIds={pokemonIds} />
+      <CopyLinkButton members={members} />
+      <ShareButton members={members} />
     </>
   );
 }
