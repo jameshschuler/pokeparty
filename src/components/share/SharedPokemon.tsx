@@ -7,6 +7,7 @@ import { ShinyBadge } from "../pokemon/ShinyBadge";
 
 export function SharedPokemon({ member }: { member: TeamMember }) {
   const pokemon = findPokemon(member.pokemonId);
+
   if (!pokemon) {
     return null;
   }

@@ -30,6 +30,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       return;
     }
     const timeout = setTimeout(() => setToast(null), TOAST_DURATION_MS);
+
     return () => clearTimeout(timeout);
   }, [toast]);
 
@@ -38,8 +39,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 export function useToastContext(): ToastContextValue {
   const context = useContext(ToastContext);
+
   if (!context) {
     throw new Error("useToastContext must be used inside ToastProvider");
   }
+
   return context;
 }

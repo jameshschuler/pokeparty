@@ -6,5 +6,6 @@ export function validateSiteUrl(value: string | undefined): string {
       `VITE_SITE_URL must be an absolute http(s) URL without a trailing slash, got "${value ?? ""}".`,
     );
   }
+
   return value;
 }

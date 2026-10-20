@@ -40,15 +40,18 @@ export function compareDexOrder(a: PokemonSummary, b: PokemonSummary): number {
 
 export function matchesSearch(pokemon: PokemonSummary, query: string): boolean {
   const normalized = query.trim().toLowerCase().replace(/^#/, "");
+
   if (!normalized) {
     return true;
   }
+
   if (/^\d+$/.test(normalized)) {
     return (
       formatPokemonNumber(pokemon.speciesId).slice(1).startsWith(normalized) ||
       String(pokemon.speciesId).startsWith(String(Number(normalized)))
     );
   }
+
   return pokemon.searchText.includes(normalized.replaceAll("-", " "));
 }
 

@@ -31,6 +31,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
       }
     }
     window.addEventListener("storage", handleStorage);
+
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
@@ -49,6 +50,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
       createTeam: (members) => {
         const team = createTeam(members, Date.now());
         commit([team, ...teams]);
+
         return team;
       },
       updateTeam: (teamId, members) => {
@@ -71,8 +73,10 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
 
 export function useTeamsContext(): TeamsContextValue {
   const context = useContext(TeamsContext);
+
   if (!context) {
     throw new Error("useTeamsContext must be used inside TeamsProvider");
   }
+
   return context;
 }

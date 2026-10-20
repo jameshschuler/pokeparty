@@ -8,6 +8,7 @@ export function TeamSlots({ members }: { members: TeamMember[] }) {
     <ul className="grid grid-cols-6 gap-1.5">
       {Array.from({ length: TEAM_SIZE }, (_, index) => {
         const member = members[index];
+
         return (
           <li
             key={member?.pokemonId ?? `empty-${index}`}

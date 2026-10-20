@@ -20,6 +20,7 @@ export function addPokemon(
   if (hasPokemon(members, pokemonId) || isTeamFull(members)) {
     return members;
   }
+
   return [...members, { pokemonId, shiny }];
 }
 

@@ -22,6 +22,7 @@ function range(length: number, offset = 0) {
 
 function PagedList({ items }: { items: number[] }) {
   const { visibleItems, sentinelRef } = usePagedItems(items);
+
   return (
     <>
       <p data-testid="count">{visibleItems.length}</p>

@@ -25,6 +25,7 @@ function summary(
     legendary: false,
     ...overrides,
   };
+
   return {
     ...entry,
     searchText: buildSearchText(entry.name, formatPokemonLabel(entry)),

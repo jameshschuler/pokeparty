@@ -9,6 +9,7 @@ export default defineConfig(({ command, mode }) => {
   if (command === "build") {
     validateSiteUrl(loadEnv(mode, process.cwd(), "VITE_").VITE_SITE_URL);
   }
+
   return {
     plugins: [
       tanstackRouter({ target: "react", autoCodeSplitting: true }),

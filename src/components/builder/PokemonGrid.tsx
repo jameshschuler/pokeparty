@@ -24,6 +24,7 @@ export function PokemonGrid() {
   if (type && typeIds.isPending) {
     return <GridMessage>Loading Pokémon…</GridMessage>;
   }
+
   if (typeIds.isError) {
     return (
       <GridMessage>
@@ -31,8 +32,10 @@ export function PokemonGrid() {
       </GridMessage>
     );
   }
+
   if (results.length === 0) {
     return <GridMessage>No Pokémon match that search.</GridMessage>;
   }
+
   return <PagedPokemonGrid results={results} />;
 }

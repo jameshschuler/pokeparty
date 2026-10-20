@@ -13,5 +13,6 @@ export const Route = createFileRoute("/share")({
 function ShareRoute() {
   const { team } = Route.useSearch();
   const members = useMemo(() => parseSharedTeam(team), [team]);
+
   return <SharedTeam members={members} />;
 }
