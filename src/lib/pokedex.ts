@@ -46,6 +46,7 @@ export function buildPokedex(data: PokedexData): PokemonSummary[] {
     ...form,
     legendary: legendarySpecies.has(form.speciesId),
   }));
+
   return [...species, ...forms].map(withSearchText).sort(compareDexOrder);
 }
 
@@ -56,3 +57,7 @@ const POKEDEX_BY_ID = new Map(POKEDEX.map((pokemon) => [pokemon.id, pokemon]));
 export function findPokemon(id: number): PokemonSummary | undefined {
   return POKEDEX_BY_ID.get(id);
 }
+
+export const SPECIES = POKEDEX.filter(
+  (pokemon) => pokemon.id === pokemon.speciesId,
+);

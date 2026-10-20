@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPokedex, findPokemon, POKEDEX } from "./pokedex";
+import { buildPokedex, findPokemon, POKEDEX, SPECIES } from "./pokedex";
 
 describe("buildPokedex", () => {
   const pokedex = buildPokedex({
@@ -109,5 +109,15 @@ describe("POKEDEX", () => {
     [1025, "paldea"],
   ])("puts %s in %s", (id, region) => {
     expect(findPokemon(id)?.region).toBe(region);
+  });
+});
+
+describe("SPECIES", () => {
+  it("has each of the 1,025 species once and no forms", () => {
+    expect(SPECIES).toHaveLength(1025);
+    expect(SPECIES.every((pokemon) => pokemon.id === pokemon.speciesId)).toBe(
+      true,
+    );
+    expect(SPECIES.some((pokemon) => pokemon.id === 10007)).toBe(false);
   });
 });
