@@ -1,9 +1,10 @@
 import { Crown } from "lucide-react";
 import { useTeamBuilderContext } from "../../contexts/team-builder-context";
+import { REGION_LABELS } from "../../lib/regions";
 import { REGIONS } from "../../types/pokemon";
-import { ChipList } from "./ChipList";
-import { ChipRow } from "./ChipRow";
-import { FilterChip } from "./FilterChip";
+import { ChipList } from "../shared/ChipList";
+import { ChipRow } from "../shared/ChipRow";
+import { FilterChip } from "../shared/FilterChip";
 
 export function RegionFilter() {
   const { region, setRegion, legendaryOnly, setLegendaryOnly } =
@@ -31,7 +32,7 @@ export function RegionFilter() {
               selectedClassName="bg-primary text-white"
               onClick={() => setRegion(option === region ? null : option)}
             >
-              {option}
+              {REGION_LABELS[option]}
             </FilterChip>
           </li>
         ))}

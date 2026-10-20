@@ -1,15 +1,8 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { useStoredList } from "../hooks/useStoredList";
 import { createTeam } from "../lib/team";
 import { loadTeams, saveTeams, TEAMS_STORAGE_KEY } from "../lib/team-storage";
 import type { Team, TeamMember } from "../types/team";
-import { useToastContext } from "./toast-context";
 
 export type TeamsContextValue = {
   teams: Team[];
@@ -21,30 +14,14 @@ export type TeamsContextValue = {
 const TeamsContext = createContext<TeamsContextValue | null>(null);
 
 export function TeamsProvider({ children }: { children: ReactNode }) {
-  const { showToast } = useToastContext();
-  const [teams, setTeams] = useState<Team[]>(loadTeams);
-
-  useEffect(() => {
-    function handleStorage(event: StorageEvent) {
-      if (event.key === TEAMS_STORAGE_KEY || event.key === null) {
-        setTeams(loadTeams());
-      }
-    }
-    window.addEventListener("storage", handleStorage);
-
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
+  const [teams, commit] = useStoredList({
+    key: TEAMS_STORAGE_KEY,
+    load: loadTeams,
+    save: saveTeams,
+    saveErrorMessage: "Couldn't save. Your browser storage is full or blocked.",
+  });
 
   const value = useMemo<TeamsContextValue>(() => {
-    function commit(nextTeams: Team[]) {
-      setTeams(nextTeams);
-      try {
-        saveTeams(nextTeams);
-      } catch {
-        showToast("Couldn't save. Your browser storage is full or blocked.");
-      }
-    }
-
     return {
       teams,
       createTeam: (members) => {
@@ -66,7 +43,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
         commit(teams.filter((team) => team.id !== teamId));
       },
     };
-  }, [teams, showToast]);
+  }, [teams, commit]);
 
   return <TeamsContext value={value}>{children}</TeamsContext>;
 }

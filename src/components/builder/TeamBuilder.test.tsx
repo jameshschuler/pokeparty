@@ -170,11 +170,11 @@ describe("team builder", () => {
 
     const searchInput = await screen.findByLabelText("Search Pokémon");
     await user.type(searchInput, "darumaka");
-    await user.click(screen.getByRole("button", { name: "galar" }));
+    await user.click(screen.getByRole("button", { name: "Galar" }));
 
     expect(gridLabels()).toEqual(["Add Galarian Darumaka"]);
 
-    await user.click(screen.getByRole("button", { name: "unova" }));
+    await user.click(screen.getByRole("button", { name: "Unova" }));
 
     expect(gridLabels()).toEqual(["Add Darumaka"]);
   });
