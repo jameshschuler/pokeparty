@@ -11,6 +11,7 @@ import {
   answerRound,
   createRng,
   holdRound,
+  isRoundOver,
   FEEDBACK_MS,
   nextQuestion,
   releaseRound,
@@ -50,7 +51,7 @@ export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
     startRound(SPECIES, rng, seconds, Date.now()),
   );
   const [checkedAt, setCheckedAt] = useState(Date.now);
-  const finished = remainingMs(round.clock, checkedAt) === 0;
+  const finished = isRoundOver(round, checkedAt);
   const waiting = !round.shown;
 
   useEffect(() => {

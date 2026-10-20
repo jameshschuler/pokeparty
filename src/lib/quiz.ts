@@ -21,6 +21,8 @@ export const CHOICE_COUNT = 4;
 
 export const FEEDBACK_MS = 300;
 
+export const WRONG_ANSWER_PENALTY_MS = 2000;
+
 export const CLOCK_TICK_MS = 100;
 
 export type Rng = () => number;
@@ -52,6 +54,7 @@ export type QuizRound = {
   clock: RoundClock;
   shown: boolean;
   onHold: boolean;
+  penaltyMs: number;
 };
 
 export function isRoundSeconds(value: number): value is RoundSeconds {
@@ -259,6 +262,7 @@ export function startRound(
     clock: startClock(seconds, now),
     shown: false,
     onHold: false,
+    penaltyMs: 0,
   };
 }
 
@@ -292,10 +296,33 @@ export function answerRound(
     return round;
   }
 
-  return settleClock(
+  const answered = settleClock(
     { ...round, quiz: answerQuestion(round.quiz, pickedId) },
     now,
   );
+
+  if (pickedId === round.quiz.current.answer.id) {
+    return answered;
+  }
+
+  const penaltyMs = Math.min(
+    WRONG_ANSWER_PENALTY_MS,
+    remainingMs(answered.clock, now),
+  );
+
+  return {
+    ...answered,
+    clock: { ...answered.clock, endsAt: answered.clock.endsAt - penaltyMs },
+    penaltyMs,
+  };
+}
+
+export function isRoundOver(round: QuizRound, now: number): boolean {
+  return remainingMs(round.clock, now) === 0 && round.quiz.pickedId === null;
+}
+
+export function formatPenalty(penaltyMs: number): string {
+  return `−${Number((penaltyMs / 1000).toFixed(1))}s`;
 }
 
 export function showQuestion(round: QuizRound, now: number): QuizRound {
@@ -313,7 +340,12 @@ export function nextQuestion(
   now: number,
 ): QuizRound {
   return settleClock(
-    { ...round, quiz: advanceQuestion(round.quiz, pool, rng), shown: false },
+    {
+      ...round,
+      quiz: advanceQuestion(round.quiz, pool, rng),
+      shown: false,
+      penaltyMs: 0,
+    },
     now,
   );
 }

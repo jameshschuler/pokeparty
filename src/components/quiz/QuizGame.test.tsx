@@ -266,6 +266,75 @@ describe("quiz game", () => {
     ).toBe(false);
   });
 
+  it("drains the clock when wrong answers are spammed", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/quiz/play?seconds=30");
+    await showQuestion();
+
+    for (let guess = 0; guess < 5; guess++) {
+      const answer = currentAnswerLabel();
+      const wrong = choiceButtons().find(
+        (button) => button.textContent !== answer,
+      )!;
+      fireEvent.click(wrong);
+      act(() => vi.advanceTimersByTime(FEEDBACK_MS));
+      await showQuestion();
+    }
+    act(() => vi.advanceTimersByTime(100));
+    const secondsLeft = Number(
+      screen
+        .getByRole("timer", { name: "Time left" })
+        .textContent!.replace("s", ""),
+    );
+
+    expect(secondsLeft).toBeLessThanOrEqual(20);
+    expect(secondsLeft).toBeGreaterThanOrEqual(18);
+  });
+
+  it("shows the time lost after a wrong answer only", async () => {
+    renderApp("/quiz/play?seconds=30");
+    await showQuestion();
+    const answer = currentAnswerLabel();
+
+    fireEvent.click(
+      choiceButtons().find((button) => button.textContent !== answer)!,
+    );
+
+    expect(screen.getByText("−2s")).toBeInTheDocument();
+  });
+
+  it("shows the reveal before ending a round a wrong answer runs out", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/quiz/play?seconds=30");
+    await showQuestion();
+    act(() => vi.advanceTimersByTime(28_500));
+    const answer = currentAnswerLabel();
+
+    fireEvent.click(
+      choiceButtons().find((button) => button.textContent !== answer)!,
+    );
+
+    expect(screen.getByText(`It's ${answer}!`)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Time's up!" }),
+    ).not.toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(FEEDBACK_MS));
+
+    expect(
+      screen.getByRole("heading", { name: "Time's up!" }),
+    ).toBeInTheDocument();
+  });
+
+  it("doesn't show a time loss after a right answer", async () => {
+    renderApp("/quiz/play?seconds=30");
+    await showQuestion();
+
+    fireEvent.click(screen.getByRole("button", { name: currentAnswerLabel() }));
+
+    expect(screen.queryByText("−2s")).not.toBeInTheDocument();
+  });
+
   it("counts a wrong answer and doesn't allow a second guess", async () => {
     renderApp("/quiz/play?seconds=30");
     await showQuestion();

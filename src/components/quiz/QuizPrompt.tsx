@@ -2,7 +2,7 @@ import { SkipForward } from "lucide-react";
 import { useState } from "react";
 import { useQuizContext } from "../../contexts/quiz-context";
 import { formatPokemonLabel } from "../../lib/pokemon";
-import { isPokemonHidden } from "../../lib/quiz";
+import { formatPenalty, isPokemonHidden } from "../../lib/quiz";
 import { PokemonSprite } from "../pokemon/PokemonSprite";
 import { PILL_BUTTON } from "../shared/button-styles";
 
@@ -34,8 +34,14 @@ export function QuizPrompt() {
           onError={() => setFailed(true)}
         />
       )}
-      <p className="h-8 text-xl font-bold" aria-live="polite">
-        {revealed ? `It's ${formatPokemonLabel(answer)}!` : ""}
+      <p
+        className="flex min-h-8 flex-wrap items-center justify-center gap-x-2 text-center text-xl font-bold"
+        aria-live="polite"
+      >
+        {revealed && <span>It's {formatPokemonLabel(answer)}!</span>}
+        {round.penaltyMs > 0 && (
+          <span className="text-wrong">{formatPenalty(round.penaltyMs)}</span>
+        )}
       </p>
     </div>
   );
