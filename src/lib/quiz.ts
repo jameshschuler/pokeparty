@@ -1,4 +1,6 @@
-import type { PokemonSummary } from "../types/pokemon";
+import { REGIONS, type PokemonSummary } from "../types/pokemon";
+import { formatPokemonLabel } from "./pokemon";
+import { confusableRegion, REGION_LABELS } from "./regions";
 
 export const ROUND_SECONDS = [30, 60, 90] as const;
 
@@ -6,11 +8,27 @@ export type RoundSeconds = (typeof ROUND_SECONDS)[number];
 
 export const DEFAULT_ROUND_SECONDS: RoundSeconds = 60;
 
-export const QUIZ_MODES = ["sprite", "silhouette"] as const;
+export const QUIZ_MODES = ["sprite", "silhouette", "region"] as const;
 
 export type QuizMode = (typeof QUIZ_MODES)[number];
 
 export const DEFAULT_QUIZ_MODE: QuizMode = "sprite";
+
+type QuizModeRules = {
+  choices: "names" | "regions";
+  hidesPokemon: boolean;
+  usesRegionalForms: boolean;
+};
+
+export const QUIZ_MODE_RULES: Record<QuizMode, QuizModeRules> = {
+  sprite: { choices: "names", hidesPokemon: false, usesRegionalForms: false },
+  silhouette: {
+    choices: "names",
+    hidesPokemon: true,
+    usesRegionalForms: false,
+  },
+  region: { choices: "regions", hidesPokemon: false, usesRegionalForms: true },
+};
 
 export type QuizSettings = {
   mode: QuizMode;
@@ -27,17 +45,25 @@ export const CLOCK_TICK_MS = 100;
 
 export type Rng = () => number;
 
+export type QuizChoice = {
+  key: string;
+  label: string;
+};
+
 export type QuizQuestion = {
   answer: PokemonSummary;
-  choices: PokemonSummary[];
+  answerKey: string;
+  choices: QuizChoice[];
 };
 
 export type QuizState = {
+  mode: QuizMode;
+  pool: PokemonSummary[];
   current: QuizQuestion;
   upcoming: QuizQuestion;
   deck: PokemonSummary[];
   deckIndex: number;
-  pickedId: number | null;
+  pickedKey: string | null;
   correct: number;
   wrong: number;
   streak: number;
@@ -75,8 +101,8 @@ export function parseQuizModeSearch(search: Record<string, unknown>): {
   return { mode: parseQuizMode(search.mode) };
 }
 
-export function isPokemonHidden(mode: QuizMode, revealed: boolean): boolean {
-  return mode === "silhouette" && !revealed;
+export function isPokemonHidden(state: QuizState): boolean {
+  return QUIZ_MODE_RULES[state.mode].hidesPokemon && state.pickedKey === null;
 }
 
 export function parseQuizSettings(
@@ -149,7 +175,7 @@ export function drawAnswer(
   return { answer: fresh[0], deck: fresh, deckIndex: 1 };
 }
 
-export function buildQuestion(
+function nameQuestion(
   answer: PokemonSummary,
   pool: PokemonSummary[],
   rng: Rng,
@@ -161,11 +187,48 @@ export function buildQuestion(
   const distractorPool =
     sameRegion.length >= CHOICE_COUNT - 1 ? sameRegion : others;
   const distractors = sample(distractorPool, CHOICE_COUNT - 1, rng);
+  const choices = [answer, ...distractors].map((pokemon) => ({
+    key: String(pokemon.id),
+    label: formatPokemonLabel(pokemon),
+  }));
 
-  return { answer, choices: shuffle([answer, ...distractors], rng) };
+  return {
+    answer,
+    answerKey: String(answer.id),
+    choices: shuffle(choices, rng),
+  };
 }
 
-export function startQuiz(pool: PokemonSummary[], rng: Rng): QuizState {
+function regionQuestion(answer: PokemonSummary, rng: Rng): QuizQuestion {
+  const confusable = confusableRegion(answer.region);
+  const others = REGIONS.filter(
+    (region) => region !== answer.region && region !== confusable,
+  );
+  const regions = [answer.region, ...sample(others, CHOICE_COUNT - 1, rng)];
+  const choices = regions.map((region) => ({
+    key: region,
+    label: REGION_LABELS[region],
+  }));
+
+  return { answer, answerKey: answer.region, choices: shuffle(choices, rng) };
+}
+
+export function buildQuestion(
+  mode: QuizMode,
+  answer: PokemonSummary,
+  pool: PokemonSummary[],
+  rng: Rng,
+): QuizQuestion {
+  return QUIZ_MODE_RULES[mode].choices === "regions"
+    ? regionQuestion(answer, rng)
+    : nameQuestion(answer, pool, rng);
+}
+
+export function startQuiz(
+  pool: PokemonSummary[],
+  rng: Rng,
+  mode: QuizMode,
+): QuizState {
   const first = drawAnswer(pool, [], 0, null, rng);
   const second = drawAnswer(
     pool,
@@ -176,11 +239,13 @@ export function startQuiz(pool: PokemonSummary[], rng: Rng): QuizState {
   );
 
   return {
-    current: buildQuestion(first.answer, pool, rng),
-    upcoming: buildQuestion(second.answer, pool, rng),
+    mode,
+    pool,
+    current: buildQuestion(mode, first.answer, pool, rng),
+    upcoming: buildQuestion(mode, second.answer, pool, rng),
     deck: second.deck,
     deckIndex: second.deckIndex,
-    pickedId: null,
+    pickedKey: null,
     correct: 0,
     wrong: 0,
     streak: 0,
@@ -188,33 +253,29 @@ export function startQuiz(pool: PokemonSummary[], rng: Rng): QuizState {
   };
 }
 
-export function answerQuestion(state: QuizState, pickedId: number): QuizState {
-  if (state.pickedId !== null) {
+export function answerQuestion(state: QuizState, pickedKey: string): QuizState {
+  if (state.pickedKey !== null) {
     return state;
   }
 
-  if (pickedId === state.current.answer.id) {
+  if (pickedKey === state.current.answerKey) {
     const streak = state.streak + 1;
 
     return {
       ...state,
-      pickedId,
+      pickedKey,
       correct: state.correct + 1,
       streak,
       bestStreak: Math.max(state.bestStreak, streak),
     };
   }
 
-  return { ...state, pickedId, wrong: state.wrong + 1, streak: 0 };
+  return { ...state, pickedKey, wrong: state.wrong + 1, streak: 0 };
 }
 
-export function advanceQuestion(
-  state: QuizState,
-  pool: PokemonSummary[],
-  rng: Rng,
-): QuizState {
+export function advanceQuestion(state: QuizState, rng: Rng): QuizState {
   const next = drawAnswer(
-    pool,
+    state.pool,
     state.deck,
     state.deckIndex,
     state.upcoming.answer.id,
@@ -224,10 +285,10 @@ export function advanceQuestion(
   return {
     ...state,
     current: state.upcoming,
-    upcoming: buildQuestion(next.answer, pool, rng),
+    upcoming: buildQuestion(state.mode, next.answer, state.pool, rng),
     deck: next.deck,
     deckIndex: next.deckIndex,
-    pickedId: null,
+    pickedKey: null,
   };
 }
 
@@ -254,12 +315,12 @@ export function remainingMs(clock: RoundClock, now: number): number {
 export function startRound(
   pool: PokemonSummary[],
   rng: Rng,
-  seconds: RoundSeconds,
+  settings: QuizSettings,
   now: number,
 ): QuizRound {
   return {
-    quiz: startQuiz(pool, rng),
-    clock: startClock(seconds, now),
+    quiz: startQuiz(pool, rng, settings.mode),
+    clock: startClock(settings.seconds, now),
     shown: false,
     onHold: false,
     penaltyMs: 0,
@@ -267,7 +328,7 @@ export function startRound(
 }
 
 export function isClockRunning(round: QuizRound): boolean {
-  return round.shown && round.quiz.pickedId === null && !round.onHold;
+  return round.shown && round.quiz.pickedKey === null && !round.onHold;
 }
 
 function settleClock(round: QuizRound, now: number): QuizRound {
@@ -282,14 +343,14 @@ function canAnswer(round: QuizRound, now: number): boolean {
   return (
     round.shown &&
     !round.onHold &&
-    round.quiz.pickedId === null &&
+    round.quiz.pickedKey === null &&
     remainingMs(round.clock, now) > 0
   );
 }
 
 export function answerRound(
   round: QuizRound,
-  pickedId: number,
+  pickedKey: string,
   now: number,
 ): QuizRound {
   if (!canAnswer(round, now)) {
@@ -297,11 +358,11 @@ export function answerRound(
   }
 
   const answered = settleClock(
-    { ...round, quiz: answerQuestion(round.quiz, pickedId) },
+    { ...round, quiz: answerQuestion(round.quiz, pickedKey) },
     now,
   );
 
-  if (pickedId === round.quiz.current.answer.id) {
+  if (pickedKey === round.quiz.current.answerKey) {
     return answered;
   }
 
@@ -318,7 +379,16 @@ export function answerRound(
 }
 
 export function isRoundOver(round: QuizRound, now: number): boolean {
-  return remainingMs(round.clock, now) === 0 && round.quiz.pickedId === null;
+  return remainingMs(round.clock, now) === 0 && round.quiz.pickedKey === null;
+}
+
+export function describeAnswer(state: QuizState): string {
+  const { answer } = state.current;
+  const name = formatPokemonLabel(answer);
+
+  return QUIZ_MODE_RULES[state.mode].choices === "regions"
+    ? `It's ${name}, from ${REGION_LABELS[answer.region]}!`
+    : `It's ${name}!`;
 }
 
 export function formatPenalty(penaltyMs: number): string {
@@ -335,14 +405,13 @@ export function showQuestion(round: QuizRound, now: number): QuizRound {
 
 export function nextQuestion(
   round: QuizRound,
-  pool: PokemonSummary[],
   rng: Rng,
   now: number,
 ): QuizRound {
   return settleClock(
     {
       ...round,
-      quiz: advanceQuestion(round.quiz, pool, rng),
+      quiz: advanceQuestion(round.quiz, rng),
       shown: false,
       penaltyMs: 0,
     },

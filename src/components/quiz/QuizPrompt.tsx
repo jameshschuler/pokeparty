@@ -1,17 +1,18 @@
 import { SkipForward } from "lucide-react";
 import { useState } from "react";
 import { useQuizContext } from "../../contexts/quiz-context";
-import { formatPokemonLabel } from "../../lib/pokemon";
-import { formatPenalty, isPokemonHidden } from "../../lib/quiz";
+import { describeAnswer, formatPenalty, isPokemonHidden } from "../../lib/quiz";
 import { PokemonSprite } from "../pokemon/PokemonSprite";
 import { PILL_BUTTON } from "../shared/button-styles";
+import { QUIZ_MODE_DETAILS } from "./quiz-modes";
 
 export function QuizPrompt() {
   const { round, mode, questionShown, skipQuestion } = useQuizContext();
   const [failed, setFailed] = useState(false);
   const { answer } = round.quiz.current;
-  const revealed = round.quiz.pickedId !== null;
-  const hidden = isPokemonHidden(mode, revealed);
+  const revealed = round.quiz.pickedKey !== null;
+  const hidden = isPokemonHidden(round.quiz);
+  const { prompt } = QUIZ_MODE_DETAILS[mode];
 
   return (
     <div className="border-ink shadow-sticker flex flex-col items-center rounded-3xl border-[3px] bg-white p-4">
@@ -38,7 +39,8 @@ export function QuizPrompt() {
         className="flex min-h-8 flex-wrap items-center justify-center gap-x-2 text-center text-xl font-bold"
         aria-live="polite"
       >
-        {revealed && <span>It's {formatPokemonLabel(answer)}!</span>}
+        {revealed && <span>{describeAnswer(round.quiz)}</span>}
+        {!revealed && prompt && <span className="text-ink/70">{prompt}</span>}
         {round.penaltyMs > 0 && (
           <span className="text-wrong">{formatPenalty(round.penaltyMs)}</span>
         )}

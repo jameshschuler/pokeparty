@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { SPECIES } from "../lib/pokedex";
+import { quizPool } from "../lib/pokedex";
 import { spriteUrl } from "../lib/pokemon";
 import {
   answerRound,
@@ -29,7 +29,7 @@ export type QuizContextValue = {
   seconds: RoundSeconds;
   finished: boolean;
   waiting: boolean;
-  answer: (pokemonId: number) => void;
+  answer: (choiceKey: string) => void;
   questionShown: () => void;
   skipQuestion: () => void;
   hold: () => void;
@@ -48,7 +48,7 @@ type QuizProviderProps = {
 export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
   const [rng] = useState(() => createRng(Date.now()));
   const [round, setRound] = useState(() =>
-    startRound(SPECIES, rng, seconds, Date.now()),
+    startRound(quizPool(mode), rng, { mode, seconds }, Date.now()),
   );
   const [checkedAt, setCheckedAt] = useState(Date.now);
   const finished = isRoundOver(round, checkedAt);
@@ -68,25 +68,25 @@ export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
   }, [round.clock]);
 
   useEffect(() => {
-    if (round.quiz.pickedId === null || round.onHold || finished) {
+    if (round.quiz.pickedKey === null || round.onHold || finished) {
       return;
     }
 
     const timeout = setTimeout(() => {
       const advancedAt = Date.now();
-      setRound((current) => nextQuestion(current, SPECIES, rng, advancedAt));
+      setRound((current) => nextQuestion(current, rng, advancedAt));
     }, FEEDBACK_MS);
 
     return () => clearTimeout(timeout);
-  }, [round.quiz.pickedId, round.onHold, finished, rng]);
+  }, [round.quiz.pickedKey, round.onHold, finished, rng]);
 
   useEffect(() => {
     new Image().src = spriteUrl(round.quiz.upcoming.answer.id, false);
   }, [round.quiz.upcoming]);
 
-  function answer(pokemonId: number) {
+  function answer(choiceKey: string) {
     const answeredAt = Date.now();
-    setRound((current) => answerRound(current, pokemonId, answeredAt));
+    setRound((current) => answerRound(current, choiceKey, answeredAt));
   }
 
   function questionShown() {
@@ -97,7 +97,7 @@ export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
   function skipQuestion() {
     const skippedAt = Date.now();
     setRound((current) =>
-      !current.shown ? nextQuestion(current, SPECIES, rng, skippedAt) : current,
+      !current.shown ? nextQuestion(current, rng, skippedAt) : current,
     );
   }
 
@@ -112,14 +112,14 @@ export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
   }
 
   function playAgain() {
-    setRound(startRound(SPECIES, rng, seconds, Date.now()));
+    setRound(startRound(quizPool(mode), rng, { mode, seconds }, Date.now()));
   }
 
   return (
     <QuizContext
       value={{
         round,
-        mode,
+        mode: round.quiz.mode,
         seconds,
         finished,
         waiting,

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { buildPokedex, findPokemon, POKEDEX, SPECIES } from "./pokedex";
+import {
+  buildPokedex,
+  findPokemon,
+  POKEDEX,
+  quizPool,
+  SPECIES,
+} from "./pokedex";
 
 describe("buildPokedex", () => {
   const pokedex = buildPokedex({
@@ -27,6 +33,7 @@ describe("buildPokedex", () => {
         displayName: "Galarian Darumaka",
         variant: null,
         region: "galar",
+        regional: true,
       },
       {
         id: 10007,
@@ -35,6 +42,7 @@ describe("buildPokedex", () => {
         displayName: "Giratina",
         variant: "Origin Forme",
         region: "sinnoh",
+        regional: false,
       },
     ],
   });
@@ -107,6 +115,7 @@ describe("POKEDEX", () => {
     [10272, "paldea"],
     [10007, "sinnoh"],
     [1025, "paldea"],
+    [808, "kanto"],
   ])("puts %s in %s", (id, region) => {
     expect(findPokemon(id)?.region).toBe(region);
   });
@@ -119,5 +128,26 @@ describe("SPECIES", () => {
       true,
     );
     expect(SPECIES.some((pokemon) => pokemon.id === 10007)).toBe(false);
+  });
+});
+
+describe("quizPool", () => {
+  it("uses only species for name modes", () => {
+    expect(quizPool("sprite")).toBe(SPECIES);
+    expect(quizPool("silhouette")).toBe(SPECIES);
+  });
+
+  it("adds regional forms, and only those, for region mode", () => {
+    const ids = new Set(quizPool("region").map((pokemon) => pokemon.id));
+
+    const regionalForms = POKEDEX.filter((pokemon) => pokemon.regional);
+
+    expect(regionalForms.length).toBeGreaterThan(0);
+    expect(ids.size).toBe(SPECIES.length + regionalForms.length);
+    expect(ids.has(10162)).toBe(true);
+    expect(ids.has(10245)).toBe(false);
+    expect(ids.has(10247)).toBe(false);
+    expect(ids.has(10272)).toBe(false);
+    expect(ids.has(10229)).toBe(true);
   });
 });

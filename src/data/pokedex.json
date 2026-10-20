@@ -5653,14 +5653,14 @@
       "id": 808,
       "name": "meltan",
       "displayName": "Meltan",
-      "region": "alola",
+      "region": "kanto",
       "legendary": true
     },
     {
       "id": 809,
       "name": "melmetal",
       "displayName": "Melmetal",
-      "region": "alola",
+      "region": "kanto",
       "legendary": true
     },
     {
@@ -7183,6 +7183,7 @@
       "name": "deoxys-attack",
       "displayName": "Deoxys",
       "variant": "Attack Forme",
+      "regional": false,
       "region": "hoenn"
     },
     {
@@ -7191,6 +7192,7 @@
       "name": "deoxys-defense",
       "displayName": "Deoxys",
       "variant": "Defense Forme",
+      "regional": false,
       "region": "hoenn"
     },
     {
@@ -7199,6 +7201,7 @@
       "name": "deoxys-speed",
       "displayName": "Deoxys",
       "variant": "Speed Forme",
+      "regional": false,
       "region": "hoenn"
     },
     {
@@ -7207,6 +7210,7 @@
       "name": "wormadam-sandy",
       "displayName": "Wormadam",
       "variant": "Sandy Cloak",
+      "regional": false,
       "region": "sinnoh"
     },
     {
@@ -7215,6 +7219,7 @@
       "name": "wormadam-trash",
       "displayName": "Wormadam",
       "variant": "Trash Cloak",
+      "regional": false,
       "region": "sinnoh"
     },
     {
@@ -7223,6 +7228,7 @@
       "name": "shaymin-sky",
       "displayName": "Shaymin",
       "variant": "Sky Forme",
+      "regional": false,
       "region": "sinnoh"
     },
     {
@@ -7231,6 +7237,7 @@
       "name": "giratina-origin",
       "displayName": "Giratina",
       "variant": "Origin Forme",
+      "regional": false,
       "region": "sinnoh"
     },
     {
@@ -7239,6 +7246,7 @@
       "name": "rotom-heat",
       "displayName": "Heat Rotom",
       "variant": null,
+      "regional": false,
       "region": "sinnoh"
     },
     {
@@ -7247,6 +7255,7 @@
       "name": "rotom-wash",
       "displayName": "Wash Rotom",
       "variant": null,
+      "regional": false,
       "region": "sinnoh"
     },
     {
@@ -7255,6 +7264,7 @@
       "name": "rotom-frost",
       "displayName": "Frost Rotom",
       "variant": null,
+      "regional": false,
       "region": "sinnoh"
     },
     {
@@ -7263,6 +7273,7 @@
       "name": "rotom-fan",
       "displayName": "Fan Rotom",
       "variant": null,
+      "regional": false,
       "region": "sinnoh"
     },
     {
@@ -7271,6 +7282,7 @@
       "name": "rotom-mow",
       "displayName": "Mow Rotom",
       "variant": null,
+      "regional": false,
       "region": "sinnoh"
     },
     {
@@ -7279,6 +7291,7 @@
       "name": "basculin-blue-striped",
       "displayName": "Basculin",
       "variant": "Blue-Striped Form",
+      "regional": false,
       "region": "unova"
     },
     {
@@ -7287,6 +7300,7 @@
       "name": "tornadus-therian",
       "displayName": "Tornadus",
       "variant": "Therian Forme",
+      "regional": false,
       "region": "unova"
     },
     {
@@ -7295,6 +7309,7 @@
       "name": "thundurus-therian",
       "displayName": "Thundurus",
       "variant": "Therian Forme",
+      "regional": false,
       "region": "unova"
     },
     {
@@ -7303,6 +7318,7 @@
       "name": "landorus-therian",
       "displayName": "Landorus",
       "variant": "Therian Forme",
+      "regional": false,
       "region": "unova"
     },
     {
@@ -7311,6 +7327,7 @@
       "name": "kyurem-black",
       "displayName": "Black Kyurem",
       "variant": null,
+      "regional": false,
       "region": "unova"
     },
     {
@@ -7319,6 +7336,7 @@
       "name": "kyurem-white",
       "displayName": "White Kyurem",
       "variant": null,
+      "regional": false,
       "region": "unova"
     },
     {
@@ -7327,6 +7345,7 @@
       "name": "keldeo-resolute",
       "displayName": "Keldeo",
       "variant": "Resolute Form",
+      "regional": false,
       "region": "unova"
     },
     {
@@ -7335,6 +7354,7 @@
       "name": "meowstic-female",
       "displayName": "Meowstic",
       "variant": "Female",
+      "regional": false,
       "region": "kalos"
     },
     {
@@ -7343,6 +7363,7 @@
       "name": "pumpkaboo-small",
       "displayName": "Pumpkaboo",
       "variant": "Small Size",
+      "regional": false,
       "region": "kalos"
     },
     {
@@ -7351,6 +7372,7 @@
       "name": "pumpkaboo-large",
       "displayName": "Pumpkaboo",
       "variant": "Large Size",
+      "regional": false,
       "region": "kalos"
     },
     {
@@ -7359,6 +7381,7 @@
       "name": "pumpkaboo-super",
       "displayName": "Pumpkaboo",
       "variant": "Super Size",
+      "regional": false,
       "region": "kalos"
     },
     {
@@ -7367,6 +7390,7 @@
       "name": "gourgeist-small",
       "displayName": "Gourgeist",
       "variant": "Small Size",
+      "regional": false,
       "region": "kalos"
     },
     {
@@ -7375,6 +7399,7 @@
       "name": "gourgeist-large",
       "displayName": "Gourgeist",
       "variant": "Large Size",
+      "regional": false,
       "region": "kalos"
     },
     {
@@ -7383,6 +7408,7 @@
       "name": "gourgeist-super",
       "displayName": "Gourgeist",
       "variant": "Super Size",
+      "regional": false,
       "region": "kalos"
     },
     {
@@ -7391,6 +7417,7 @@
       "name": "floette-eternal",
       "displayName": "Floette",
       "variant": "Eternal Flower",
+      "regional": false,
       "region": "kalos"
     },
     {
@@ -7399,6 +7426,7 @@
       "name": "hoopa-unbound",
       "displayName": "Hoopa Unbound",
       "variant": null,
+      "regional": false,
       "region": "kalos"
     },
     {
@@ -7407,6 +7435,7 @@
       "name": "rattata-alola",
       "displayName": "Alolan Rattata",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7415,6 +7444,7 @@
       "name": "raticate-alola",
       "displayName": "Alolan Raticate",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7423,6 +7453,7 @@
       "name": "raichu-alola",
       "displayName": "Alolan Raichu",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7431,6 +7462,7 @@
       "name": "sandshrew-alola",
       "displayName": "Alolan Sandshrew",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7439,6 +7471,7 @@
       "name": "sandslash-alola",
       "displayName": "Alolan Sandslash",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7447,6 +7480,7 @@
       "name": "vulpix-alola",
       "displayName": "Alolan Vulpix",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7455,6 +7489,7 @@
       "name": "ninetales-alola",
       "displayName": "Alolan Ninetales",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7463,6 +7498,7 @@
       "name": "diglett-alola",
       "displayName": "Alolan Diglett",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7471,6 +7507,7 @@
       "name": "dugtrio-alola",
       "displayName": "Alolan Dugtrio",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7479,6 +7516,7 @@
       "name": "meowth-alola",
       "displayName": "Alolan Meowth",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7487,6 +7525,7 @@
       "name": "persian-alola",
       "displayName": "Alolan Persian",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7495,6 +7534,7 @@
       "name": "geodude-alola",
       "displayName": "Alolan Geodude",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7503,6 +7543,7 @@
       "name": "graveler-alola",
       "displayName": "Alolan Graveler",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7511,6 +7552,7 @@
       "name": "golem-alola",
       "displayName": "Alolan Golem",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7519,6 +7561,7 @@
       "name": "grimer-alola",
       "displayName": "Alolan Grimer",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7527,6 +7570,7 @@
       "name": "muk-alola",
       "displayName": "Alolan Muk",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7535,6 +7579,7 @@
       "name": "exeggutor-alola",
       "displayName": "Alolan Exeggutor",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7543,6 +7588,7 @@
       "name": "marowak-alola",
       "displayName": "Alolan Marowak",
       "variant": null,
+      "regional": true,
       "region": "alola"
     },
     {
@@ -7551,6 +7597,7 @@
       "name": "oricorio-pom-pom",
       "displayName": "Oricorio",
       "variant": "Pom-Pom Style",
+      "regional": false,
       "region": "alola"
     },
     {
@@ -7559,6 +7606,7 @@
       "name": "oricorio-pau",
       "displayName": "Oricorio",
       "variant": "Pa’u Style",
+      "regional": false,
       "region": "alola"
     },
     {
@@ -7567,6 +7615,7 @@
       "name": "oricorio-sensu",
       "displayName": "Oricorio",
       "variant": "Sensu Style",
+      "regional": false,
       "region": "alola"
     },
     {
@@ -7575,6 +7624,7 @@
       "name": "lycanroc-midnight",
       "displayName": "Lycanroc",
       "variant": "Midnight Form",
+      "regional": false,
       "region": "alola"
     },
     {
@@ -7583,6 +7633,7 @@
       "name": "magearna-original",
       "displayName": "Magearna",
       "variant": "Original Color",
+      "regional": false,
       "region": "alola"
     },
     {
@@ -7591,6 +7642,7 @@
       "name": "lycanroc-dusk",
       "displayName": "Lycanroc",
       "variant": "Dusk Form",
+      "regional": false,
       "region": "alola"
     },
     {
@@ -7599,6 +7651,7 @@
       "name": "necrozma-dusk",
       "displayName": "Necrozma",
       "variant": "Dusk Mane",
+      "regional": false,
       "region": "alola"
     },
     {
@@ -7607,6 +7660,7 @@
       "name": "necrozma-dawn",
       "displayName": "Necrozma",
       "variant": "Dawn Wings",
+      "regional": false,
       "region": "alola"
     },
     {
@@ -7615,6 +7669,7 @@
       "name": "meowth-galar",
       "displayName": "Galarian Meowth",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7623,6 +7678,7 @@
       "name": "ponyta-galar",
       "displayName": "Galarian Ponyta",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7631,6 +7687,7 @@
       "name": "rapidash-galar",
       "displayName": "Galarian Rapidash",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7639,6 +7696,7 @@
       "name": "slowpoke-galar",
       "displayName": "Galarian Slowpoke",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7647,6 +7705,7 @@
       "name": "slowbro-galar",
       "displayName": "Galarian Slowbro",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7655,6 +7714,7 @@
       "name": "farfetchd-galar",
       "displayName": "Galarian Farfetch’d",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7663,6 +7723,7 @@
       "name": "weezing-galar",
       "displayName": "Galarian Weezing",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7671,6 +7732,7 @@
       "name": "mr-mime-galar",
       "displayName": "Galarian Mr. Mime",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7679,6 +7741,7 @@
       "name": "articuno-galar",
       "displayName": "Galarian Articuno",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7687,6 +7750,7 @@
       "name": "zapdos-galar",
       "displayName": "Galarian Zapdos",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7695,6 +7759,7 @@
       "name": "moltres-galar",
       "displayName": "Galarian Moltres",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7703,6 +7768,7 @@
       "name": "slowking-galar",
       "displayName": "Galarian Slowking",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7711,6 +7777,7 @@
       "name": "corsola-galar",
       "displayName": "Galarian Corsola",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7719,6 +7786,7 @@
       "name": "zigzagoon-galar",
       "displayName": "Galarian Zigzagoon",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7727,6 +7795,7 @@
       "name": "linoone-galar",
       "displayName": "Galarian Linoone",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7735,6 +7804,7 @@
       "name": "darumaka-galar",
       "displayName": "Galarian Darumaka",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7743,6 +7813,7 @@
       "name": "darmanitan-galar-standard",
       "displayName": "Galarian Darmanitan",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7751,6 +7822,7 @@
       "name": "yamask-galar",
       "displayName": "Galarian Yamask",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7759,6 +7831,7 @@
       "name": "stunfisk-galar",
       "displayName": "Galarian Stunfisk",
       "variant": null,
+      "regional": true,
       "region": "galar"
     },
     {
@@ -7767,6 +7840,7 @@
       "name": "zygarde-10",
       "displayName": "Zygarde",
       "variant": "10% Forme",
+      "regional": false,
       "region": "alola"
     },
     {
@@ -7775,6 +7849,7 @@
       "name": "toxtricity-low-key",
       "displayName": "Toxtricity",
       "variant": "Low Key Form",
+      "regional": false,
       "region": "galar"
     },
     {
@@ -7783,6 +7858,7 @@
       "name": "indeedee-female",
       "displayName": "Indeedee",
       "variant": "Female",
+      "regional": false,
       "region": "galar"
     },
     {
@@ -7791,6 +7867,7 @@
       "name": "urshifu-rapid-strike",
       "displayName": "Urshifu",
       "variant": "Rapid Strike Style",
+      "regional": false,
       "region": "galar"
     },
     {
@@ -7799,6 +7876,7 @@
       "name": "zarude-dada",
       "displayName": "Zarude",
       "variant": "Dada",
+      "regional": false,
       "region": "galar"
     },
     {
@@ -7807,6 +7885,7 @@
       "name": "calyrex-ice",
       "displayName": "Calyrex",
       "variant": "Ice Rider",
+      "regional": false,
       "region": "galar"
     },
     {
@@ -7815,6 +7894,7 @@
       "name": "calyrex-shadow",
       "displayName": "Calyrex",
       "variant": "Shadow Rider",
+      "regional": false,
       "region": "galar"
     },
     {
@@ -7823,6 +7903,7 @@
       "name": "growlithe-hisui",
       "displayName": "Hisuian Growlithe",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7831,6 +7912,7 @@
       "name": "arcanine-hisui",
       "displayName": "Hisuian Arcanine",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7839,6 +7921,7 @@
       "name": "voltorb-hisui",
       "displayName": "Hisuian Voltorb",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7847,6 +7930,7 @@
       "name": "electrode-hisui",
       "displayName": "Hisuian Electrode",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7855,6 +7939,7 @@
       "name": "typhlosion-hisui",
       "displayName": "Hisuian Typhlosion",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7863,6 +7948,7 @@
       "name": "qwilfish-hisui",
       "displayName": "Hisuian Qwilfish",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7871,6 +7957,7 @@
       "name": "sneasel-hisui",
       "displayName": "Hisuian Sneasel",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7879,6 +7966,7 @@
       "name": "samurott-hisui",
       "displayName": "Hisuian Samurott",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7887,6 +7975,7 @@
       "name": "lilligant-hisui",
       "displayName": "Hisuian Lilligant",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7895,6 +7984,7 @@
       "name": "zorua-hisui",
       "displayName": "Hisuian Zorua",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7903,6 +7993,7 @@
       "name": "zoroark-hisui",
       "displayName": "Hisuian Zoroark",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7911,6 +8002,7 @@
       "name": "braviary-hisui",
       "displayName": "Hisuian Braviary",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7919,6 +8011,7 @@
       "name": "sliggoo-hisui",
       "displayName": "Hisuian Sliggoo",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7927,6 +8020,7 @@
       "name": "goodra-hisui",
       "displayName": "Hisuian Goodra",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7935,6 +8029,7 @@
       "name": "avalugg-hisui",
       "displayName": "Hisuian Avalugg",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7943,6 +8038,7 @@
       "name": "decidueye-hisui",
       "displayName": "Hisuian Decidueye",
       "variant": null,
+      "regional": true,
       "region": "hisui"
     },
     {
@@ -7951,6 +8047,7 @@
       "name": "dialga-origin",
       "displayName": "Dialga",
       "variant": "Origin Forme",
+      "regional": false,
       "region": "hisui"
     },
     {
@@ -7959,6 +8056,7 @@
       "name": "palkia-origin",
       "displayName": "Palkia",
       "variant": "Origin Forme",
+      "regional": false,
       "region": "hisui"
     },
     {
@@ -7967,6 +8065,7 @@
       "name": "basculin-white-striped",
       "displayName": "Basculin",
       "variant": "White-Striped Form",
+      "regional": false,
       "region": "hisui"
     },
     {
@@ -7975,6 +8074,7 @@
       "name": "basculegion-female",
       "displayName": "Basculegion",
       "variant": "Female",
+      "regional": false,
       "region": "hisui"
     },
     {
@@ -7983,6 +8083,7 @@
       "name": "enamorus-therian",
       "displayName": "Enamorus",
       "variant": "Therian Forme",
+      "regional": false,
       "region": "hisui"
     },
     {
@@ -7991,6 +8092,7 @@
       "name": "tauros-paldea-combat-breed",
       "displayName": "Paldean Tauros",
       "variant": "Combat Breed",
+      "regional": true,
       "region": "paldea"
     },
     {
@@ -7999,6 +8101,7 @@
       "name": "tauros-paldea-blaze-breed",
       "displayName": "Paldean Tauros",
       "variant": "Blaze Breed",
+      "regional": true,
       "region": "paldea"
     },
     {
@@ -8007,6 +8110,7 @@
       "name": "tauros-paldea-aqua-breed",
       "displayName": "Paldean Tauros",
       "variant": "Aqua Breed",
+      "regional": true,
       "region": "paldea"
     },
     {
@@ -8015,6 +8119,7 @@
       "name": "wooper-paldea",
       "displayName": "Paldean Wooper",
       "variant": null,
+      "regional": true,
       "region": "paldea"
     },
     {
@@ -8023,6 +8128,7 @@
       "name": "oinkologne-female",
       "displayName": "Oinkologne",
       "variant": "Female",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8031,6 +8137,7 @@
       "name": "dudunsparce-three-segment",
       "displayName": "Dudunsparce",
       "variant": "Three-Segment Form",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8039,6 +8146,7 @@
       "name": "maushold-family-of-three",
       "displayName": "Maushold",
       "variant": "Family of Three",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8047,6 +8155,7 @@
       "name": "tatsugiri-droopy",
       "displayName": "Tatsugiri",
       "variant": "Droopy Form",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8055,6 +8164,7 @@
       "name": "tatsugiri-stretchy",
       "displayName": "Tatsugiri",
       "variant": "Stretchy Form",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8063,6 +8173,7 @@
       "name": "squawkabilly-blue-plumage",
       "displayName": "Squawkabilly",
       "variant": "Blue Plumage",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8071,6 +8182,7 @@
       "name": "squawkabilly-yellow-plumage",
       "displayName": "Squawkabilly",
       "variant": "Yellow Plumage",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8079,6 +8191,7 @@
       "name": "squawkabilly-white-plumage",
       "displayName": "Squawkabilly",
       "variant": "White Plumage",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8087,6 +8200,7 @@
       "name": "gimmighoul-roaming",
       "displayName": "Gimmighoul",
       "variant": "Roaming Form",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8095,6 +8209,7 @@
       "name": "ursaluna-bloodmoon",
       "displayName": "Ursaluna",
       "variant": "Bloodmoon",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8103,6 +8218,7 @@
       "name": "ogerpon-wellspring-mask",
       "displayName": "Ogerpon",
       "variant": "Wellspring Mask",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8111,6 +8227,7 @@
       "name": "ogerpon-hearthflame-mask",
       "displayName": "Ogerpon",
       "variant": "Hearthflame Mask",
+      "regional": false,
       "region": "paldea"
     },
     {
@@ -8119,6 +8236,7 @@
       "name": "ogerpon-cornerstone-mask",
       "displayName": "Ogerpon",
       "variant": "Cornerstone Mask",
+      "regional": false,
       "region": "paldea"
     }
   ]

@@ -140,15 +140,13 @@ const species = speciesDetails.map((detail, index) => ({
 
 const forms = formDebuts.map((debut) => {
   const speciesId = idFromUrl(debut.pokemon.species.url);
+  const formName = englishName(debut.form.form_names);
 
   return {
     id: debut.pokemon.id,
     speciesId,
     name: debut.pokemon.name,
-    ...formDisplayName(
-      speciesNames.get(speciesId)!,
-      englishName(debut.form.form_names),
-    ),
+    ...formDisplayName(speciesNames.get(speciesId)!, formName),
     region: regionOf(debut),
   };
 });

@@ -23,6 +23,7 @@ function summary(
     variant: null,
     region: "kanto" as const,
     legendary: false,
+    regional: false,
     ...overrides,
   };
 

@@ -8,6 +8,7 @@ import {
   buildQuestion,
   CHOICE_COUNT,
   createRng,
+  describeAnswer,
   drawAnswer,
   formatPenalty,
   holdRound,
@@ -38,6 +39,7 @@ function pokemon(id: number, region: Region): PokemonSummary {
     variant: null,
     region,
     legendary: false,
+    regional: false,
     searchText: `pokemon ${id}`,
   };
 }
@@ -104,8 +106,14 @@ describe("isPokemonHidden", () => {
     ["silhouette", true, false],
     ["sprite", false, false],
     ["sprite", true, false],
-  ] as const)("%s, revealed %s -> %s", (mode, revealed, hidden) => {
-    expect(isPokemonHidden(mode, revealed)).toBe(hidden);
+    ["region", false, false],
+  ] as const)("%s, answered %s -> %s", (mode, answered, hidden) => {
+    const started = startQuiz(pool, createRng(1), mode);
+    const state = answered
+      ? answerQuestion(started, started.current.answerKey)
+      : started;
+
+    expect(isPokemonHidden(state)).toBe(hidden);
   });
 });
 
@@ -155,55 +163,118 @@ describe("drawAnswer", () => {
 });
 
 describe("buildQuestion", () => {
-  it.each([1, 2, 3, 4, 5, 6, 7, 8])(
-    "offers four different choices including the answer (seed %s)",
-    (seed) => {
-      const question = buildQuestion(kanto[0], pool, createRng(seed));
-      const ids = question.choices.map((choice) => choice.id);
+  const byId = new Map(pool.map((pokemon) => [String(pokemon.id), pokemon]));
 
-      expect(ids).toHaveLength(CHOICE_COUNT);
-      expect(new Set(ids).size).toBe(CHOICE_COUNT);
-      expect(ids).toContain(kanto[0].id);
+  it.each([1, 2, 3, 4, 5, 6, 7, 8])(
+    "offers four different names including the answer (seed %s)",
+    (seed) => {
+      const question = buildQuestion("sprite", kanto[0], pool, createRng(seed));
+      const keys = question.choices.map((choice) => choice.key);
+
+      expect(question.answerKey).toBe("1");
+      expect(keys).toHaveLength(CHOICE_COUNT);
+      expect(new Set(keys).size).toBe(CHOICE_COUNT);
+      expect(keys).toContain("1");
+      expect(question.choices.find((choice) => choice.key === "1")?.label).toBe(
+        "Pokemon 1",
+      );
     },
   );
 
-  it("draws wrong choices from the answer's region when it can", () => {
-    const question = buildQuestion(kanto[0], pool, createRng(3));
+  it("draws wrong names from the answer's region when it can", () => {
+    const question = buildQuestion("sprite", kanto[0], pool, createRng(3));
 
-    expect(question.choices.every((choice) => choice.region === "kanto")).toBe(
-      true,
-    );
+    expect(
+      question.choices.every(
+        (choice) => byId.get(choice.key)?.region === "kanto",
+      ),
+    ).toBe(true);
   });
 
   it("falls back to any region when the answer's region is too small", () => {
-    const question = buildQuestion(hisui[0], pool, createRng(1));
+    const question = buildQuestion("silhouette", hisui[0], pool, createRng(1));
 
     expect(question.choices).toHaveLength(CHOICE_COUNT);
-    expect(question.choices.map((choice) => choice.id)).toContain(899);
+    expect(question.choices.map((choice) => choice.key)).toContain("899");
+  });
+
+  it.each([1, 2, 3, 4, 5, 6, 7, 8])(
+    "offers four different regions including the answer (seed %s)",
+    (seed) => {
+      const question = buildQuestion("region", johto[0], pool, createRng(seed));
+      const keys = question.choices.map((choice) => choice.key);
+
+      expect(question.answerKey).toBe("johto");
+      expect(new Set(keys).size).toBe(CHOICE_COUNT);
+      expect(keys).toContain("johto");
+      expect(
+        question.choices.find((choice) => choice.key === "johto")?.label,
+      ).toBe("Johto");
+    },
+  );
+
+  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])(
+    "never pairs Sinnoh with Hisui (seed %s)",
+    (seed) => {
+      const sinnoh = pokemon(387, "sinnoh");
+      const fromSinnoh = buildQuestion("region", sinnoh, pool, createRng(seed));
+      const fromHisui = buildQuestion(
+        "region",
+        hisui[0],
+        pool,
+        createRng(seed),
+      );
+
+      expect(fromSinnoh.choices.map((choice) => choice.key)).not.toContain(
+        "hisui",
+      );
+      expect(fromHisui.choices.map((choice) => choice.key)).not.toContain(
+        "sinnoh",
+      );
+    },
+  );
+});
+
+describe("describeAnswer", () => {
+  it("names the Pokémon", () => {
+    const state = startQuiz(kanto, createRng(1), "sprite");
+
+    expect(describeAnswer(state)).toBe(
+      `It's ${state.current.answer.displayName}!`,
+    );
+  });
+
+  it("names the Pokémon and its region in region mode", () => {
+    const state = startQuiz(johto, createRng(1), "region");
+
+    expect(describeAnswer(state)).toBe(
+      `It's ${state.current.answer.displayName}, from Johto!`,
+    );
   });
 });
 
 describe("quiz state", () => {
-  const started = startQuiz(pool, createRng(5));
-  const answerId = started.current.answer.id;
-  const wrongId = started.current.choices.find(
-    (choice) => choice.id !== answerId,
-  )!.id;
+  const started = startQuiz(pool, createRng(5), "sprite");
+  const answerKey = started.current.answerKey;
+  const wrongKey = started.current.choices.find(
+    (choice) => choice.key !== answerKey,
+  )!.key;
 
   it("starts with an empty score and two different questions", () => {
     expect(started).toMatchObject({
-      pickedId: null,
+      mode: "sprite",
+      pickedKey: null,
       correct: 0,
       wrong: 0,
       streak: 0,
       bestStreak: 0,
     });
-    expect(started.upcoming.answer.id).not.toBe(answerId);
+    expect(started.upcoming.answerKey).not.toBe(answerKey);
   });
 
   it("counts a right answer and grows the streak", () => {
-    expect(answerQuestion(started, answerId)).toMatchObject({
-      pickedId: answerId,
+    expect(answerQuestion(started, answerKey)).toMatchObject({
+      pickedKey: answerKey,
       correct: 1,
       wrong: 0,
       streak: 1,
@@ -214,8 +285,8 @@ describe("quiz state", () => {
   it("counts a wrong answer and resets the streak but keeps the best", () => {
     const streaking = { ...started, streak: 4, bestStreak: 4 };
 
-    expect(answerQuestion(streaking, wrongId)).toMatchObject({
-      pickedId: wrongId,
+    expect(answerQuestion(streaking, wrongKey)).toMatchObject({
+      pickedKey: wrongKey,
       wrong: 1,
       streak: 0,
       bestStreak: 4,
@@ -223,17 +294,17 @@ describe("quiz state", () => {
   });
 
   it("ignores a second answer to the same question", () => {
-    const answered = answerQuestion(started, wrongId);
+    const answered = answerQuestion(started, wrongKey);
 
-    expect(answerQuestion(answered, answerId)).toBe(answered);
+    expect(answerQuestion(answered, answerKey)).toBe(answered);
   });
 
   it("never shows the same Pokémon twice in a row across cycles", () => {
-    let state = startQuiz(pool, createRng(21));
+    let state = startQuiz(pool, createRng(21), "sprite");
     const rng = createRng(22);
     const answers = [state.current.answer.id];
     for (let step = 0; step < pool.length * 3; step++) {
-      state = advanceQuestion(state, pool, rng);
+      state = advanceQuestion(state, rng);
       answers.push(state.current.answer.id);
     }
 
@@ -243,11 +314,11 @@ describe("quiz state", () => {
   });
 
   it("moves the upcoming question up and clears the pick", () => {
-    const answered = answerQuestion(started, answerId);
-    const advanced = advanceQuestion(answered, pool, createRng(11));
+    const answered = answerQuestion(started, answerKey);
+    const advanced = advanceQuestion(answered, createRng(11));
 
     expect(advanced.current).toBe(started.upcoming);
-    expect(advanced.pickedId).toBeNull();
+    expect(advanced.pickedKey).toBeNull();
     expect(advanced.correct).toBe(1);
   });
 });
@@ -299,9 +370,14 @@ describe("round clock", () => {
 });
 
 describe("quiz round", () => {
-  const waiting = startRound(pool, createRng(8), 30, 1_000);
+  const waiting = startRound(
+    pool,
+    createRng(8),
+    { mode: "sprite", seconds: 30 },
+    1_000,
+  );
   const shown = showQuestion(waiting, 2_000);
-  const answerId = shown.quiz.current.answer.id;
+  const answerKey = shown.quiz.current.answerKey;
 
   it("waits for the first question to be shown", () => {
     expect(waiting.shown).toBe(false);
@@ -309,7 +385,7 @@ describe("quiz round", () => {
   });
 
   it("ignores answers while waiting for the question", () => {
-    expect(answerRound(waiting, answerId, 1_500)).toBe(waiting);
+    expect(answerRound(waiting, answerKey, 1_500)).toBe(waiting);
   });
 
   it("starts the clock when the question is shown", () => {
@@ -318,7 +394,7 @@ describe("quiz round", () => {
   });
 
   it("scores an answer and pauses the clock", () => {
-    const answered = answerRound(shown, answerId, 7_000);
+    const answered = answerRound(shown, answerKey, 7_000);
 
     expect(answered.quiz.correct).toBe(1);
     expect(answered.clock.pausedAt).toBe(7_000);
@@ -326,30 +402,30 @@ describe("quiz round", () => {
   });
 
   it("ignores an answer after time is up", () => {
-    expect(answerRound(shown, answerId, 32_000)).toBe(shown);
+    expect(answerRound(shown, answerKey, 32_000)).toBe(shown);
   });
 
   it("doesn't restart the clock while the answer is showing", () => {
-    const answered = answerRound(shown, answerId, 7_000);
+    const answered = answerRound(shown, answerKey, 7_000);
 
     expect(showQuestion(answered, 7_100)).toBe(answered);
   });
 
   it("waits for the next question after moving on", () => {
-    const answered = answerRound(shown, answerId, 7_000);
-    const next = nextQuestion(answered, pool, createRng(3), 7_300);
+    const answered = answerRound(shown, answerKey, 7_000);
+    const next = nextQuestion(answered, createRng(3), 7_300);
 
     expect(next.quiz.current).toBe(answered.quiz.upcoming);
     expect(next.shown).toBe(false);
     expect(remainingMs(showQuestion(next, 9_000).clock, 9_000)).toBe(25_000);
   });
 
-  const wrongId = shown.quiz.current.choices.find(
-    (choice) => choice.id !== answerId,
-  )!.id;
+  const wrongKey = shown.quiz.current.choices.find(
+    (choice) => choice.key !== answerKey,
+  )!.key;
 
   it("takes time off for a wrong answer", () => {
-    const answered = answerRound(shown, wrongId, 7_000);
+    const answered = answerRound(shown, wrongKey, 7_000);
 
     expect(answered.penaltyMs).toBe(WRONG_ANSWER_PENALTY_MS);
     expect(remainingMs(answered.clock, 7_000)).toBe(
@@ -358,41 +434,41 @@ describe("quiz round", () => {
   });
 
   it("doesn't take time off for a right answer", () => {
-    const answered = answerRound(shown, answerId, 7_000);
+    const answered = answerRound(shown, answerKey, 7_000);
 
     expect(answered.penaltyMs).toBe(0);
     expect(remainingMs(answered.clock, 7_000)).toBe(25_000);
   });
 
   it("only takes the time that's left", () => {
-    const answered = answerRound(shown, wrongId, 30_800);
+    const answered = answerRound(shown, wrongKey, 30_800);
 
     expect(answered.penaltyMs).toBe(1_200);
     expect(remainingMs(answered.clock, 30_800)).toBe(0);
   });
 
   it("uses up exactly the last 2 seconds", () => {
-    const answered = answerRound(shown, wrongId, 30_000);
+    const answered = answerRound(shown, wrongKey, 30_000);
 
     expect(answered.penaltyMs).toBe(2_000);
     expect(remainingMs(answered.clock, 30_000)).toBe(0);
   });
 
   it("doesn't penalize a second click on the same question", () => {
-    const answered = answerRound(shown, wrongId, 7_000);
+    const answered = answerRound(shown, wrongKey, 7_000);
 
-    expect(answerRound(answered, answerId, 7_050)).toBe(answered);
+    expect(answerRound(answered, answerKey, 7_050)).toBe(answered);
   });
 
   it("clears the penalty for the next question", () => {
-    const answered = answerRound(shown, wrongId, 7_000);
+    const answered = answerRound(shown, wrongKey, 7_000);
 
-    expect(nextQuestion(answered, pool, createRng(3), 7_300).penaltyMs).toBe(0);
+    expect(nextQuestion(answered, createRng(3), 7_300).penaltyMs).toBe(0);
   });
 
   it("finishes the round only after the reveal", () => {
-    const answered = answerRound(shown, wrongId, 31_000);
-    const next = nextQuestion(answered, pool, createRng(3), 31_300);
+    const answered = answerRound(shown, wrongKey, 31_000);
+    const next = nextQuestion(answered, createRng(3), 31_300);
 
     expect(isRoundOver(answered, 31_000)).toBe(false);
     expect(isRoundOver(next, 31_300)).toBe(true);
@@ -408,7 +484,7 @@ describe("quiz round", () => {
 
     expect(isClockRunning(held)).toBe(false);
     expect(remainingMs(held.clock, 50_000)).toBe(27_000);
-    expect(answerRound(held, answerId, 6_000)).toBe(held);
+    expect(answerRound(held, answerKey, 6_000)).toBe(held);
   });
 
   it("resumes the clock when released mid-question", () => {
@@ -419,7 +495,7 @@ describe("quiz round", () => {
   });
 
   it("keeps the clock paused when released during the reveal", () => {
-    const answered = answerRound(shown, answerId, 7_000);
+    const answered = answerRound(shown, answerKey, 7_000);
     const released = releaseRound(holdRound(answered, 7_100), 9_000);
 
     expect(isClockRunning(released)).toBe(false);

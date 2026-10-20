@@ -14,6 +14,7 @@ const GENERATION_REGIONS: Record<string, Region> = {
 
 const VERSION_GROUP_REGIONS: Record<string, Region> = {
   "legends-arceus": "hisui",
+  "lets-go-pikachu-lets-go-eevee": "kanto",
   "legends-za": "kalos",
   "mega-dimension": "kalos",
 };
@@ -43,6 +44,7 @@ export type FormFlags = {
 export type DisplayName = {
   displayName: string;
   variant: string | null;
+  regional: boolean;
 };
 
 export function debutRegion(versionGroup: string, generation: string): Region {
@@ -74,10 +76,11 @@ export function formDisplayName(
     return {
       displayName: `${regional[1]} ${speciesName}`,
       variant: regional[2] ?? null,
+      regional: true,
     };
   }
 
   return formName.includes(speciesName)
-    ? { displayName: formName, variant: null }
-    : { displayName: speciesName, variant: formName };
+    ? { displayName: formName, variant: null, regional: false }
+    : { displayName: speciesName, variant: formName, regional: false };
 }
