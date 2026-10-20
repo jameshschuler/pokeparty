@@ -1,28 +1,12 @@
 # TODO
 
-What's left for Who's That Pokémon?, roughly in the order I'd build it. Sprite, silhouette, region and dex number modes are done, along with the 30/60/90s clock, quit, and the wrong-answer penalty.
-
-## Game modes
-
-### Time attack
-
-Start at 30 seconds. Each right answer adds 3 seconds and each wrong one takes 2. The round ends at zero, and the score is how many you got right. It works with any mode, so it's a clock option next to 30/60/90 rather than its own mode.
-
-- The clock already supports moving `endsAt`, but `QuizRound.penaltyMs` and `formatPenalty` only handle losses. Replace them with one signed `clockDeltaMs` (and a `formatClockDelta` that prints "+3s" or "−2s") rather than adding a separate bonus field.
-- Cap how much time can build up (maybe 60 s).
-- The clock setting stops being only a number of seconds. Make it `30 | 60 | 90 | "attack"` and carry it in the URL as `clock=attack`, so result links, the personal board and "Play this mode" all keep it. Today `parseQuizSettings` would turn an unknown value into 60.
-
-## Results
-
-### Shareable result page
-
-`/quiz/result?mode=silhouette&clock=60&score=23&total=27&streak=11` shows a result card with Copy link, Share, and "Play this mode". The summary screen links to it.
-
-Anyone can type a better score into the URL. That's fine until there's a global leaderboard, which needs the server anyway.
+What's left for Who's That Pokémon?, roughly in the order I'd build it. Sprite, silhouette, region and dex number modes are done, along with the 30/60/90s and time attack clocks, quit, the wrong-answer penalty, and the shareable result page (`/quiz/result`).
 
 ## Leaderboards
 
-Two boards: a personal one that needs nothing new, and a global one that needs a server. Build the personal board with the result page. The global board is v2.
+Two boards: a personal one that needs nothing new, and a global one that needs a server. The personal board is next. The global board is v2.
+
+Anyone can type a better score into a result link. That's fine until there's a global leaderboard, which needs the server anyway.
 
 Both are ranked per mode and clock (Sprite 60s, Silhouette time attack, and so on). Mixing them would be meaningless. Ties go to accuracy, then to whoever got there first.
 

@@ -32,20 +32,20 @@ describe("quiz setup", () => {
     const user = userEvent.setup();
     const router = renderApp("/quiz");
 
-    const ninety = await screen.findByRole("link", { name: /90s/ });
+    const ninety = await screen.findByRole("link", { name: "90s" });
     await user.click(ninety);
 
     expect(router.state.location.pathname).toBe("/quiz/play");
     expect(router.state.location.search).toEqual({
       mode: "sprite",
-      seconds: 90,
+      clock: 90,
     });
     await expect(
       screen.findByRole("timer", { name: "Time left" }),
     ).resolves.toHaveTextContent("90s");
   });
 
-  it.each(["seconds=45", "seconds=abc", ""])(
+  it.each(["clock=45", "clock=abc", ""])(
     "falls back to 60 seconds for %j",
     async (query) => {
       renderApp(`/quiz/play?${query}`);
@@ -55,6 +55,49 @@ describe("quiz setup", () => {
       ).resolves.toHaveTextContent("60s");
     },
   );
+});
+
+describe("time attack", () => {
+  it("starts from the setup screen with 30 seconds", async () => {
+    const user = userEvent.setup();
+    const router = renderApp("/quiz?mode=region");
+
+    const attack = await screen.findByRole("link", { name: /Time attack/ });
+    await user.click(attack);
+
+    expect(router.state.location.search).toEqual({
+      mode: "region",
+      clock: "attack",
+    });
+    await expect(
+      screen.findByRole("timer", { name: "Time left" }),
+    ).resolves.toHaveTextContent("30s");
+  });
+
+  it("adds time for a right answer", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/quiz/play?clock=attack");
+    await showQuestion();
+    act(() => vi.advanceTimersByTime(5_000));
+
+    fireEvent.click(screen.getByRole("button", { name: currentAnswerLabel() }));
+
+    expect(screen.getByText("+3s")).toBeInTheDocument();
+    expect(screen.getByRole("timer", { name: "Time left" })).toHaveTextContent(
+      "28s",
+    );
+  });
+
+  it("names time attack on the summary", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/quiz/play?mode=region&clock=attack");
+    await showQuestion();
+    act(() => vi.advanceTimersByTime(30_200));
+
+    expect(
+      screen.getByText("correct · Region · Time attack"),
+    ).toBeInTheDocument();
+  });
 });
 
 describe("quiz modes", () => {
@@ -78,17 +121,17 @@ describe("quiz modes", () => {
       "aria-pressed",
       "false",
     );
-    await user.click(screen.getByRole("link", { name: /60s/ }));
+    await user.click(screen.getByRole("link", { name: "60s" }));
 
     expect(router.state.location.pathname).toBe("/quiz/play");
     expect(router.state.location.search).toEqual({
       mode: "silhouette",
-      seconds: 60,
+      clock: 60,
     });
   });
 
   it("hides the Pokémon in silhouette mode until it's answered", async () => {
-    renderApp("/quiz/play?mode=silhouette&seconds=30");
+    renderApp("/quiz/play?mode=silhouette&clock=30");
     await showQuestion();
     const sprite = screen.getByRole("img", { name: "Mystery Pokémon" });
 
@@ -100,7 +143,7 @@ describe("quiz modes", () => {
   });
 
   it("shows the Pokémon in sprite mode", async () => {
-    renderApp("/quiz/play?mode=sprite&seconds=30");
+    renderApp("/quiz/play?mode=sprite&clock=30");
     await showQuestion();
 
     expect(
@@ -111,13 +154,11 @@ describe("quiz modes", () => {
   it("names the mode on the summary and keeps it for the next setup", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    const router = renderApp("/quiz/play?mode=silhouette&seconds=30");
+    const router = renderApp("/quiz/play?mode=silhouette&clock=30");
     await showQuestion();
     act(() => vi.advanceTimersByTime(30_200));
 
-    expect(
-      screen.getByText("correct in 30 seconds · Silhouette"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("correct · Silhouette · 30s")).toBeInTheDocument();
 
     await user.click(screen.getByRole("link", { name: "Change setup" }));
 
@@ -147,16 +188,16 @@ describe("region mode", () => {
     const router = renderApp("/quiz");
 
     await user.click(await screen.findByRole("button", { name: /Region/ }));
-    await user.click(screen.getByRole("link", { name: /30s/ }));
+    await user.click(screen.getByRole("link", { name: "30s" }));
 
     expect(router.state.location.search).toEqual({
       mode: "region",
-      seconds: 30,
+      clock: 30,
     });
   });
 
   it("asks for the region and offers four regions", async () => {
-    renderApp("/quiz/play?mode=region&seconds=30");
+    renderApp("/quiz/play?mode=region&clock=30");
     await showQuestion();
     const regionLabels = Object.values(REGION_LABELS);
 
@@ -173,7 +214,7 @@ describe("region mode", () => {
   });
 
   it("scores the right region and names it in the reveal", async () => {
-    renderApp("/quiz/play?mode=region&seconds=30");
+    renderApp("/quiz/play?mode=region&clock=30");
     await showQuestion();
     const pokemon = currentPokemon();
     const region = REGION_LABELS[pokemon.region];
@@ -211,7 +252,7 @@ describe("dex number mode", () => {
   }
 
   it("shows the number and four unnamed sprite choices", async () => {
-    renderApp("/quiz/play?mode=dex&seconds=30");
+    renderApp("/quiz/play?mode=dex&clock=30");
 
     await screen.findByLabelText("Dex number");
 
@@ -228,7 +269,7 @@ describe("dex number mode", () => {
   });
 
   it("hides the number until the sprites have loaded", async () => {
-    renderApp("/quiz/play?mode=dex&seconds=30");
+    renderApp("/quiz/play?mode=dex&clock=30");
     await screen.findByLabelText("Dex number");
 
     expect(screen.getByLabelText("Dex number")).toHaveTextContent("#????");
@@ -242,7 +283,7 @@ describe("dex number mode", () => {
 
   it("offers to skip when a sprite never finishes loading", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?mode=dex&seconds=30");
+    renderApp("/quiz/play?mode=dex&clock=30");
     await screen.findByLabelText("Dex number");
     const [first, second, third] = spriteChoices();
     for (const button of [first, second, third]) {
@@ -261,7 +302,7 @@ describe("dex number mode", () => {
 
   it("waits for all four sprites before the clock starts", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?mode=dex&seconds=30");
+    renderApp("/quiz/play?mode=dex&clock=30");
     await screen.findByLabelText("Dex number");
 
     const [first, ...rest] = spriteChoices();
@@ -284,7 +325,7 @@ describe("dex number mode", () => {
   });
 
   it("scores the right sprite and names every choice in the reveal", async () => {
-    renderApp("/quiz/play?mode=dex&seconds=30");
+    renderApp("/quiz/play?mode=dex&clock=30");
     await screen.findByLabelText("Dex number");
     for (const button of spriteChoices()) {
       fireEvent.load(button.querySelector("img")!);
@@ -307,7 +348,7 @@ describe("dex number mode", () => {
   });
 
   it("offers to skip when a choice sprite won't load", async () => {
-    renderApp("/quiz/play?mode=dex&seconds=30");
+    renderApp("/quiz/play?mode=dex&clock=30");
     await screen.findByLabelText("Dex number");
     const before = spriteChoices().map((button) =>
       button.querySelector("img")!.getAttribute("src"),
@@ -347,7 +388,7 @@ describe("quiz navigation", () => {
 
   it("asks before quitting and pauses the clock meanwhile", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
     act(() => vi.advanceTimersByTime(5_100));
 
@@ -379,7 +420,7 @@ describe("quiz navigation", () => {
 
   it("keeps the sprite loaded, so the clock resumes right away", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
     const sprite = screen.getByRole("img", { name: "Mystery Pokémon" });
 
@@ -395,7 +436,7 @@ describe("quiz navigation", () => {
 
   it("doesn't skip the answer reveal when quitting right after a guess", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
     const answer = currentAnswerLabel();
     fireEvent.click(screen.getByRole("button", { name: answer }));
@@ -413,7 +454,7 @@ describe("quiz navigation", () => {
 
   it("quits back to setup, keeping the mode", async () => {
     const user = userEvent.setup();
-    const router = renderApp("/quiz/play?mode=silhouette&seconds=30");
+    const router = renderApp("/quiz/play?mode=silhouette&clock=30");
     await showQuestion();
 
     await user.click(screen.getByRole("button", { name: "Quit" }));
@@ -430,7 +471,7 @@ describe("quiz game", () => {
   });
 
   it("offers four name choices including the answer", async () => {
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
 
     const labels = choiceButtons().map((button) => button.textContent);
@@ -441,7 +482,7 @@ describe("quiz game", () => {
 
   it("scores a right answer, reveals it, then moves on", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
     const answer = currentAnswerLabel();
 
@@ -474,7 +515,7 @@ describe("quiz game", () => {
 
   it("drains the clock when wrong answers are spammed", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
 
     for (let guess = 0; guess < 5; guess++) {
@@ -498,7 +539,7 @@ describe("quiz game", () => {
   });
 
   it("shows the time lost after a wrong answer only", async () => {
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
     const answer = currentAnswerLabel();
 
@@ -511,7 +552,7 @@ describe("quiz game", () => {
 
   it("shows the reveal before ending a round a wrong answer runs out", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
     act(() => vi.advanceTimersByTime(28_500));
     const answer = currentAnswerLabel();
@@ -533,7 +574,7 @@ describe("quiz game", () => {
   });
 
   it("doesn't show a time loss after a right answer", async () => {
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
 
     fireEvent.click(screen.getByRole("button", { name: currentAnswerLabel() }));
@@ -542,7 +583,7 @@ describe("quiz game", () => {
   });
 
   it("counts a wrong answer and doesn't allow a second guess", async () => {
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
     const answer = currentAnswerLabel();
     const wrong = choiceButtons().find(
@@ -566,7 +607,7 @@ describe("quiz game", () => {
 
   it("offers to skip when the prompt sprite never finishes loading", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await screen.findByRole("img", { name: "Mystery Pokémon" });
 
     act(() => vi.advanceTimersByTime(SPRITE_LOAD_TIMEOUT_MS));
@@ -577,7 +618,7 @@ describe("quiz game", () => {
 
   it("waits for the first sprite before the clock starts", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await screen.findByRole("img", { name: "Mystery Pokémon" });
 
     act(() => vi.advanceTimersByTime(5_000));
@@ -594,7 +635,7 @@ describe("quiz game", () => {
 
   it("pauses the clock while the answer is shown and the next sprite loads", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
     act(() => vi.advanceTimersByTime(5_000));
 
@@ -611,7 +652,7 @@ describe("quiz game", () => {
 
   it("offers to skip a Pokémon whose picture won't load", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     const sprite = await screen.findByRole("img", { name: "Mystery Pokémon" });
     const brokenAnswer = currentAnswerLabel();
 
@@ -631,7 +672,7 @@ describe("quiz game", () => {
 
   it("ignores a guess made after time runs out", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
     act(() => vi.advanceTimersByTime(29_950));
 
@@ -642,15 +683,35 @@ describe("quiz game", () => {
     expect(
       screen.getByRole("heading", { name: "Time's up!" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("correct in 30 seconds · Sprite"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("correct · Sprite · 30s")).toBeInTheDocument();
     expect(screen.getByText("0%")).toBeInTheDocument();
+  });
+
+  it("links the summary to a shareable result", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const router = renderApp("/quiz/play?mode=silhouette&clock=30");
+    await showQuestion();
+    fireEvent.click(screen.getByRole("button", { name: currentAnswerLabel() }));
+    act(() => vi.advanceTimersByTime(FEEDBACK_MS));
+    await showQuestion();
+    act(() => vi.advanceTimersByTime(30_200));
+
+    await user.click(screen.getByRole("link", { name: "Share result" }));
+
+    expect(router.state.location.pathname).toBe("/quiz/result");
+    expect(router.state.location.search).toEqual({
+      mode: "silhouette",
+      clock: 30,
+      score: 1,
+      wrong: 0,
+      streak: 1,
+    });
   });
 
   it("ends the round when time runs out and can start again", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    renderApp("/quiz/play?seconds=30");
+    renderApp("/quiz/play?clock=30");
     await showQuestion();
     fireEvent.click(screen.getByRole("button", { name: currentAnswerLabel() }));
     act(() => vi.advanceTimersByTime(FEEDBACK_MS));
@@ -660,9 +721,7 @@ describe("quiz game", () => {
     expect(
       screen.getByRole("heading", { name: "Time's up!" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("correct in 30 seconds · Sprite"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("correct · Sprite · 30s")).toBeInTheDocument();
     expect(screen.getByText("100%")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Play again" }));

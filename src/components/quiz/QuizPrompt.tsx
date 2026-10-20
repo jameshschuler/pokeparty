@@ -1,6 +1,10 @@
 import { useQuizContext } from "../../contexts/quiz-context";
 import { formatPokemonNumber } from "../../lib/pokemon";
-import { describeAnswer, formatPenalty, QUIZ_MODE_RULES } from "../../lib/quiz";
+import {
+  describeAnswer,
+  formatClockDelta,
+  QUIZ_MODE_RULES,
+} from "../../lib/quiz";
 import { QUIZ_MODE_DETAILS } from "./quiz-modes";
 import { QuizPromptSprite } from "./QuizPromptSprite";
 
@@ -8,6 +12,7 @@ export function QuizPrompt() {
   const { round, mode } = useQuizContext();
   const revealed = round.quiz.pickedKey !== null;
   const { prompt } = QUIZ_MODE_DETAILS[mode];
+  const clockDelta = formatClockDelta(round.clockDeltaMs);
 
   return (
     <div className="border-ink shadow-sticker flex flex-col items-center rounded-3xl border-[3px] bg-white p-4">
@@ -29,8 +34,12 @@ export function QuizPrompt() {
       >
         {revealed && <span>{describeAnswer(round.quiz)}</span>}
         {!revealed && prompt && <span className="text-ink/70">{prompt}</span>}
-        {round.penaltyMs > 0 && (
-          <span className="text-wrong">{formatPenalty(round.penaltyMs)}</span>
+        {clockDelta && (
+          <span
+            className={round.clockDeltaMs > 0 ? "text-correct" : "text-wrong"}
+          >
+            {clockDelta}
+          </span>
         )}
       </p>
     </div>

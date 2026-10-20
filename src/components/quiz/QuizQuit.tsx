@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Play, X } from "lucide-react";
 import { useRef } from "react";
 import { useQuizContext } from "../../contexts/quiz-context";
-import { PILL_BUTTON } from "../shared/button-styles";
+import { PILL_BUTTON, PRIMARY_BUTTON } from "../shared/button-styles";
 
 export function QuizQuit() {
   const { mode, hold, release } = useQuizContext();
@@ -37,7 +37,7 @@ export function QuizQuit() {
             type="button"
             onClick={() => dialogRef.current?.close()}
             autoFocus
-            className="border-ink bg-primary shadow-sticker flex min-h-12 items-center gap-2 rounded-2xl border-[3px] px-5 text-lg font-semibold text-white transition active:translate-x-1 active:translate-y-1 active:shadow-none"
+            className={PRIMARY_BUTTON}
           >
             <Play className="size-5" aria-hidden />
             Keep playing

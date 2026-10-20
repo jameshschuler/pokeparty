@@ -6,7 +6,17 @@ export const ROUND_SECONDS = [30, 60, 90] as const;
 
 export type RoundSeconds = (typeof ROUND_SECONDS)[number];
 
-export const DEFAULT_ROUND_SECONDS: RoundSeconds = 60;
+export type ClockSetting = RoundSeconds | "attack";
+
+export const CLOCK_SETTINGS: ClockSetting[] = [...ROUND_SECONDS, "attack"];
+
+export const DEFAULT_CLOCK_SETTING: ClockSetting = 60;
+
+export const TIME_ATTACK_START_MS = 30_000;
+
+export const TIME_ATTACK_BONUS_MS = 3_000;
+
+export const TIME_ATTACK_MAX_MS = 60_000;
 
 export const QUIZ_MODES = ["sprite", "silhouette", "region", "dex"] as const;
 
@@ -50,7 +60,7 @@ export const QUIZ_MODE_RULES: Record<QuizMode, QuizModeRules> = {
 
 export type QuizSettings = {
   mode: QuizMode;
-  seconds: RoundSeconds;
+  clock: ClockSetting;
 };
 
 export const CHOICE_COUNT = 4;
@@ -100,13 +110,16 @@ export type RoundClock = {
 export type QuizRound = {
   quiz: QuizState;
   clock: RoundClock;
+  clockSetting: ClockSetting;
   shown: boolean;
   onHold: boolean;
-  penaltyMs: number;
+  clockDeltaMs: number;
 };
 
-export function isRoundSeconds(value: number): value is RoundSeconds {
-  return ROUND_SECONDS.some((seconds) => seconds === value);
+export function parseClockSetting(value: unknown): ClockSetting | null {
+  const setting = value === "attack" ? value : Number(value);
+
+  return CLOCK_SETTINGS.find((option) => option === setting) ?? null;
 }
 
 export function isQuizMode(value: unknown): value is QuizMode {
@@ -130,11 +143,9 @@ export function isPokemonHidden(state: QuizState): boolean {
 export function parseQuizSettings(
   search: Record<string, unknown>,
 ): QuizSettings {
-  const seconds = Number(search.seconds);
-
   return {
     mode: parseQuizMode(search.mode),
-    seconds: isRoundSeconds(seconds) ? seconds : DEFAULT_ROUND_SECONDS,
+    clock: parseClockSetting(search.clock) ?? DEFAULT_CLOCK_SETTING,
   };
 }
 
@@ -355,8 +366,15 @@ export function advanceQuestion(state: QuizState, rng: Rng): QuizState {
   };
 }
 
-export function startClock(seconds: RoundSeconds, now: number): RoundClock {
-  return { endsAt: now + seconds * 1000, pausedAt: now };
+export function clockCapacityMs(setting: ClockSetting): number {
+  return setting === "attack" ? TIME_ATTACK_MAX_MS : setting * 1000;
+}
+
+export function startClock(setting: ClockSetting, now: number): RoundClock {
+  const durationMs =
+    setting === "attack" ? TIME_ATTACK_START_MS : clockCapacityMs(setting);
+
+  return { endsAt: now + durationMs, pausedAt: now };
 }
 
 export function pauseClock(clock: RoundClock, now: number): RoundClock {
@@ -383,10 +401,11 @@ export function startRound(
 ): QuizRound {
   return {
     quiz: startQuiz(pool, rng, settings.mode),
-    clock: startClock(settings.seconds, now),
+    clock: startClock(settings.clock, now),
+    clockSetting: settings.clock,
     shown: false,
     onHold: false,
-    penaltyMs: 0,
+    clockDeltaMs: 0,
   };
 }
 
@@ -425,20 +444,33 @@ export function answerRound(
     now,
   );
 
-  if (pickedKey === round.quiz.current.answerKey) {
-    return answered;
-  }
-
-  const penaltyMs = Math.min(
-    WRONG_ANSWER_PENALTY_MS,
+  const clockDeltaMs = answerClockDelta(
+    answered,
+    pickedKey === round.quiz.current.answerKey,
     remainingMs(answered.clock, now),
   );
 
   return {
     ...answered,
-    clock: { ...answered.clock, endsAt: answered.clock.endsAt - penaltyMs },
-    penaltyMs,
+    clock: { ...answered.clock, endsAt: answered.clock.endsAt + clockDeltaMs },
+    clockDeltaMs,
   };
+}
+
+function answerClockDelta(
+  round: QuizRound,
+  correct: boolean,
+  remaining: number,
+): number {
+  if (!correct) {
+    return -Math.min(WRONG_ANSWER_PENALTY_MS, remaining);
+  }
+
+  if (round.clockSetting !== "attack") {
+    return 0;
+  }
+
+  return Math.min(TIME_ATTACK_BONUS_MS, TIME_ATTACK_MAX_MS - remaining);
 }
 
 export function isRoundOver(round: QuizRound, now: number): boolean {
@@ -463,8 +495,18 @@ export function describeAnswer(state: QuizState): string {
   }
 }
 
-export function formatPenalty(penaltyMs: number): string {
-  return `−${Number((penaltyMs / 1000).toFixed(1))}s`;
+export function formatClockDelta(deltaMs: number): string | null {
+  const seconds = Number((Math.abs(deltaMs) / 1000).toFixed(1));
+
+  if (seconds === 0) {
+    return null;
+  }
+
+  return `${deltaMs < 0 ? "−" : "+"}${seconds}s`;
+}
+
+export function formatClockSetting(setting: ClockSetting): string {
+  return setting === "attack" ? "Time attack" : `${setting}s`;
 }
 
 export function showQuestion(round: QuizRound, now: number): QuizRound {
@@ -485,7 +527,7 @@ export function nextQuestion(
       ...round,
       quiz: advanceQuestion(round.quiz, rng),
       shown: false,
-      penaltyMs: 0,
+      clockDeltaMs: 0,
     },
     now,
   );
