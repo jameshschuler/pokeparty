@@ -12,5 +12,6 @@ export function renderApp(path: string) {
     defaultOptions: { queries: { retry: false } },
   });
   render(<App router={router} queryClient={queryClient} />);
+
   return router;
 }

@@ -43,9 +43,11 @@ async function getJson<T>(url: string): Promise<T> {
   const response = await fetch(
     url.startsWith("http") ? url : `${API_URL}${url}`,
   );
+
   if (!response.ok) {
     throw new Error(`PokeAPI request failed (${response.status}): ${url}`);
   }
+
   return (await response.json()) as T;
 }
 
@@ -62,6 +64,7 @@ async function mapLimited<T, R>(
     }
   }
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+
   return results;
 }
 
@@ -72,6 +75,7 @@ function englishName(names: { name: string; language: NamedResource }[]) {
 async function loadDebut(pokemonUrl: string): Promise<Debut> {
   const pokemon = await getJson<PokemonDetail>(pokemonUrl);
   const form = await getJson<FormDetail>(pokemon.forms[0].url);
+
   return { pokemon, form };
 }
 
@@ -118,6 +122,7 @@ const generations = new Map(
 
 function regionOf({ form }: Debut) {
   const versionGroup = form.version_group.name;
+
   return debutRegion(versionGroup, generations.get(versionGroup)!);
 }
 
@@ -135,6 +140,7 @@ const species = speciesDetails.map((detail, index) => ({
 
 const forms = formDebuts.map((debut) => {
   const speciesId = idFromUrl(debut.pokemon.species.url);
+
   return {
     id: debut.pokemon.id,
     speciesId,

@@ -16,6 +16,7 @@ function TeamRoute() {
   if (!exists && teamId !== NEW_TEAM_ID) {
     return <Navigate to="/party" replace />;
   }
+
   return (
     <TeamBuilderProvider teamId={teamId}>
       <TeamBuilder />

@@ -20,6 +20,7 @@ function isTheme(value: string | null): value is Theme {
 export function loadTheme(): Theme {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
+
     return isTheme(stored) ? stored : DEFAULT_THEME;
   } catch {
     return DEFAULT_THEME;

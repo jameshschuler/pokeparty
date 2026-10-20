@@ -11,6 +11,7 @@ export function teamShareUrl(members: TeamMember[], origin: string): string {
   const team = members
     .map((member) => `${member.pokemonId}${member.shiny ? SHINY_SUFFIX : ""}`)
     .join(",");
+
   return `${origin}/share?team=${team}`;
 }
 
@@ -20,12 +21,14 @@ export function parseSharedTeam(param: string): TeamMember[] {
   for (const token of param.split(",")) {
     const match = token.trim().match(SHARED_MEMBER_PATTERN);
     const pokemonId = Number(match?.[1]);
+
     if (!match || !isValidPokemonId(pokemonId) || seen.has(pokemonId)) {
       continue;
     }
     seen.add(pokemonId);
     members.push({ pokemonId, shiny: match[2] === SHINY_SUFFIX });
   }
+
   return members;
 }
 

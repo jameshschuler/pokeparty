@@ -56,6 +56,7 @@ export function TeamBuilderProvider({
   function saveTeam(nextMembers: TeamMember[]) {
     if (team) {
       updateTeam(team.id, nextMembers);
+
       return;
     }
     const created = createTeam(nextMembers);
@@ -70,10 +71,13 @@ export function TeamBuilderProvider({
   function togglePokemon(pokemonId: number) {
     if (hasPokemon(members, pokemonId)) {
       saveTeam(removePokemon(members, pokemonId));
+
       return;
     }
+
     if (isTeamFull(members)) {
       showToast("Party's full! Remove one first.");
+
       return;
     }
     saveTeam(addPokemon(members, pokemonId, shinyMode));
@@ -108,10 +112,12 @@ export function TeamBuilderProvider({
 
 export function useTeamBuilderContext(): TeamBuilderContextValue {
   const context = useContext(TeamBuilderContext);
+
   if (!context) {
     throw new Error(
       "useTeamBuilderContext must be used inside TeamBuilderProvider",
     );
   }
+
   return context;
 }

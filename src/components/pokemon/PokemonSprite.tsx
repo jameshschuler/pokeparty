@@ -5,6 +5,9 @@ type PokemonSpriteProps = {
   shiny: boolean;
   alt: string;
   className?: string;
+  eager?: boolean;
+  onLoad?: () => void;
+  onError?: () => void;
 };
 
 export function PokemonSprite({
@@ -12,15 +15,20 @@ export function PokemonSprite({
   shiny,
   alt,
   className = "",
+  eager = false,
+  onLoad,
+  onError,
 }: PokemonSpriteProps) {
   return (
     <img
       src={spriteUrl(id, shiny)}
       alt={alt}
-      loading="lazy"
+      loading={eager ? "eager" : "lazy"}
       decoding="async"
       width={475}
       height={475}
+      onLoad={onLoad}
+      onError={onError}
       className={`aspect-square h-auto object-contain ${className}`}
     />
   );

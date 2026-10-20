@@ -14,14 +14,15 @@ describe("hub", () => {
     await waitFor(() => expect(router.state.location.pathname).toBe("/party"));
   });
 
-  it("shows the guessing game as coming soon, not as a link", async () => {
-    renderApp("/");
+  it("opens the guessing game from its tile", async () => {
+    const user = userEvent.setup();
+    const router = renderApp("/");
 
-    await screen.findByText("Who's That Pokémon?");
+    const tile = await screen.findByRole("link", {
+      name: /Who's That Pokémon/,
+    });
+    await user.click(tile);
 
-    expect(
-      screen.queryByRole("link", { name: /Who's That Pokémon/ }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText("Soon")).toBeInTheDocument();
+    await waitFor(() => expect(router.state.location.pathname).toBe("/quiz"));
   });
 });
