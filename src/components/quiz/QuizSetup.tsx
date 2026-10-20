@@ -1,6 +1,7 @@
 import { Link, useSearch } from "@tanstack/react-router";
 import { Timer } from "lucide-react";
 import { QUIZ_MODES, ROUND_SECONDS } from "../../lib/quiz";
+import { BackLink } from "../layout/BackLink";
 import { QuizModeOption } from "./QuizModeOption";
 
 export function QuizSetup() {
@@ -8,6 +9,7 @@ export function QuizSetup() {
 
   return (
     <section className="flex flex-col gap-5">
+      <BackLink to="/" label="Back" />
       <div>
         <h1 className="text-3xl font-bold">Who's That Pokémon?</h1>
         <p className="text-ink/70 mt-1">

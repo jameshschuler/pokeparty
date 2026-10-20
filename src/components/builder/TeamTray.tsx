@@ -4,6 +4,7 @@ import { useTeamBuilderContext } from "../../contexts/team-builder-context";
 import { TEAM_SIZE } from "../../lib/team";
 import { ShareActions } from "../share/ShareActions";
 import { TraySlot } from "./TraySlot";
+import { PILL_BUTTON } from "../shared/button-styles";
 
 export function TeamTray() {
   const { members } = useTeamBuilderContext();
@@ -35,10 +36,7 @@ export function TeamTray() {
           </span>
           <div className="flex items-center gap-2">
             <ShareActions members={members} />
-            <Link
-              to="/party"
-              className="border-ink shadow-sticker-sm flex min-h-11 items-center gap-1.5 rounded-full border-[3px] bg-white px-4 font-semibold transition active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
-            >
+            <Link to="/party" className={PILL_BUTTON}>
               <Check className="size-5" aria-hidden />
               Done
             </Link>

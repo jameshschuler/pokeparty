@@ -121,6 +121,103 @@ describe("quiz modes", () => {
   });
 });
 
+describe("quiz navigation", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("goes back to the hub from setup", async () => {
+    const user = userEvent.setup();
+    const router = renderApp("/quiz");
+
+    await user.click(await screen.findByRole("link", { name: "Back" }));
+
+    expect(router.state.location.pathname).toBe("/");
+  });
+
+  function quitDialog() {
+    return screen.getByRole("dialog", { name: "Quit this round?" });
+  }
+
+  it("asks before quitting and pauses the clock meanwhile", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/quiz/play?seconds=30");
+    await showQuestion();
+    act(() => vi.advanceTimersByTime(5_100));
+
+    fireEvent.click(screen.getByRole("button", { name: "Quit" }));
+
+    expect(quitDialog()).toHaveAttribute("open");
+    const frozen = screen.getByRole("timer", {
+      hidden: true,
+      name: "Time left",
+    }).textContent;
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(
+      screen.getByRole("timer", { hidden: true, name: "Time left" }),
+    ).toHaveTextContent(frozen!);
+
+    fireEvent.click(screen.getByRole("button", { name: "Keep playing" }));
+
+    expect(
+      screen.queryByRole("dialog", { name: "Quit this round?" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("timer", { name: "Time left" })).toHaveTextContent(
+      frozen!,
+    );
+    act(() => vi.advanceTimersByTime(5_100));
+    expect(
+      screen.getByRole("timer", { name: "Time left" }),
+    ).not.toHaveTextContent(frozen!);
+  });
+
+  it("keeps the sprite loaded, so the clock resumes right away", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/quiz/play?seconds=30");
+    await showQuestion();
+    const sprite = screen.getByRole("img", { name: "Mystery Pokémon" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Quit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Keep playing" }));
+    act(() => vi.advanceTimersByTime(5_100));
+
+    expect(screen.getByRole("img", { name: "Mystery Pokémon" })).toBe(sprite);
+    expect(screen.getByRole("timer", { name: "Time left" })).toHaveTextContent(
+      "25s",
+    );
+  });
+
+  it("doesn't skip the answer reveal when quitting right after a guess", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/quiz/play?seconds=30");
+    await showQuestion();
+    const answer = currentAnswerLabel();
+    fireEvent.click(screen.getByRole("button", { name: answer }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Quit" }));
+    act(() => vi.advanceTimersByTime(2_000));
+    fireEvent.click(screen.getByRole("button", { name: "Keep playing" }));
+
+    expect(screen.getByText(`It's ${answer}!`)).toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(FEEDBACK_MS));
+
+    expect(currentAnswerLabel()).not.toBe(answer);
+  });
+
+  it("quits back to setup, keeping the mode", async () => {
+    const user = userEvent.setup();
+    const router = renderApp("/quiz/play?mode=silhouette&seconds=30");
+    await showQuestion();
+
+    await user.click(screen.getByRole("button", { name: "Quit" }));
+    await user.click(within(quitDialog()).getByRole("link", { name: "Quit" }));
+
+    expect(router.state.location.pathname).toBe("/quiz");
+    expect(router.state.location.search).toEqual({ mode: "silhouette" });
+  });
+});
+
 describe("quiz game", () => {
   afterEach(() => {
     vi.useRealTimers();
