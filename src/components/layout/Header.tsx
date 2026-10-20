@@ -8,7 +8,7 @@ export function Header() {
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-2">
         <Link to="/" className="flex items-center gap-2 text-white">
           <BallIcon className="size-8" />
-          <span className="text-2xl font-bold tracking-wide [text-shadow:2px_2px_0_var(--color-ink)]">
+          <span className="text-2xl font-bold tracking-wide [text-shadow:2px_2px_0_var(--color-ink)] max-[359px]:sr-only">
             PokeParty
           </span>
         </Link>
