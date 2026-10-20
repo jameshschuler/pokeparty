@@ -3,6 +3,7 @@ import { Shuffle } from "lucide-react";
 import { useTeamsContext } from "../../contexts/teams-context";
 import { resolveSharedTeam } from "../../lib/share";
 import type { TeamMember } from "../../types/team";
+import { PRIMARY_BUTTON } from "../shared/button-styles";
 import { SharedPokemon } from "./SharedPokemon";
 
 export function SharedTeam({ members }: { members: TeamMember[] }) {
@@ -40,7 +41,7 @@ export function SharedTeam({ members }: { members: TeamMember[] }) {
       <button
         type="button"
         onClick={handleRemix}
-        className="border-ink bg-primary shadow-sticker flex min-h-12 items-center justify-center gap-2 self-center rounded-2xl border-[3px] px-6 text-lg font-semibold text-white transition active:translate-x-1 active:translate-y-1 active:shadow-none"
+        className={`${PRIMARY_BUTTON} justify-center self-center`}
       >
         <Shuffle className="size-5" aria-hidden />
         Remix this team
