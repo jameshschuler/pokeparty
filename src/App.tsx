@@ -1,5 +1,6 @@
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
+import { LeaderboardProvider } from "./contexts/leaderboard-context";
 import { TeamsProvider } from "./contexts/teams-context";
 import { ThemeProvider } from "./contexts/theme-context";
 import { ToastProvider } from "./contexts/toast-context";
@@ -16,7 +17,9 @@ export function App({ router, queryClient }: AppProps) {
       <ThemeProvider>
         <ToastProvider>
           <TeamsProvider>
-            <RouterProvider router={router} />
+            <LeaderboardProvider>
+              <RouterProvider router={router} />
+            </LeaderboardProvider>
           </TeamsProvider>
         </ToastProvider>
       </ThemeProvider>

@@ -1,28 +1,18 @@
 # TODO
 
-What's left for Who's That Pokémon?, roughly in the order I'd build it. Sprite, silhouette, region and dex number modes are done, along with the 30/60/90s and time attack clocks, quit, the wrong-answer penalty, and the shareable result page (`/quiz/result`).
+What's left for Who's That Pokémon?, roughly in the order I'd build it. Sprite, silhouette, region and dex number modes are done, along with the 30/60/90s and time attack clocks, quit, the wrong-answer penalty, the shareable result page (`/quiz/result`), and the personal leaderboard (`/quiz/leaderboard`).
 
 ## Leaderboards
 
-Two boards: a personal one that needs nothing new, and a global one that needs a server. The personal board is next. The global board is v2.
+Two boards: a personal one kept on this device, which is done, and a global one that needs a server, which is v2.
 
 Anyone can type a better score into a result link. That's fine until there's a global leaderboard, which needs the server anyway.
 
 Both are ranked per mode and clock (Sprite 60s, Silhouette time attack, and so on). Mixing them would be meaningless. Ties go to accuracy, then to whoever got there first.
 
-### Personal
-
-Your own top 10 runs per mode and clock, kept in localStorage on this device.
-
-- Save `{ score, wrong, bestStreak, playedAt }` when a round ends. Load it with the same validation as saved teams, so bad or old data is dropped instead of crashing. Sync across tabs with the `storage` event, the same way teams do.
-- The summary says where the run landed: "New best!" or "#3 on your board".
-- The setup screen shows your best for the selected mode under each clock button.
-- A `/quiz/leaderboard` page lists your board per mode and clock. Add the Global tab only once global exists.
-- Nothing stops someone editing their own localStorage. That doesn't matter, since it's only their board.
-
 ### Global
 
-Everyone's top runs, which means scores have to be trustworthy. Nothing the browser says about itself can be trusted, so the server owns the round:
+Everyone's top runs, shown as a Global tab on `/quiz/leaderboard`. That means scores have to be trustworthy. Nothing the browser says about itself can be trusted, so the server owns the round:
 
 1. **Start:** the browser asks for a round (`POST /rounds` with mode and clock). The server stores the round with a secret seed and sends back only the first question.
 2. **Images:** the question's image goes through the server under an opaque name (`/rounds/:id/image/3`). The sprite files are named by Pokémon ID, so linking them directly would give the answer away.

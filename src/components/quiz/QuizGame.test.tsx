@@ -32,7 +32,7 @@ describe("quiz setup", () => {
     const user = userEvent.setup();
     const router = renderApp("/quiz");
 
-    const ninety = await screen.findByRole("link", { name: "90s" });
+    const ninety = await screen.findByRole("link", { name: /^90s/ });
     await user.click(ninety);
 
     expect(router.state.location.pathname).toBe("/quiz/play");
@@ -121,7 +121,7 @@ describe("quiz modes", () => {
       "aria-pressed",
       "false",
     );
-    await user.click(screen.getByRole("link", { name: "60s" }));
+    await user.click(screen.getByRole("link", { name: /^60s/ }));
 
     expect(router.state.location.pathname).toBe("/quiz/play");
     expect(router.state.location.search).toEqual({
@@ -188,7 +188,7 @@ describe("region mode", () => {
     const router = renderApp("/quiz");
 
     await user.click(await screen.findByRole("button", { name: /Region/ }));
-    await user.click(screen.getByRole("link", { name: "30s" }));
+    await user.click(screen.getByRole("link", { name: /^30s/ }));
 
     expect(router.state.location.search).toEqual({
       mode: "region",

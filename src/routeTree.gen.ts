@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PartyRouteImport } from './routes/party'
 import { Route as ShareRouteImport } from './routes/share'
 import { Route as QuizIndexRouteImport } from './routes/quiz.index'
+import { Route as QuizLeaderboardRouteImport } from './routes/quiz.leaderboard'
 import { Route as QuizPlayRouteImport } from './routes/quiz.play'
 import { Route as QuizResultRouteImport } from './routes/quiz.result'
 import { Route as TeamTeamIdRouteImport } from './routes/team.$teamId'
@@ -37,6 +38,11 @@ const QuizIndexRoute = QuizIndexRouteImport.update({
   path: '/quiz/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QuizLeaderboardRoute = QuizLeaderboardRouteImport.update({
+  id: '/quiz/leaderboard',
+  path: '/quiz/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuizPlayRoute = QuizPlayRouteImport.update({
   id: '/quiz/play',
   path: '/quiz/play',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/party': typeof PartyRoute
   '/share': typeof ShareRoute
+  '/quiz/leaderboard': typeof QuizLeaderboardRoute
   '/quiz/play': typeof QuizPlayRoute
   '/quiz/result': typeof QuizResultRoute
   '/team/$teamId': typeof TeamTeamIdRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/party': typeof PartyRoute
   '/share': typeof ShareRoute
+  '/quiz/leaderboard': typeof QuizLeaderboardRoute
   '/quiz/play': typeof QuizPlayRoute
   '/quiz/result': typeof QuizResultRoute
   '/team/$teamId': typeof TeamTeamIdRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/party': typeof PartyRoute
   '/share': typeof ShareRoute
+  '/quiz/leaderboard': typeof QuizLeaderboardRoute
   '/quiz/play': typeof QuizPlayRoute
   '/quiz/result': typeof QuizResultRoute
   '/team/$teamId': typeof TeamTeamIdRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/party'
     | '/share'
+    | '/quiz/leaderboard'
     | '/quiz/play'
     | '/quiz/result'
     | '/team/$teamId'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/party'
     | '/share'
+    | '/quiz/leaderboard'
     | '/quiz/play'
     | '/quiz/result'
     | '/team/$teamId'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/party'
     | '/share'
+    | '/quiz/leaderboard'
     | '/quiz/play'
     | '/quiz/result'
     | '/team/$teamId'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PartyRoute: typeof PartyRoute
   ShareRoute: typeof ShareRoute
+  QuizLeaderboardRoute: typeof QuizLeaderboardRoute
   QuizPlayRoute: typeof QuizPlayRoute
   QuizResultRoute: typeof QuizResultRoute
   TeamTeamIdRoute: typeof TeamTeamIdRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuizIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quiz/leaderboard': {
+      id: '/quiz/leaderboard'
+      path: '/quiz/leaderboard'
+      fullPath: '/quiz/leaderboard'
+      preLoaderRoute: typeof QuizLeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quiz/play': {
       id: '/quiz/play'
       path: '/quiz/play'
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PartyRoute: PartyRoute,
   ShareRoute: ShareRoute,
+  QuizLeaderboardRoute: QuizLeaderboardRoute,
   QuizPlayRoute: QuizPlayRoute,
   QuizResultRoute: QuizResultRoute,
   TeamTeamIdRoute: TeamTeamIdRoute,

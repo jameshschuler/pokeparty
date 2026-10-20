@@ -111,6 +111,7 @@ export type QuizRound = {
   quiz: QuizState;
   clock: RoundClock;
   clockSetting: ClockSetting;
+  startedAt: number;
   shown: boolean;
   onHold: boolean;
   clockDeltaMs: number;
@@ -403,6 +404,7 @@ export function startRound(
     quiz: startQuiz(pool, rng, settings.mode),
     clock: startClock(settings.clock, now),
     clockSetting: settings.clock,
+    startedAt: now,
     shown: false,
     onHold: false,
     clockDeltaMs: 0,
