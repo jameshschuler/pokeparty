@@ -18,7 +18,7 @@ export function FilterChip({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`border-ink flex min-h-9 items-center gap-1 rounded-full border-2 px-3 text-sm font-semibold whitespace-nowrap capitalize transition ${
+      className={`border-ink flex min-h-9 items-center gap-1 rounded-full border-2 px-3 text-sm font-semibold whitespace-nowrap transition ${
         selected ? `${selectedClassName} shadow-sticker-sm` : "bg-white"
       }`}
     >

@@ -1,13 +1,9 @@
 import { Link, useSearch } from "@tanstack/react-router";
-import { Timer, Zap } from "lucide-react";
-import {
-  QUIZ_MODES,
-  ROUND_SECONDS,
-  TIME_ATTACK_BONUS_MS,
-  TIME_ATTACK_START_MS,
-} from "../../lib/quiz";
+import { Trophy } from "lucide-react";
+import { DEFAULT_CLOCK_SETTING, QUIZ_MODES } from "../../lib/quiz";
 import { BackLink } from "../layout/BackLink";
-import { PRIMARY_SURFACE } from "../shared/button-styles";
+import { PILL_BUTTON } from "../shared/button-styles";
+import { QuizClockOptions } from "./QuizClockOptions";
 import { QuizModeOption } from "./QuizModeOption";
 
 export function QuizSetup() {
@@ -15,7 +11,17 @@ export function QuizSetup() {
 
   return (
     <section className="flex flex-col gap-5">
-      <BackLink to="/" label="Back" />
+      <div className="flex items-center justify-between gap-3">
+        <BackLink to="/" label="Back" />
+        <Link
+          to="/quiz/leaderboard"
+          search={{ mode, clock: DEFAULT_CLOCK_SETTING }}
+          className={PILL_BUTTON}
+        >
+          <Trophy className="size-5" aria-hidden />
+          Your scores
+        </Link>
+      </div>
       <div>
         <h1 className="text-3xl font-bold">Who's That Pokémon?</h1>
         <p className="text-ink/70 mt-1">
@@ -31,36 +37,7 @@ export function QuizSetup() {
         ))}
       </ul>
       <h2 className="text-xl font-semibold">How long?</h2>
-      <ul className="grid grid-cols-3 gap-3">
-        {ROUND_SECONDS.map((seconds) => (
-          <li key={seconds}>
-            <Link
-              to="/quiz/play"
-              search={{ mode, clock: seconds }}
-              className={`${PRIMARY_SURFACE} flex-col gap-1 py-5`}
-            >
-              <Timer className="size-6" aria-hidden />
-              <span className="text-2xl font-bold">{seconds}s</span>
-            </Link>
-          </li>
-        ))}
-        <li className="col-span-3">
-          <Link
-            to="/quiz/play"
-            search={{ mode, clock: "attack" }}
-            className={`${PRIMARY_SURFACE} gap-3 px-4 py-4`}
-          >
-            <Zap className="size-6 shrink-0" aria-hidden />
-            <span className="flex flex-col text-left">
-              <span className="text-2xl font-bold">Time attack</span>
-              <span>
-                Start with {TIME_ATTACK_START_MS / 1000}s. Right answers add{" "}
-                {TIME_ATTACK_BONUS_MS / 1000}s.
-              </span>
-            </span>
-          </Link>
-        </li>
-      </ul>
+      <QuizClockOptions mode={mode} />
     </section>
   );
 }

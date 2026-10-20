@@ -1,9 +1,9 @@
 import { useTeamBuilderContext } from "../../contexts/team-builder-context";
 import { POKEMON_TYPES } from "../../types/pokemon";
 import { TYPE_STYLES } from "../pokemon/pokemon-type-styles";
-import { ChipList } from "./ChipList";
-import { ChipRow } from "./ChipRow";
-import { FilterChip } from "./FilterChip";
+import { ChipList } from "../shared/ChipList";
+import { ChipRow } from "../shared/ChipRow";
+import { FilterChip } from "../shared/FilterChip";
 
 export function TypeFilter() {
   const { type, setType } = useTeamBuilderContext();
@@ -18,7 +18,7 @@ export function TypeFilter() {
               selectedClassName={TYPE_STYLES[option]}
               onClick={() => setType(option === type ? null : option)}
             >
-              {option}
+              <span className="capitalize">{option}</span>
             </FilterChip>
           </li>
         ))}

@@ -2,9 +2,11 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import { roundRun } from "../lib/leaderboard";
 import { quizPool } from "../lib/pokedex";
 import { spriteUrl } from "../lib/pokemon";
 import {
@@ -23,6 +25,7 @@ import {
   type QuizMode,
   type QuizRound,
 } from "../lib/quiz";
+import { useLeaderboardContext } from "./leaderboard-context";
 
 export type QuizContextValue = {
   round: QuizRound;
@@ -54,6 +57,16 @@ export function QuizProvider({ mode, clock, children }: QuizProviderProps) {
   const [checkedAt, setCheckedAt] = useState(Date.now);
   const finished = isRoundOver(round, checkedAt);
   const waiting = !round.shown;
+  const { recordRun } = useLeaderboardContext();
+  const recordedRoundRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!finished || recordedRoundRef.current === round.startedAt) {
+      return;
+    }
+    recordedRoundRef.current = round.startedAt;
+    recordRun(roundRun(round));
+  }, [finished, round, recordRun]);
 
   useEffect(() => {
     if (round.clock.pausedAt !== null) {

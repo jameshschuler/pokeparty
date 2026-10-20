@@ -1,5 +1,6 @@
 import type { Team, TeamMember } from "../types/team";
 import { isValidPokemonId } from "./pokemon";
+import { loadStoredList } from "./storage";
 import { TEAM_SIZE } from "./team";
 
 export const TEAMS_STORAGE_KEY = "pokeparty:teams";
@@ -56,20 +57,7 @@ function parseStoredTeam(value: unknown): Team | null {
 }
 
 export function loadTeams(): Team[] {
-  try {
-    const raw = localStorage.getItem(TEAMS_STORAGE_KEY);
-
-    if (!raw) {
-      return [];
-    }
-    const parsed: unknown = JSON.parse(raw);
-
-    return Array.isArray(parsed)
-      ? parsed.flatMap((entry) => parseStoredTeam(entry) ?? [])
-      : [];
-  } catch {
-    return [];
-  }
+  return loadStoredList(TEAMS_STORAGE_KEY, parseStoredTeam);
 }
 
 export function saveTeams(teams: Team[]): void {
