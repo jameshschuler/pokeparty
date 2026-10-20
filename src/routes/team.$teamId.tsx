@@ -14,7 +14,7 @@ function TeamRoute() {
   const exists = teams.some((team) => team.id === teamId);
 
   if (!exists && teamId !== NEW_TEAM_ID) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/party" replace />;
   }
   return (
     <TeamBuilderProvider teamId={teamId}>

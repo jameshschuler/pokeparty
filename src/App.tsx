@@ -1,6 +1,7 @@
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
 import { TeamsProvider } from "./contexts/teams-context";
+import { ThemeProvider } from "./contexts/theme-context";
 import { ToastProvider } from "./contexts/toast-context";
 import type { createAppRouter } from "./router";
 
@@ -12,11 +13,13 @@ type AppProps = {
 export function App({ router, queryClient }: AppProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <TeamsProvider>
-          <RouterProvider router={router} />
-        </TeamsProvider>
-      </ToastProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <TeamsProvider>
+            <RouterProvider router={router} />
+          </TeamsProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

@@ -11,7 +11,7 @@ describe("my teams", () => {
   });
 
   it("shows an empty state with no saved teams", async () => {
-    renderApp("/");
+    renderApp("/party");
 
     await expect(
       screen.findByText("No teams yet"),
@@ -22,7 +22,7 @@ describe("my teams", () => {
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
       throw new DOMException("blocked", "SecurityError");
     });
-    renderApp("/");
+    renderApp("/party");
 
     await expect(
       screen.findByText("No teams yet"),
@@ -37,7 +37,7 @@ describe("my teams", () => {
       throw new DOMException("full", "QuotaExceededError");
     });
     const user = userEvent.setup();
-    renderApp("/");
+    renderApp("/party");
 
     const button = await screen.findByRole("button", { name: "Delete team" });
     await user.click(button);
@@ -48,7 +48,7 @@ describe("my teams", () => {
   });
 
   it("picks up teams saved in another tab", async () => {
-    renderApp("/");
+    renderApp("/party");
     await screen.findByText("No teams yet");
 
     saveTeams([
@@ -73,7 +73,7 @@ describe("my teams", () => {
         updatedAt: 5,
       },
     ]);
-    renderApp("/");
+    renderApp("/party");
 
     const links = await screen.findAllByRole("link", { name: /Edit team/ });
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
@@ -87,7 +87,7 @@ describe("my teams", () => {
       { id: "t1", members: regularMembers(1), createdAt: 1, updatedAt: 1 },
     ]);
     const user = userEvent.setup();
-    renderApp("/");
+    renderApp("/party");
 
     const button = await screen.findByRole("button", { name: "Delete team" });
     await user.click(button);
@@ -104,7 +104,7 @@ describe("my teams", () => {
       { id: "t1", members: regularMembers(1), createdAt: 1, updatedAt: 1 },
     ]);
     const user = userEvent.setup();
-    renderApp("/");
+    renderApp("/party");
 
     const button = await screen.findByRole("button", { name: "Delete team" });
     await user.click(button);
@@ -122,7 +122,7 @@ describe("my teams", () => {
       { id: "t1", members: regularMembers(25, 6), createdAt: 1, updatedAt: 1 },
     ]);
     const user = userEvent.setup();
-    renderApp("/");
+    renderApp("/party");
 
     const button = await screen.findByRole("button", { name: "Copy link" });
     await user.click(button);
@@ -148,7 +148,7 @@ describe("my teams", () => {
       },
     ]);
     const user = userEvent.setup();
-    renderApp("/");
+    renderApp("/party");
 
     const button = await screen.findByRole("button", { name: "Copy link" });
     await user.click(button);
@@ -162,7 +162,7 @@ describe("my teams", () => {
     saveTeams([
       { id: "t1", members: regularMembers(25), createdAt: 1, updatedAt: 1 },
     ]);
-    renderApp("/");
+    renderApp("/party");
 
     await screen.findByRole("button", { name: "Copy link" });
 
@@ -197,7 +197,7 @@ describe("my teams", () => {
         },
       ]);
       const user = userEvent.setup();
-      renderApp("/");
+      renderApp("/party");
 
       const button = await screen.findByRole("button", { name: "Share" });
       await user.click(button);
@@ -215,7 +215,7 @@ describe("my teams", () => {
         { id: "t1", members: regularMembers(25), createdAt: 1, updatedAt: 1 },
       ]);
       const user = userEvent.setup();
-      renderApp("/");
+      renderApp("/party");
 
       const button = await screen.findByRole("button", { name: "Share" });
       await user.click(button);

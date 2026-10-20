@@ -19,7 +19,10 @@ export function SharedTeam({ members }: { members: TeamMember[] }) {
     return (
       <section className="flex flex-col items-center gap-4 py-12 text-center">
         <h1 className="text-2xl font-bold">This link doesn't have a team</h1>
-        <Link to="/" className="font-semibold underline underline-offset-4">
+        <Link
+          to="/party"
+          className="font-semibold underline underline-offset-4"
+        >
           Go to my teams
         </Link>
       </section>

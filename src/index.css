@@ -1,11 +1,21 @@
 @import "tailwindcss";
 
+:root {
+  --ball-master: #6a2fbd;
+  --ball-master-spot: #ff5aa5;
+  --ball-poke: #e3350d;
+  --ball-great: #2f6fd6;
+  --ball-great-stripe: #f2545b;
+  --ball-ultra: #2b2b2b;
+  --ball-ultra-band: #ffcb05;
+}
+
 @theme {
   --font-sans: "Fredoka", ui-rounded, system-ui, sans-serif;
 
   --color-surface: #f6f0ff;
-  --color-primary: #6a2fbd;
-  --color-accent: #ff5aa5;
+  --color-primary: var(--ball-master);
+  --color-accent: var(--ball-master-spot);
   --color-ink: #24123d;
 
   --color-type-normal: #a8a77a;
@@ -51,6 +61,27 @@
       transform: translateY(8px);
     }
   }
+}
+
+:root[data-theme="poke"] {
+  --color-surface: #fff8e7;
+  --color-primary: var(--ball-poke);
+  --color-accent: var(--ball-ultra-band);
+  --color-ink: #1d2340;
+}
+
+:root[data-theme="great"] {
+  --color-surface: #eef4ff;
+  --color-primary: var(--ball-great);
+  --color-accent: var(--ball-great-stripe);
+  --color-ink: #142040;
+}
+
+:root[data-theme="ultra"] {
+  --color-surface: #fffbe8;
+  --color-primary: var(--ball-ultra);
+  --color-accent: var(--ball-ultra-band);
+  --color-ink: #161616;
 }
 
 body {

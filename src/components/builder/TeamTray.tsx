@@ -35,7 +35,7 @@ export function TeamTray() {
           <div className="flex items-center gap-2">
             <ShareActions members={members} />
             <Link
-              to="/"
+              to="/party"
               className="border-ink shadow-sticker-sm flex min-h-11 items-center gap-1.5 rounded-full border-[3px] bg-white px-4 font-semibold transition active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
             >
               <Check className="size-5" aria-hidden />

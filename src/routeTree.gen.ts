@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PartyRouteImport } from './routes/party'
 import { Route as ShareRouteImport } from './routes/share'
 import { Route as TeamTeamIdRouteImport } from './routes/team.$teamId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartyRoute = PartyRouteImport.update({
+  id: '/party',
+  path: '/party',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShareRoute = ShareRouteImport.update({
@@ -31,30 +37,34 @@ const TeamTeamIdRoute = TeamTeamIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/party': typeof PartyRoute
   '/share': typeof ShareRoute
   '/team/$teamId': typeof TeamTeamIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/party': typeof PartyRoute
   '/share': typeof ShareRoute
   '/team/$teamId': typeof TeamTeamIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/party': typeof PartyRoute
   '/share': typeof ShareRoute
   '/team/$teamId': typeof TeamTeamIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/share' | '/team/$teamId'
+  fullPaths: '/' | '/party' | '/share' | '/team/$teamId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/share' | '/team/$teamId'
-  id: '__root__' | '/' | '/share' | '/team/$teamId'
+  to: '/' | '/party' | '/share' | '/team/$teamId'
+  id: '__root__' | '/' | '/party' | '/share' | '/team/$teamId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PartyRoute: typeof PartyRoute
   ShareRoute: typeof ShareRoute
   TeamTeamIdRoute: typeof TeamTeamIdRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/party': {
+      id: '/party'
+      path: '/party'
+      fullPath: '/party'
+      preLoaderRoute: typeof PartyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/share': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PartyRoute: PartyRoute,
   ShareRoute: ShareRoute,
   TeamTeamIdRoute: TeamTeamIdRoute,
 }

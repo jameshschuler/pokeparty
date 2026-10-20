@@ -237,9 +237,22 @@ describe("team builder", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("goes back to My teams with Done", async () => {
+    saveTeams([
+      { id: "t1", members: regularMembers(4), createdAt: 1, updatedAt: 1 },
+    ]);
+    const user = userEvent.setup();
+    const router = renderApp("/team/t1");
+
+    const done = await screen.findByRole("link", { name: "Done" });
+    await user.click(done);
+
+    await waitFor(() => expect(router.state.location.pathname).toBe("/party"));
+  });
+
   it("sends an unknown team id back to My teams", async () => {
     const router = renderApp("/team/missing");
 
-    await waitFor(() => expect(router.state.location.pathname).toBe("/"));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/party"));
   });
 });

@@ -1,4 +1,5 @@
 import { useTeamsContext } from "../../contexts/teams-context";
+import { BallIcon } from "../layout/BallIcon";
 import { NewTeamButton } from "./NewTeamButton";
 import { TeamListItem } from "./TeamListItem";
 
@@ -14,11 +15,7 @@ export function TeamList() {
       </div>
       {sortedTeams.length === 0 ? (
         <div className="border-ink flex flex-col items-center gap-3 rounded-2xl border-[3px] border-dashed bg-white/70 px-6 py-12 text-center">
-          <img
-            src="/favicon.svg"
-            alt=""
-            className="size-16 motion-safe:animate-bounce"
-          />
+          <BallIcon className="size-16 motion-safe:animate-bounce" />
           <p className="text-xl font-semibold">No teams yet</p>
           <p>Tap "New team" and pick up to 6 Pokémon.</p>
         </div>
