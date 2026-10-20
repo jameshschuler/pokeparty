@@ -10,9 +10,10 @@ import { spriteUrl } from "../lib/pokemon";
 import {
   answerRound,
   createRng,
+  holdRound,
   FEEDBACK_MS,
-  isWaitingForQuestion,
   nextQuestion,
+  releaseRound,
   remainingMs,
   showQuestion,
   startRound,
@@ -30,6 +31,8 @@ export type QuizContextValue = {
   answer: (pokemonId: number) => void;
   questionShown: () => void;
   skipQuestion: () => void;
+  hold: () => void;
+  release: () => void;
   playAgain: () => void;
 };
 
@@ -48,7 +51,7 @@ export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
   );
   const [checkedAt, setCheckedAt] = useState(Date.now);
   const finished = remainingMs(round.clock, checkedAt) === 0;
-  const waiting = isWaitingForQuestion(round);
+  const waiting = !round.shown;
 
   useEffect(() => {
     if (round.clock.pausedAt !== null) {
@@ -64,17 +67,17 @@ export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
   }, [round.clock]);
 
   useEffect(() => {
-    if (round.quiz.pickedId === null || finished) {
+    if (round.quiz.pickedId === null || round.onHold || finished) {
       return;
     }
 
-    const timeout = setTimeout(
-      () => setRound((current) => nextQuestion(current, SPECIES, rng)),
-      FEEDBACK_MS,
-    );
+    const timeout = setTimeout(() => {
+      const advancedAt = Date.now();
+      setRound((current) => nextQuestion(current, SPECIES, rng, advancedAt));
+    }, FEEDBACK_MS);
 
     return () => clearTimeout(timeout);
-  }, [round.quiz.pickedId, finished, rng]);
+  }, [round.quiz.pickedId, round.onHold, finished, rng]);
 
   useEffect(() => {
     new Image().src = spriteUrl(round.quiz.upcoming.answer.id, false);
@@ -91,11 +94,20 @@ export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
   }
 
   function skipQuestion() {
+    const skippedAt = Date.now();
     setRound((current) =>
-      isWaitingForQuestion(current)
-        ? nextQuestion(current, SPECIES, rng)
-        : current,
+      !current.shown ? nextQuestion(current, SPECIES, rng, skippedAt) : current,
     );
+  }
+
+  function hold() {
+    const heldAt = Date.now();
+    setRound((current) => holdRound(current, heldAt));
+  }
+
+  function release() {
+    const releasedAt = Date.now();
+    setRound((current) => releaseRound(current, releasedAt));
   }
 
   function playAgain() {
@@ -113,6 +125,8 @@ export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
         answer,
         questionShown,
         skipQuestion,
+        hold,
+        release,
         playAgain,
       }}
     >

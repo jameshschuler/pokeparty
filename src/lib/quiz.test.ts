@@ -9,10 +9,12 @@ import {
   CHOICE_COUNT,
   createRng,
   drawAnswer,
+  holdRound,
+  isClockRunning,
   isPokemonHidden,
   isRoundSeconds,
-  isWaitingForQuestion,
   nextQuestion,
+  releaseRound,
   parseQuizModeSearch,
   parseQuizSettings,
   pauseClock,
@@ -299,7 +301,7 @@ describe("quiz round", () => {
   const answerId = shown.quiz.current.answer.id;
 
   it("waits for the first question to be shown", () => {
-    expect(isWaitingForQuestion(waiting)).toBe(true);
+    expect(waiting.shown).toBe(false);
     expect(remainingMs(waiting.clock, 60_000)).toBe(30_000);
   });
 
@@ -308,7 +310,7 @@ describe("quiz round", () => {
   });
 
   it("starts the clock when the question is shown", () => {
-    expect(isWaitingForQuestion(shown)).toBe(false);
+    expect(shown.shown).toBe(true);
     expect(remainingMs(shown.clock, 12_000)).toBe(20_000);
   });
 
@@ -317,7 +319,7 @@ describe("quiz round", () => {
 
     expect(answered.quiz.correct).toBe(1);
     expect(answered.clock.pausedAt).toBe(7_000);
-    expect(isWaitingForQuestion(answered)).toBe(false);
+    expect(answered.shown).toBe(true);
   });
 
   it("ignores an answer after time is up", () => {
@@ -332,11 +334,57 @@ describe("quiz round", () => {
 
   it("waits for the next question after moving on", () => {
     const answered = answerRound(shown, answerId, 7_000);
-    const next = nextQuestion(answered, pool, createRng(3));
+    const next = nextQuestion(answered, pool, createRng(3), 7_300);
 
     expect(next.quiz.current).toBe(answered.quiz.upcoming);
-    expect(isWaitingForQuestion(next)).toBe(true);
+    expect(next.shown).toBe(false);
     expect(remainingMs(showQuestion(next, 9_000).clock, 9_000)).toBe(25_000);
+  });
+
+  it("pauses the clock and blocks answers while on hold", () => {
+    const held = holdRound(shown, 5_000);
+
+    expect(isClockRunning(held)).toBe(false);
+    expect(remainingMs(held.clock, 50_000)).toBe(27_000);
+    expect(answerRound(held, answerId, 6_000)).toBe(held);
+  });
+
+  it("resumes the clock when released mid-question", () => {
+    const released = releaseRound(holdRound(shown, 5_000), 9_000);
+
+    expect(isClockRunning(released)).toBe(true);
+    expect(remainingMs(released.clock, 9_000)).toBe(27_000);
+  });
+
+  it("keeps the clock paused when released during the reveal", () => {
+    const answered = answerRound(shown, answerId, 7_000);
+    const released = releaseRound(holdRound(answered, 7_100), 9_000);
+
+    expect(isClockRunning(released)).toBe(false);
+    expect(remainingMs(released.clock, 60_000)).toBe(25_000);
+  });
+
+  it("keeps the clock paused when released before the sprite loads", () => {
+    const released = releaseRound(holdRound(waiting, 1_500), 3_000);
+
+    expect(isClockRunning(released)).toBe(false);
+    expect(remainingMs(showQuestion(released, 4_000).clock, 4_000)).toBe(
+      30_000,
+    );
+  });
+
+  it("ignores a second hold or a release without a hold", () => {
+    const held = holdRound(shown, 5_000);
+
+    expect(holdRound(held, 6_000)).toBe(held);
+    expect(releaseRound(shown, 6_000)).toBe(shown);
+  });
+
+  it("doesn't start the clock if the sprite loads while on hold", () => {
+    const loadedWhileHeld = showQuestion(holdRound(waiting, 1_500), 2_000);
+
+    expect(isClockRunning(loadedWhileHeld)).toBe(false);
+    expect(isClockRunning(releaseRound(loadedWhileHeld, 3_000))).toBe(true);
   });
 });
 

@@ -50,6 +50,8 @@ export type RoundClock = {
 export type QuizRound = {
   quiz: QuizState;
   clock: RoundClock;
+  shown: boolean;
+  onHold: boolean;
 };
 
 export function isRoundSeconds(value: number): value is RoundSeconds {
@@ -252,11 +254,33 @@ export function startRound(
   seconds: RoundSeconds,
   now: number,
 ): QuizRound {
-  return { quiz: startQuiz(pool, rng), clock: startClock(seconds, now) };
+  return {
+    quiz: startQuiz(pool, rng),
+    clock: startClock(seconds, now),
+    shown: false,
+    onHold: false,
+  };
 }
 
-export function isWaitingForQuestion(round: QuizRound): boolean {
-  return round.clock.pausedAt !== null && round.quiz.pickedId === null;
+export function isClockRunning(round: QuizRound): boolean {
+  return round.shown && round.quiz.pickedId === null && !round.onHold;
+}
+
+function settleClock(round: QuizRound, now: number): QuizRound {
+  const clock = isClockRunning(round)
+    ? resumeClock(round.clock, now)
+    : pauseClock(round.clock, now);
+
+  return clock === round.clock ? round : { ...round, clock };
+}
+
+function canAnswer(round: QuizRound, now: number): boolean {
+  return (
+    round.shown &&
+    !round.onHold &&
+    round.quiz.pickedId === null &&
+    remainingMs(round.clock, now) > 0
+  );
 }
 
 export function answerRound(
@@ -264,34 +288,42 @@ export function answerRound(
   pickedId: number,
   now: number,
 ): QuizRound {
-  if (
-    isWaitingForQuestion(round) ||
-    round.quiz.pickedId !== null ||
-    remainingMs(round.clock, now) === 0
-  ) {
+  if (!canAnswer(round, now)) {
     return round;
   }
 
-  return {
-    quiz: answerQuestion(round.quiz, pickedId),
-    clock: pauseClock(round.clock, now),
-  };
+  return settleClock(
+    { ...round, quiz: answerQuestion(round.quiz, pickedId) },
+    now,
+  );
 }
 
 export function showQuestion(round: QuizRound, now: number): QuizRound {
-  if (!isWaitingForQuestion(round)) {
+  if (round.shown) {
     return round;
   }
 
-  return { ...round, clock: resumeClock(round.clock, now) };
+  return settleClock({ ...round, shown: true }, now);
 }
 
 export function nextQuestion(
   round: QuizRound,
   pool: PokemonSummary[],
   rng: Rng,
+  now: number,
 ): QuizRound {
-  return { ...round, quiz: advanceQuestion(round.quiz, pool, rng) };
+  return settleClock(
+    { ...round, quiz: advanceQuestion(round.quiz, pool, rng), shown: false },
+    now,
+  );
+}
+
+export function holdRound(round: QuizRound, now: number): QuizRound {
+  return round.onHold ? round : settleClock({ ...round, onHold: true }, now);
+}
+
+export function releaseRound(round: QuizRound, now: number): QuizRound {
+  return round.onHold ? settleClock({ ...round, onHold: false }, now) : round;
 }
 
 export function accuracy(correct: number, wrong: number): number {

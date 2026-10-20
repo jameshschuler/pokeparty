@@ -4,6 +4,7 @@ import { useQuizContext } from "../../contexts/quiz-context";
 import { formatPokemonLabel } from "../../lib/pokemon";
 import { isPokemonHidden } from "../../lib/quiz";
 import { PokemonSprite } from "../pokemon/PokemonSprite";
+import { PILL_BUTTON } from "../shared/button-styles";
 
 export function QuizPrompt() {
   const { round, mode, questionShown, skipQuestion } = useQuizContext();
@@ -17,11 +18,7 @@ export function QuizPrompt() {
       {failed ? (
         <div className="flex aspect-square w-48 flex-col items-center justify-center gap-3 text-center sm:w-60">
           <p className="font-semibold">Couldn't load this Pokémon.</p>
-          <button
-            type="button"
-            onClick={skipQuestion}
-            className="border-ink shadow-sticker-sm flex min-h-11 items-center gap-1.5 rounded-full border-[3px] bg-white px-4 font-semibold"
-          >
+          <button type="button" onClick={skipQuestion} className={PILL_BUTTON}>
             <SkipForward className="size-5" aria-hidden />
             Skip
           </button>
