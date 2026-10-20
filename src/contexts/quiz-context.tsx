@@ -16,12 +16,14 @@ import {
   remainingMs,
   showQuestion,
   startRound,
+  type QuizMode,
   type QuizRound,
   type RoundSeconds,
 } from "../lib/quiz";
 
 export type QuizContextValue = {
   round: QuizRound;
+  mode: QuizMode;
   seconds: RoundSeconds;
   finished: boolean;
   waiting: boolean;
@@ -34,11 +36,12 @@ export type QuizContextValue = {
 const QuizContext = createContext<QuizContextValue | null>(null);
 
 type QuizProviderProps = {
+  mode: QuizMode;
   seconds: RoundSeconds;
   children: ReactNode;
 };
 
-export function QuizProvider({ seconds, children }: QuizProviderProps) {
+export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
   const [rng] = useState(() => createRng(Date.now()));
   const [round, setRound] = useState(() =>
     startRound(SPECIES, rng, seconds, Date.now()),
@@ -103,6 +106,7 @@ export function QuizProvider({ seconds, children }: QuizProviderProps) {
     <QuizContext
       value={{
         round,
+        mode,
         seconds,
         finished,
         waiting,

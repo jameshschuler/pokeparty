@@ -31,7 +31,10 @@ describe("quiz setup", () => {
     await user.click(ninety);
 
     expect(router.state.location.pathname).toBe("/quiz/play");
-    expect(router.state.location.search).toEqual({ seconds: 90 });
+    expect(router.state.location.search).toEqual({
+      mode: "sprite",
+      seconds: 90,
+    });
     await expect(
       screen.findByRole("timer", { name: "Time left" }),
     ).resolves.toHaveTextContent("90s");
@@ -47,6 +50,75 @@ describe("quiz setup", () => {
       ).resolves.toHaveTextContent("60s");
     },
   );
+});
+
+describe("quiz modes", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("defaults to Sprite and switches to Silhouette before starting", async () => {
+    const user = userEvent.setup();
+    const router = renderApp("/quiz");
+
+    const sprite = await screen.findByRole("button", { name: /Sprite/ });
+    expect(sprite).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(screen.getByRole("button", { name: /Silhouette/ }));
+    expect(screen.getByRole("button", { name: /Silhouette/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: /Sprite/ })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    await user.click(screen.getByRole("link", { name: /60s/ }));
+
+    expect(router.state.location.pathname).toBe("/quiz/play");
+    expect(router.state.location.search).toEqual({
+      mode: "silhouette",
+      seconds: 60,
+    });
+  });
+
+  it("hides the Pokémon in silhouette mode until it's answered", async () => {
+    renderApp("/quiz/play?mode=silhouette&seconds=30");
+    await showQuestion();
+    const sprite = screen.getByRole("img", { name: "Mystery Pokémon" });
+
+    expect(sprite).toHaveClass("brightness-0");
+
+    fireEvent.click(screen.getByRole("button", { name: currentAnswerLabel() }));
+
+    expect(sprite).not.toHaveClass("brightness-0");
+  });
+
+  it("shows the Pokémon in sprite mode", async () => {
+    renderApp("/quiz/play?mode=sprite&seconds=30");
+    await showQuestion();
+
+    expect(
+      screen.getByRole("img", { name: "Mystery Pokémon" }),
+    ).not.toHaveClass("brightness-0");
+  });
+
+  it("names the mode on the summary and keeps it for the next setup", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const router = renderApp("/quiz/play?mode=silhouette&seconds=30");
+    await showQuestion();
+    act(() => vi.advanceTimersByTime(30_200));
+
+    expect(
+      screen.getByText("correct in 30 seconds · Silhouette"),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("link", { name: "Change setup" }));
+
+    expect(router.state.location.pathname).toBe("/quiz");
+    expect(router.state.location.search).toEqual({ mode: "silhouette" });
+  });
 });
 
 describe("quiz game", () => {
@@ -187,7 +259,9 @@ describe("quiz game", () => {
     expect(
       screen.getByRole("heading", { name: "Time's up!" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("correct in 30 seconds")).toBeInTheDocument();
+    expect(
+      screen.getByText("correct in 30 seconds · Sprite"),
+    ).toBeInTheDocument();
     expect(screen.getByText("0%")).toBeInTheDocument();
   });
 
@@ -203,7 +277,9 @@ describe("quiz game", () => {
     expect(
       screen.getByRole("heading", { name: "Time's up!" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("correct in 30 seconds")).toBeInTheDocument();
+    expect(
+      screen.getByText("correct in 30 seconds · Sprite"),
+    ).toBeInTheDocument();
     expect(screen.getByText("100%")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Play again" }));

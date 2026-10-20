@@ -6,6 +6,17 @@ export type RoundSeconds = (typeof ROUND_SECONDS)[number];
 
 export const DEFAULT_ROUND_SECONDS: RoundSeconds = 60;
 
+export const QUIZ_MODES = ["sprite", "silhouette"] as const;
+
+export type QuizMode = (typeof QUIZ_MODES)[number];
+
+export const DEFAULT_QUIZ_MODE: QuizMode = "sprite";
+
+export type QuizSettings = {
+  mode: QuizMode;
+  seconds: RoundSeconds;
+};
+
 export const CHOICE_COUNT = 4;
 
 export const FEEDBACK_MS = 300;
@@ -45,6 +56,36 @@ export function isRoundSeconds(value: number): value is RoundSeconds {
   return ROUND_SECONDS.some((seconds) => seconds === value);
 }
 
+export function isQuizMode(value: unknown): value is QuizMode {
+  return QUIZ_MODES.some((mode) => mode === value);
+}
+
+export function parseQuizMode(value: unknown): QuizMode {
+  return isQuizMode(value) ? value : DEFAULT_QUIZ_MODE;
+}
+
+export function parseQuizModeSearch(search: Record<string, unknown>): {
+  mode: QuizMode;
+} {
+  return { mode: parseQuizMode(search.mode) };
+}
+
+export function isPokemonHidden(mode: QuizMode, revealed: boolean): boolean {
+  return mode === "silhouette" && !revealed;
+}
+
+export function parseQuizSettings(
+  search: Record<string, unknown>,
+): QuizSettings {
+  const seconds = Number(search.seconds);
+
+  return {
+    mode: parseQuizMode(search.mode),
+    seconds: isRoundSeconds(seconds) ? seconds : DEFAULT_ROUND_SECONDS,
+  };
+}
+
+// mulberry32: a small seeded PRNG, so a seed always gives the same sequence.
 export function createRng(seed: number): Rng {
   let state = seed >>> 0;
 

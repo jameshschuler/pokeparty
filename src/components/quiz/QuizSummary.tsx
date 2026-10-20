@@ -2,9 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { RotateCcw, Timer } from "lucide-react";
 import { useQuizContext } from "../../contexts/quiz-context";
 import { accuracy } from "../../lib/quiz";
+import { QUIZ_MODE_DETAILS } from "./quiz-modes";
 
 export function QuizSummary() {
-  const { round, seconds, playAgain } = useQuizContext();
+  const { round, mode, seconds, playAgain } = useQuizContext();
   const { quiz } = round;
   const stats = [
     { label: "Wrong", value: quiz.wrong },
@@ -19,7 +20,7 @@ export function QuizSummary() {
         <span className="text-primary block text-6xl font-bold">
           {quiz.correct}
         </span>
-        correct in {seconds} seconds
+        correct in {seconds} seconds · {QUIZ_MODE_DETAILS[mode].label}
       </p>
       <dl className="grid w-full grid-cols-3 gap-2">
         {stats.map((stat) => (
@@ -40,10 +41,11 @@ export function QuizSummary() {
         </button>
         <Link
           to="/quiz"
+          search={{ mode }}
           className="border-ink shadow-sticker-sm flex min-h-12 items-center gap-2 rounded-2xl border-[3px] bg-white px-5 text-lg font-semibold"
         >
           <Timer className="size-5" aria-hidden />
-          Change time
+          Change setup
         </Link>
       </div>
     </section>

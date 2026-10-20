@@ -9,9 +9,12 @@ import {
   CHOICE_COUNT,
   createRng,
   drawAnswer,
+  isPokemonHidden,
   isRoundSeconds,
   isWaitingForQuestion,
   nextQuestion,
+  parseQuizModeSearch,
+  parseQuizSettings,
   pauseClock,
   remainingMs,
   resumeClock,
@@ -52,6 +55,52 @@ describe("createRng", () => {
     const values = Array.from({ length: 1000 }, rng);
 
     expect(values.every((value) => value >= 0 && value < 1)).toBe(true);
+  });
+});
+
+describe("parseQuizSettings", () => {
+  it.each([
+    [
+      { mode: "silhouette", seconds: "90" },
+      { mode: "silhouette", seconds: 90 },
+    ],
+    [
+      { mode: "sprite", seconds: 30 },
+      { mode: "sprite", seconds: 30 },
+    ],
+    [{}, { mode: "sprite", seconds: 60 }],
+    [
+      { mode: "shadow", seconds: 45 },
+      { mode: "sprite", seconds: 60 },
+    ],
+    [
+      { mode: 7, seconds: "abc" },
+      { mode: "sprite", seconds: 60 },
+    ],
+  ])("%j -> %j", (search, expected) => {
+    expect(parseQuizSettings(search)).toEqual(expected);
+  });
+});
+
+describe("parseQuizModeSearch", () => {
+  it.each([
+    [{ mode: "silhouette" }, "silhouette"],
+    [{ mode: "sprite" }, "sprite"],
+    [{}, "sprite"],
+    [{ mode: "shadow" }, "sprite"],
+  ])("%j -> %s", (search, mode) => {
+    expect(parseQuizModeSearch(search)).toEqual({ mode });
+  });
+});
+
+describe("isPokemonHidden", () => {
+  it.each([
+    ["silhouette", false, true],
+    ["silhouette", true, false],
+    ["sprite", false, false],
+    ["sprite", true, false],
+  ] as const)("%s, revealed %s -> %s", (mode, revealed, hidden) => {
+    expect(isPokemonHidden(mode, revealed)).toBe(hidden);
   });
 });
 
