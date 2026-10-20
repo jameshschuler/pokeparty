@@ -1,27 +1,45 @@
+import { useRef, useState } from "react";
 import { useQuizContext } from "../../contexts/quiz-context";
-import { choiceStyle } from "./quiz-styles";
+import { useLoadTimeout } from "../../hooks/useLoadTimeout";
+import { SPRITE_LOAD_TIMEOUT_MS } from "../../lib/quiz";
+import { QuizChoiceButton } from "./QuizChoiceButton";
+import { SkipQuestion } from "./SkipQuestion";
 
 export function QuizChoices() {
-  const { round, finished, waiting, answer } = useQuizContext();
-  const { quiz } = round;
-  const revealed = quiz.pickedKey !== null;
+  const { round, questionShown } = useQuizContext();
+  const { choices } = round.quiz.current;
+  const spriteCount = choices.filter(
+    (choice) => choice.kind === "sprite",
+  ).length;
+  const loadedKeys = useRef(new Set<string>());
+  const [failed, setFailed] = useState(false);
+  const timedOut = useLoadTimeout(
+    spriteCount === 0 || round.shown,
+    SPRITE_LOAD_TIMEOUT_MS,
+  );
+
+  function handleSpriteLoad(key: string) {
+    loadedKeys.current.add(key);
+
+    if (loadedKeys.current.size === spriteCount) {
+      questionShown();
+    }
+  }
+
+  if (failed || timedOut) {
+    return <SkipQuestion message="Couldn't load these Pokémon." />;
+  }
 
   return (
     <ul className="grid grid-cols-2 gap-3">
-      {quiz.current.choices.map((choice) => (
+      {choices.map((choice, index) => (
         <li key={choice.key}>
-          <button
-            type="button"
-            onClick={() => answer(choice.key)}
-            disabled={revealed || finished || waiting}
-            className={`border-ink flex min-h-14 w-full items-center justify-center rounded-2xl border-[3px] px-2 text-lg leading-tight font-semibold transition ${choiceStyle(
-              choice.key === quiz.current.answerKey,
-              choice.key === quiz.pickedKey,
-              revealed,
-            )}`}
-          >
-            {choice.label}
-          </button>
+          <QuizChoiceButton
+            choice={choice}
+            position={index + 1}
+            onSpriteLoad={handleSpriteLoad}
+            onSpriteError={() => setFailed(true)}
+          />
         </li>
       ))}
     </ul>

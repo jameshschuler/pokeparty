@@ -14,6 +14,7 @@ import {
   holdRound,
   isClockRunning,
   isRoundOver,
+  NEARBY_DEX_RANGE,
   isPokemonHidden,
   isRoundSeconds,
   nextQuestion,
@@ -21,6 +22,7 @@ import {
   parseQuizModeSearch,
   parseQuizSettings,
   pauseClock,
+  questionSpriteIds,
   remainingMs,
   resumeClock,
   showQuestion,
@@ -28,6 +30,7 @@ import {
   startQuiz,
   startRound,
   WRONG_ANSWER_PENALTY_MS,
+  type QuizChoice,
 } from "./quiz";
 
 function pokemon(id: number, region: Region): PokemonSummary {
@@ -107,6 +110,7 @@ describe("isPokemonHidden", () => {
     ["sprite", false, false],
     ["sprite", true, false],
     ["region", false, false],
+    ["dex", false, false],
   ] as const)("%s, answered %s -> %s", (mode, answered, hidden) => {
     const started = startQuiz(pool, createRng(1), mode);
     const state = answered
@@ -235,6 +239,88 @@ describe("buildQuestion", () => {
   );
 });
 
+function spriteIds(question: { choices: QuizChoice[] }): number[] {
+  return question.choices.flatMap((choice) =>
+    choice.kind === "sprite" ? [choice.pokemonId] : [],
+  );
+}
+
+describe("dex number questions", () => {
+  const species = Array.from({ length: 120 }, (_, index) =>
+    pokemon(index + 1, "kanto"),
+  );
+
+  it.each([1, 2, 3, 4, 5, 6, 7, 8])(
+    "offers four nearby sprite choices (seed %s)",
+    (seed) => {
+      const question = buildQuestion(
+        "dex",
+        species[59],
+        species,
+        createRng(seed),
+      );
+      const ids = spriteIds(question);
+
+      expect(question.answerKey).toBe("60");
+      expect(new Set(ids).size).toBe(CHOICE_COUNT);
+      expect(ids).toContain(60);
+      expect(ids.every((id) => Math.abs(id - 60) <= NEARBY_DEX_RANGE)).toBe(
+        true,
+      );
+    },
+  );
+
+  it("only gives sprite choices in dex mode", () => {
+    const question = buildQuestion("dex", species[10], species, createRng(4));
+    const nameQuestion = buildQuestion(
+      "sprite",
+      species[10],
+      species,
+      createRng(4),
+    );
+
+    expect(question.choices.every((choice) => choice.kind === "sprite")).toBe(
+      true,
+    );
+    expect(nameQuestion.choices.every((choice) => choice.kind === "text")).toBe(
+      true,
+    );
+  });
+
+  it("still finds four choices at the start of the Pokédex", () => {
+    const question = buildQuestion("dex", species[0], species, createRng(2));
+
+    expect(question.choices).toHaveLength(CHOICE_COUNT);
+    expect(spriteIds(question).every((id) => id <= 1 + NEARBY_DEX_RANGE)).toBe(
+      true,
+    );
+  });
+
+  it("names the number and the Pokémon in the reveal", () => {
+    const state = startQuiz(species, createRng(1), "dex");
+    const { answer } = state.current;
+
+    expect(describeAnswer(state)).toBe(
+      `#${String(answer.speciesId).padStart(4, "0")} is ${answer.displayName}!`,
+    );
+  });
+});
+
+describe("questionSpriteIds", () => {
+  const question = buildQuestion("dex", johto[0], pool, createRng(1));
+
+  it("waits for the prompt sprite in sprite modes", () => {
+    const nameQuestion = buildQuestion("sprite", kanto[0], pool, createRng(1));
+
+    expect(questionSpriteIds("sprite", nameQuestion)).toEqual([1]);
+    expect(questionSpriteIds("silhouette", nameQuestion)).toEqual([1]);
+  });
+
+  it("waits for every choice sprite in dex mode", () => {
+    expect(questionSpriteIds("dex", question)).toEqual(spriteIds(question));
+  });
+});
+
 describe("describeAnswer", () => {
   it("names the Pokémon", () => {
     const state = startQuiz(kanto, createRng(1), "sprite");
@@ -311,6 +397,16 @@ describe("quiz state", () => {
     expect(
       answers.every((id, index) => index === 0 || id !== answers[index - 1]),
     ).toBe(true);
+  });
+
+  it("numbers each question", () => {
+    const advanced = advanceQuestion(
+      advanceQuestion(started, createRng(2)),
+      createRng(3),
+    );
+
+    expect(started.questionNumber).toBe(1);
+    expect(advanced.questionNumber).toBe(3);
   });
 
   it("moves the upcoming question up and clears the pick", () => {

@@ -17,8 +17,8 @@ export function QuizGame() {
       <h1 className="sr-only">Who's That Pokémon?</h1>
       <QuizQuit />
       <QuizHud />
-      <QuizPrompt key={round.quiz.current.answer.id} />
-      <QuizChoices />
+      <QuizPrompt key={`prompt-${round.quiz.questionNumber}`} />
+      <QuizChoices key={`choices-${round.quiz.questionNumber}`} />
     </section>
   );
 }

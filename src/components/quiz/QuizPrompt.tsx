@@ -1,39 +1,27 @@
-import { SkipForward } from "lucide-react";
-import { useState } from "react";
 import { useQuizContext } from "../../contexts/quiz-context";
-import { describeAnswer, formatPenalty, isPokemonHidden } from "../../lib/quiz";
-import { PokemonSprite } from "../pokemon/PokemonSprite";
-import { PILL_BUTTON } from "../shared/button-styles";
+import { formatPokemonNumber } from "../../lib/pokemon";
+import { describeAnswer, formatPenalty, QUIZ_MODE_RULES } from "../../lib/quiz";
 import { QUIZ_MODE_DETAILS } from "./quiz-modes";
+import { QuizPromptSprite } from "./QuizPromptSprite";
 
 export function QuizPrompt() {
-  const { round, mode, questionShown, skipQuestion } = useQuizContext();
-  const [failed, setFailed] = useState(false);
-  const { answer } = round.quiz.current;
+  const { round, mode } = useQuizContext();
   const revealed = round.quiz.pickedKey !== null;
-  const hidden = isPokemonHidden(round.quiz);
   const { prompt } = QUIZ_MODE_DETAILS[mode];
 
   return (
     <div className="border-ink shadow-sticker flex flex-col items-center rounded-3xl border-[3px] bg-white p-4">
-      {failed ? (
-        <div className="flex aspect-square w-48 flex-col items-center justify-center gap-3 text-center sm:w-60">
-          <p className="font-semibold">Couldn't load this Pokémon.</p>
-          <button type="button" onClick={skipQuestion} className={PILL_BUTTON}>
-            <SkipForward className="size-5" aria-hidden />
-            Skip
-          </button>
-        </div>
+      {QUIZ_MODE_RULES[mode].shows === "number" ? (
+        <p
+          aria-label="Dex number"
+          className="text-primary py-2 text-5xl font-bold tabular-nums sm:py-6 sm:text-6xl"
+        >
+          {round.shown
+            ? formatPokemonNumber(round.quiz.current.answer.speciesId)
+            : "#????"}
+        </p>
       ) : (
-        <PokemonSprite
-          id={answer.id}
-          shiny={false}
-          alt="Mystery Pokémon"
-          className={`w-48 transition-[filter] duration-200 sm:w-60 ${hidden ? "brightness-0" : ""}`}
-          eager
-          onLoad={questionShown}
-          onError={() => setFailed(true)}
-        />
+        <QuizPromptSprite />
       )}
       <p
         className="flex min-h-8 flex-wrap items-center justify-center gap-x-2 text-center text-xl font-bold"
