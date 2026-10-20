@@ -9,10 +9,10 @@ export const Route = createFileRoute("/quiz/play")({
 });
 
 function QuizRoute() {
-  const { mode, seconds } = Route.useSearch();
+  const { mode, clock } = Route.useSearch();
 
   return (
-    <QuizProvider key={`${mode}-${seconds}`} mode={mode} seconds={seconds}>
+    <QuizProvider key={`${mode}-${clock}`} mode={mode} clock={clock}>
       <QuizGame />
     </QuizProvider>
   );

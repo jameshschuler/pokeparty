@@ -10,13 +10,15 @@ import {
   createRng,
   describeAnswer,
   drawAnswer,
-  formatPenalty,
+  clockCapacityMs,
+  formatClockDelta,
+  formatClockSetting,
   holdRound,
   isClockRunning,
   isRoundOver,
   NEARBY_DEX_RANGE,
   isPokemonHidden,
-  isRoundSeconds,
+  parseClockSetting,
   nextQuestion,
   releaseRound,
   parseQuizModeSearch,
@@ -29,6 +31,8 @@ import {
   startClock,
   startQuiz,
   startRound,
+  TIME_ATTACK_BONUS_MS,
+  TIME_ATTACK_MAX_MS,
   WRONG_ANSWER_PENALTY_MS,
   type QuizChoice,
 } from "./quiz";
@@ -71,21 +75,25 @@ describe("createRng", () => {
 describe("parseQuizSettings", () => {
   it.each([
     [
-      { mode: "silhouette", seconds: "90" },
-      { mode: "silhouette", seconds: 90 },
+      { mode: "silhouette", clock: "90" },
+      { mode: "silhouette", clock: 90 },
     ],
     [
-      { mode: "sprite", seconds: 30 },
-      { mode: "sprite", seconds: 30 },
-    ],
-    [{}, { mode: "sprite", seconds: 60 }],
-    [
-      { mode: "shadow", seconds: 45 },
-      { mode: "sprite", seconds: 60 },
+      { mode: "sprite", clock: 30 },
+      { mode: "sprite", clock: 30 },
     ],
     [
-      { mode: 7, seconds: "abc" },
-      { mode: "sprite", seconds: 60 },
+      { mode: "dex", clock: "attack" },
+      { mode: "dex", clock: "attack" },
+    ],
+    [{}, { mode: "sprite", clock: 60 }],
+    [
+      { mode: "shadow", clock: 45 },
+      { mode: "sprite", clock: 60 },
+    ],
+    [
+      { mode: 7, clock: "abc" },
+      { mode: "sprite", clock: 60 },
     ],
   ])("%j -> %j", (search, expected) => {
     expect(parseQuizSettings(search)).toEqual(expected);
@@ -121,15 +129,39 @@ describe("isPokemonHidden", () => {
   });
 });
 
-describe("isRoundSeconds", () => {
+describe("parseClockSetting", () => {
   it.each([
-    [30, true],
-    [60, true],
-    [90, true],
-    [45, false],
-    [0, false],
-  ])("%s -> %s", (seconds, expected) => {
-    expect(isRoundSeconds(seconds)).toBe(expected);
+    [30, 30],
+    ["60", 60],
+    [90, 90],
+    ["attack", "attack"],
+    [45, null],
+    [0, null],
+    ["", null],
+    ["Attack", null],
+    [undefined, null],
+  ])("%j -> %j", (value, expected) => {
+    expect(parseClockSetting(value)).toBe(expected);
+  });
+});
+
+describe("clockCapacityMs", () => {
+  it.each([
+    [30, 30_000],
+    [90, 90_000],
+    ["attack", TIME_ATTACK_MAX_MS],
+  ] as const)("%s -> %s", (setting, expected) => {
+    expect(clockCapacityMs(setting)).toBe(expected);
+  });
+});
+
+describe("formatClockSetting", () => {
+  it.each([
+    [30, "30s"],
+    [60, "60s"],
+    ["attack", "Time attack"],
+  ] as const)("%s -> %s", (setting, expected) => {
+    expect(formatClockSetting(setting)).toBe(expected);
   });
 });
 
@@ -469,7 +501,7 @@ describe("quiz round", () => {
   const waiting = startRound(
     pool,
     createRng(8),
-    { mode: "sprite", seconds: 30 },
+    { mode: "sprite", clock: 30 },
     1_000,
   );
   const shown = showQuestion(waiting, 2_000);
@@ -523,7 +555,7 @@ describe("quiz round", () => {
   it("takes time off for a wrong answer", () => {
     const answered = answerRound(shown, wrongKey, 7_000);
 
-    expect(answered.penaltyMs).toBe(WRONG_ANSWER_PENALTY_MS);
+    expect(answered.clockDeltaMs).toBe(-WRONG_ANSWER_PENALTY_MS);
     expect(remainingMs(answered.clock, 7_000)).toBe(
       25_000 - WRONG_ANSWER_PENALTY_MS,
     );
@@ -532,21 +564,21 @@ describe("quiz round", () => {
   it("doesn't take time off for a right answer", () => {
     const answered = answerRound(shown, answerKey, 7_000);
 
-    expect(answered.penaltyMs).toBe(0);
+    expect(answered.clockDeltaMs).toBe(0);
     expect(remainingMs(answered.clock, 7_000)).toBe(25_000);
   });
 
   it("only takes the time that's left", () => {
     const answered = answerRound(shown, wrongKey, 30_800);
 
-    expect(answered.penaltyMs).toBe(1_200);
+    expect(answered.clockDeltaMs).toBe(-1_200);
     expect(remainingMs(answered.clock, 30_800)).toBe(0);
   });
 
   it("uses up exactly the last 2 seconds", () => {
     const answered = answerRound(shown, wrongKey, 30_000);
 
-    expect(answered.penaltyMs).toBe(2_000);
+    expect(answered.clockDeltaMs).toBe(-2_000);
     expect(remainingMs(answered.clock, 30_000)).toBe(0);
   });
 
@@ -559,7 +591,7 @@ describe("quiz round", () => {
   it("clears the penalty for the next question", () => {
     const answered = answerRound(shown, wrongKey, 7_000);
 
-    expect(nextQuestion(answered, createRng(3), 7_300).penaltyMs).toBe(0);
+    expect(nextQuestion(answered, createRng(3), 7_300).clockDeltaMs).toBe(0);
   });
 
   it("finishes the round only after the reveal", () => {
@@ -622,13 +654,69 @@ describe("quiz round", () => {
   });
 });
 
-describe("formatPenalty", () => {
+describe("time attack round", () => {
+  const shown = showQuestion(
+    startRound(pool, createRng(8), { mode: "sprite", clock: "attack" }, 1_000),
+    2_000,
+  );
+  const answerKey = shown.quiz.current.answerKey;
+  const wrongKey = shown.quiz.current.choices.find(
+    (choice) => choice.key !== answerKey,
+  )!.key;
+
+  it("starts with 30 seconds", () => {
+    expect(remainingMs(shown.clock, 2_000)).toBe(30_000);
+  });
+
+  it("adds time for a right answer", () => {
+    const answered = answerRound(shown, answerKey, 7_000);
+
+    expect(answered.clockDeltaMs).toBe(TIME_ATTACK_BONUS_MS);
+    expect(remainingMs(answered.clock, 7_000)).toBe(
+      25_000 + TIME_ATTACK_BONUS_MS,
+    );
+  });
+
+  it("takes time off for a wrong answer", () => {
+    const answered = answerRound(shown, wrongKey, 7_000);
+
+    expect(answered.clockDeltaMs).toBe(-WRONG_ANSWER_PENALTY_MS);
+    expect(remainingMs(answered.clock, 7_000)).toBe(23_000);
+  });
+
+  it("stops adding time at the cap", () => {
+    const nearCap = {
+      ...shown,
+      clock: { ...shown.clock, endsAt: 2_000 + TIME_ATTACK_MAX_MS - 1_000 },
+    };
+    const answered = answerRound(nearCap, answerKey, 2_000);
+
+    expect(answered.clockDeltaMs).toBe(1_000);
+    expect(remainingMs(answered.clock, 2_000)).toBe(TIME_ATTACK_MAX_MS);
+  });
+
+  it("adds nothing when already at the cap", () => {
+    const atCap = {
+      ...shown,
+      clock: { ...shown.clock, endsAt: 2_000 + TIME_ATTACK_MAX_MS },
+    };
+
+    expect(answerRound(atCap, answerKey, 2_000).clockDeltaMs).toBe(0);
+  });
+});
+
+describe("formatClockDelta", () => {
   it.each([
-    [2_000, "−2s"],
-    [1_200, "−1.2s"],
-    [450, "−0.5s"],
+    [-2_000, "−2s"],
+    [-1_200, "−1.2s"],
+    [-450, "−0.5s"],
+    [3_000, "+3s"],
+    [1_000, "+1s"],
+    [20, null],
+    [-40, null],
+    [0, null],
   ])("%s -> %s", (ms, expected) => {
-    expect(formatPenalty(ms)).toBe(expected);
+    expect(formatClockDelta(ms)).toBe(expected);
   });
 });
 

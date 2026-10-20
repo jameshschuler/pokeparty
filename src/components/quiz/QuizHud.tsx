@@ -1,10 +1,10 @@
 import { Check, Flame, Timer } from "lucide-react";
 import { useQuizContext } from "../../contexts/quiz-context";
 import { useNow } from "../../hooks/useNow";
-import { CLOCK_TICK_MS, remainingMs } from "../../lib/quiz";
+import { clockCapacityMs, CLOCK_TICK_MS, remainingMs } from "../../lib/quiz";
 
 export function QuizHud() {
-  const { round, seconds } = useQuizContext();
+  const { round, clockSetting } = useQuizContext();
   const now = useNow(CLOCK_TICK_MS);
   const remaining = remainingMs(round.clock, now);
   const { quiz } = round;
@@ -43,7 +43,9 @@ export function QuizHud() {
       <div className="border-ink h-4 overflow-hidden rounded-full border-[3px] bg-white">
         <div
           className="bg-primary h-full transition-[width] duration-100 ease-linear"
-          style={{ width: `${(remaining / (seconds * 1000)) * 100}%` }}
+          style={{
+            width: `${(remaining / clockCapacityMs(clockSetting)) * 100}%`,
+          }}
         />
       </div>
     </div>

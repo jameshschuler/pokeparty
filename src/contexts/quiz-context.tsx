@@ -19,15 +19,15 @@ import {
   remainingMs,
   showQuestion,
   startRound,
+  type ClockSetting,
   type QuizMode,
   type QuizRound,
-  type RoundSeconds,
 } from "../lib/quiz";
 
 export type QuizContextValue = {
   round: QuizRound;
   mode: QuizMode;
-  seconds: RoundSeconds;
+  clockSetting: ClockSetting;
   finished: boolean;
   waiting: boolean;
   answer: (choiceKey: string) => void;
@@ -42,14 +42,14 @@ const QuizContext = createContext<QuizContextValue | null>(null);
 
 type QuizProviderProps = {
   mode: QuizMode;
-  seconds: RoundSeconds;
+  clock: ClockSetting;
   children: ReactNode;
 };
 
-export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
+export function QuizProvider({ mode, clock, children }: QuizProviderProps) {
   const [rng] = useState(() => createRng(Date.now()));
   const [round, setRound] = useState(() =>
-    startRound(quizPool(mode), rng, { mode, seconds }, Date.now()),
+    startRound(quizPool(mode), rng, { mode, clock }, Date.now()),
   );
   const [checkedAt, setCheckedAt] = useState(Date.now);
   const finished = isRoundOver(round, checkedAt);
@@ -115,7 +115,7 @@ export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
   }
 
   function playAgain() {
-    setRound(startRound(quizPool(mode), rng, { mode, seconds }, Date.now()));
+    setRound(startRound(quizPool(mode), rng, { mode, clock }, Date.now()));
   }
 
   return (
@@ -123,7 +123,7 @@ export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
       value={{
         round,
         mode: round.quiz.mode,
-        seconds,
+        clockSetting: round.clockSetting,
         finished,
         waiting,
         answer,

@@ -1,7 +1,13 @@
 import { Link, useSearch } from "@tanstack/react-router";
-import { Timer } from "lucide-react";
-import { QUIZ_MODES, ROUND_SECONDS } from "../../lib/quiz";
+import { Timer, Zap } from "lucide-react";
+import {
+  QUIZ_MODES,
+  ROUND_SECONDS,
+  TIME_ATTACK_BONUS_MS,
+  TIME_ATTACK_START_MS,
+} from "../../lib/quiz";
 import { BackLink } from "../layout/BackLink";
+import { PRIMARY_SURFACE } from "../shared/button-styles";
 import { QuizModeOption } from "./QuizModeOption";
 
 export function QuizSetup() {
@@ -30,14 +36,30 @@ export function QuizSetup() {
           <li key={seconds}>
             <Link
               to="/quiz/play"
-              search={{ mode, seconds }}
-              className="border-ink bg-primary shadow-sticker flex flex-col items-center gap-1 rounded-2xl border-[3px] py-5 text-white transition active:translate-x-1 active:translate-y-1 active:shadow-none"
+              search={{ mode, clock: seconds }}
+              className={`${PRIMARY_SURFACE} flex-col gap-1 py-5`}
             >
               <Timer className="size-6" aria-hidden />
               <span className="text-2xl font-bold">{seconds}s</span>
             </Link>
           </li>
         ))}
+        <li className="col-span-3">
+          <Link
+            to="/quiz/play"
+            search={{ mode, clock: "attack" }}
+            className={`${PRIMARY_SURFACE} gap-3 px-4 py-4`}
+          >
+            <Zap className="size-6 shrink-0" aria-hidden />
+            <span className="flex flex-col text-left">
+              <span className="text-2xl font-bold">Time attack</span>
+              <span>
+                Start with {TIME_ATTACK_START_MS / 1000}s. Right answers add{" "}
+                {TIME_ATTACK_BONUS_MS / 1000}s.
+              </span>
+            </span>
+          </Link>
+        </li>
       </ul>
     </section>
   );
