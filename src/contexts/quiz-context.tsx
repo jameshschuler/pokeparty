@@ -14,6 +14,7 @@ import {
   isRoundOver,
   FEEDBACK_MS,
   nextQuestion,
+  questionSpriteIds,
   releaseRound,
   remainingMs,
   showQuestion,
@@ -81,8 +82,10 @@ export function QuizProvider({ mode, seconds, children }: QuizProviderProps) {
   }, [round.quiz.pickedKey, round.onHold, finished, rng]);
 
   useEffect(() => {
-    new Image().src = spriteUrl(round.quiz.upcoming.answer.id, false);
-  }, [round.quiz.upcoming]);
+    for (const id of questionSpriteIds(round.quiz.mode, round.quiz.upcoming)) {
+      new Image().src = spriteUrl(id, false);
+    }
+  }, [round.quiz.mode, round.quiz.upcoming]);
 
   function answer(choiceKey: string) {
     const answeredAt = Date.now();

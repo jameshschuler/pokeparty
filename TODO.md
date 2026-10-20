@@ -1,22 +1,8 @@
 # TODO
 
-What's left for Who's That Pokémon?, roughly in the order I'd build it. Sprite and silhouette modes are done, along with the 30/60/90s clock, quit, and the wrong-answer penalty.
+What's left for Who's That Pokémon?, roughly in the order I'd build it. Sprite, silhouette, region and dex number modes are done, along with the 30/60/90s clock, quit, and the wrong-answer penalty.
 
 ## Game modes
-
-### Region mode
-
-Show a sprite and pick its region from four. Regional forms count, so Galarian Ponyta's answer is Galar, which is the fun part. The other three choices are random regions.
-
-- Choices are regions, not Pokémon, so `buildQuestion` needs a sibling or a generic shape.
-- The answer pool is base species plus regional forms only. Other forms carry their debut region, so Origin Dialga, White-Striped Basculin and Bloodmoon Ursaluna would all be trick questions. The data can't tell regional forms apart yet: have the generator emit a `regional` flag (it already matches "Alolan/Galarian/Hisuian/Paldean Form").
-- Hisui vs Sinnoh is the confusing pair, since Hisui is old Sinnoh. Don't offer both as choices for a Sinnoh-line Pokémon.
-
-### Dex number mode
-
-Show `#0025` and pick the Pokémon from four sprites, with no names until the reveal. The wrong choices should be nearby numbers (±20) so you can't rule them out by generation.
-
-- The choices render as a 2×2 grid of sprites, and all four need to be loaded before the clock starts. That's an extension of the existing "wait for the sprite" rule.
 
 ### Time attack
 

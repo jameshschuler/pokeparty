@@ -1,5 +1,5 @@
 import { REGIONS, type PokemonSummary } from "../types/pokemon";
-import { formatPokemonLabel } from "./pokemon";
+import { formatPokemonLabel, formatPokemonNumber } from "./pokemon";
 import { confusableRegion, REGION_LABELS } from "./regions";
 
 export const ROUND_SECONDS = [30, 60, 90] as const;
@@ -8,26 +8,44 @@ export type RoundSeconds = (typeof ROUND_SECONDS)[number];
 
 export const DEFAULT_ROUND_SECONDS: RoundSeconds = 60;
 
-export const QUIZ_MODES = ["sprite", "silhouette", "region"] as const;
+export const QUIZ_MODES = ["sprite", "silhouette", "region", "dex"] as const;
 
 export type QuizMode = (typeof QUIZ_MODES)[number];
 
 export const DEFAULT_QUIZ_MODE: QuizMode = "sprite";
 
 type QuizModeRules = {
-  choices: "names" | "regions";
+  shows: "sprite" | "number";
+  choices: "names" | "regions" | "sprites";
   hidesPokemon: boolean;
   usesRegionalForms: boolean;
 };
 
 export const QUIZ_MODE_RULES: Record<QuizMode, QuizModeRules> = {
-  sprite: { choices: "names", hidesPokemon: false, usesRegionalForms: false },
+  sprite: {
+    shows: "sprite",
+    choices: "names",
+    hidesPokemon: false,
+    usesRegionalForms: false,
+  },
   silhouette: {
+    shows: "sprite",
     choices: "names",
     hidesPokemon: true,
     usesRegionalForms: false,
   },
-  region: { choices: "regions", hidesPokemon: false, usesRegionalForms: true },
+  region: {
+    shows: "sprite",
+    choices: "regions",
+    hidesPokemon: false,
+    usesRegionalForms: true,
+  },
+  dex: {
+    shows: "number",
+    choices: "sprites",
+    hidesPokemon: false,
+    usesRegionalForms: false,
+  },
 };
 
 export type QuizSettings = {
@@ -45,10 +63,13 @@ export const CLOCK_TICK_MS = 100;
 
 export type Rng = () => number;
 
-export type QuizChoice = {
-  key: string;
-  label: string;
-};
+export const NEARBY_DEX_RANGE = 20;
+
+export type QuizChoice =
+  | { kind: "text"; key: string; label: string }
+  | { kind: "sprite"; key: string; label: string; pokemonId: number };
+
+export const SPRITE_LOAD_TIMEOUT_MS = 8000;
 
 export type QuizQuestion = {
   answer: PokemonSummary;
@@ -63,6 +84,7 @@ export type QuizState = {
   upcoming: QuizQuestion;
   deck: PokemonSummary[];
   deckIndex: number;
+  questionNumber: number;
   pickedKey: string | null;
   correct: number;
   wrong: number;
@@ -175,22 +197,25 @@ export function drawAnswer(
   return { answer: fresh[0], deck: fresh, deckIndex: 1 };
 }
 
-function nameQuestion(
+function pokemonQuestion(
   answer: PokemonSummary,
   pool: PokemonSummary[],
   rng: Rng,
+  isSimilar: (pokemon: PokemonSummary) => boolean,
+  asSprites: boolean,
 ): QuizQuestion {
   const others = pool.filter((pokemon) => pokemon.id !== answer.id);
-  const sameRegion = others.filter(
-    (pokemon) => pokemon.region === answer.region,
-  );
-  const distractorPool =
-    sameRegion.length >= CHOICE_COUNT - 1 ? sameRegion : others;
+  const similar = others.filter(isSimilar);
+  const distractorPool = similar.length >= CHOICE_COUNT - 1 ? similar : others;
   const distractors = sample(distractorPool, CHOICE_COUNT - 1, rng);
-  const choices = [answer, ...distractors].map((pokemon) => ({
-    key: String(pokemon.id),
-    label: formatPokemonLabel(pokemon),
-  }));
+  const choices: QuizChoice[] = [answer, ...distractors].map((pokemon) => {
+    const key = String(pokemon.id);
+    const label = formatPokemonLabel(pokemon);
+
+    return asSprites
+      ? { kind: "sprite", key, label, pokemonId: pokemon.id }
+      : { kind: "text", key, label };
+  });
 
   return {
     answer,
@@ -205,7 +230,8 @@ function regionQuestion(answer: PokemonSummary, rng: Rng): QuizQuestion {
     (region) => region !== answer.region && region !== confusable,
   );
   const regions = [answer.region, ...sample(others, CHOICE_COUNT - 1, rng)];
-  const choices = regions.map((region) => ({
+  const choices: QuizChoice[] = regions.map((region) => ({
+    kind: "text",
     key: region,
     label: REGION_LABELS[region],
   }));
@@ -219,9 +245,44 @@ export function buildQuestion(
   pool: PokemonSummary[],
   rng: Rng,
 ): QuizQuestion {
-  return QUIZ_MODE_RULES[mode].choices === "regions"
-    ? regionQuestion(answer, rng)
-    : nameQuestion(answer, pool, rng);
+  const { choices } = QUIZ_MODE_RULES[mode];
+
+  switch (choices) {
+    case "regions":
+      return regionQuestion(answer, rng);
+    case "names":
+      return pokemonQuestion(
+        answer,
+        pool,
+        rng,
+        (pokemon) => pokemon.region === answer.region,
+        false,
+      );
+    case "sprites":
+      return pokemonQuestion(
+        answer,
+        pool,
+        rng,
+        (pokemon) =>
+          Math.abs(pokemon.speciesId - answer.speciesId) <= NEARBY_DEX_RANGE,
+        true,
+      );
+    default:
+      return choices satisfies never;
+  }
+}
+
+export function questionSpriteIds(
+  mode: QuizMode,
+  question: QuizQuestion,
+): number[] {
+  const choiceIds = question.choices.flatMap((choice) =>
+    choice.kind === "sprite" ? [choice.pokemonId] : [],
+  );
+
+  return QUIZ_MODE_RULES[mode].shows === "sprite"
+    ? [question.answer.id, ...choiceIds]
+    : choiceIds;
 }
 
 export function startQuiz(
@@ -245,6 +306,7 @@ export function startQuiz(
     upcoming: buildQuestion(mode, second.answer, pool, rng),
     deck: second.deck,
     deckIndex: second.deckIndex,
+    questionNumber: 1,
     pickedKey: null,
     correct: 0,
     wrong: 0,
@@ -288,6 +350,7 @@ export function advanceQuestion(state: QuizState, rng: Rng): QuizState {
     upcoming: buildQuestion(state.mode, next.answer, state.pool, rng),
     deck: next.deck,
     deckIndex: next.deckIndex,
+    questionNumber: state.questionNumber + 1,
     pickedKey: null,
   };
 }
@@ -386,9 +449,18 @@ export function describeAnswer(state: QuizState): string {
   const { answer } = state.current;
   const name = formatPokemonLabel(answer);
 
-  return QUIZ_MODE_RULES[state.mode].choices === "regions"
-    ? `It's ${name}, from ${REGION_LABELS[answer.region]}!`
-    : `It's ${name}!`;
+  const { choices } = QUIZ_MODE_RULES[state.mode];
+
+  switch (choices) {
+    case "regions":
+      return `It's ${name}, from ${REGION_LABELS[answer.region]}!`;
+    case "sprites":
+      return `${formatPokemonNumber(answer.speciesId)} is ${name}!`;
+    case "names":
+      return `It's ${name}!`;
+    default:
+      return choices satisfies never;
+  }
 }
 
 export function formatPenalty(penaltyMs: number): string {

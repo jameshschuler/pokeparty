@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { findPokemon } from "../../lib/pokedex";
 import { formatPokemonLabel } from "../../lib/pokemon";
 import { REGION_LABELS } from "../../lib/regions";
-import { FEEDBACK_MS } from "../../lib/quiz";
+import { FEEDBACK_MS, SPRITE_LOAD_TIMEOUT_MS } from "../../lib/quiz";
 import { renderApp } from "../../test/renderApp";
 
 function currentPokemon() {
@@ -126,6 +126,21 @@ describe("quiz modes", () => {
   });
 });
 
+describe("mode difficulty", () => {
+  it.each([
+    [/Sprite/, "Beginner"],
+    [/Silhouette/, "Beginner"],
+    [/Region/, "Intermediate"],
+    [/Dex number/, "Advanced"],
+  ])("tags %s as %s", async (mode, difficulty) => {
+    renderApp("/quiz");
+
+    const card = await screen.findByRole("button", { name: mode });
+
+    expect(card).toHaveTextContent(difficulty);
+  });
+});
+
 describe("region mode", () => {
   it("can be picked on the setup screen", async () => {
     const user = userEvent.setup();
@@ -171,6 +186,144 @@ describe("region mode", () => {
     expect(
       screen.getByText(`It's ${formatPokemonLabel(pokemon)}, from ${region}!`),
     ).toBeInTheDocument();
+  });
+});
+
+describe("dex number mode", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function dexAnswer() {
+    const number = screen.getByLabelText("Dex number").textContent!;
+
+    return findPokemon(Number(number.replace("#", "")))!;
+  }
+
+  function spriteChoices() {
+    return within(screen.getByRole("list")).getAllByRole("button");
+  }
+
+  function choiceFor(id: number) {
+    return spriteChoices().find((button) =>
+      button.querySelector("img")!.getAttribute("src")!.endsWith(`/${id}.png`),
+    )!;
+  }
+
+  it("shows the number and four unnamed sprite choices", async () => {
+    renderApp("/quiz/play?mode=dex&seconds=30");
+
+    await screen.findByLabelText("Dex number");
+
+    expect(screen.getByText("Which Pokémon is this?")).toBeInTheDocument();
+    expect(
+      spriteChoices().map((button) => button.getAttribute("aria-label")),
+    ).toEqual(["Choice 1", "Choice 2", "Choice 3", "Choice 4"]);
+
+    for (const button of spriteChoices()) {
+      fireEvent.load(button.querySelector("img")!);
+    }
+
+    expect(choiceFor(dexAnswer().id)).toBeInTheDocument();
+  });
+
+  it("hides the number until the sprites have loaded", async () => {
+    renderApp("/quiz/play?mode=dex&seconds=30");
+    await screen.findByLabelText("Dex number");
+
+    expect(screen.getByLabelText("Dex number")).toHaveTextContent("#????");
+
+    for (const button of spriteChoices()) {
+      fireEvent.load(button.querySelector("img")!);
+    }
+
+    expect(screen.getByLabelText("Dex number")).not.toHaveTextContent("?");
+  });
+
+  it("offers to skip when a sprite never finishes loading", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/quiz/play?mode=dex&seconds=30");
+    await screen.findByLabelText("Dex number");
+    const [first, second, third] = spriteChoices();
+    for (const button of [first, second, third]) {
+      fireEvent.load(button.querySelector("img")!);
+    }
+
+    act(() => vi.advanceTimersByTime(SPRITE_LOAD_TIMEOUT_MS));
+
+    expect(
+      screen.getByText("Couldn't load these Pokémon."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("timer", { name: "Time left" })).toHaveTextContent(
+      "30s",
+    );
+  });
+
+  it("waits for all four sprites before the clock starts", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/quiz/play?mode=dex&seconds=30");
+    await screen.findByLabelText("Dex number");
+
+    const [first, ...rest] = spriteChoices();
+    fireEvent.load(first.querySelector("img")!);
+    act(() => vi.advanceTimersByTime(5_100));
+    expect(screen.getByRole("timer", { name: "Time left" })).toHaveTextContent(
+      "30s",
+    );
+    expect(first).toBeDisabled();
+
+    for (const button of rest) {
+      fireEvent.load(button.querySelector("img")!);
+    }
+    act(() => vi.advanceTimersByTime(5_100));
+
+    expect(screen.getByRole("timer", { name: "Time left" })).toHaveTextContent(
+      "25s",
+    );
+    expect(first).toBeEnabled();
+  });
+
+  it("scores the right sprite and names every choice in the reveal", async () => {
+    renderApp("/quiz/play?mode=dex&seconds=30");
+    await screen.findByLabelText("Dex number");
+    for (const button of spriteChoices()) {
+      fireEvent.load(button.querySelector("img")!);
+    }
+    const pokemon = dexAnswer();
+
+    fireEvent.click(choiceFor(pokemon.id));
+
+    expect(screen.getByRole("group", { name: "Correct" })).toHaveTextContent(
+      "1",
+    );
+    expect(
+      screen.getByText(
+        `#${String(pokemon.speciesId).padStart(4, "0")} is ${formatPokemonLabel(pokemon)}!`,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: formatPokemonLabel(pokemon) }),
+    ).toBeInTheDocument();
+  });
+
+  it("offers to skip when a choice sprite won't load", async () => {
+    renderApp("/quiz/play?mode=dex&seconds=30");
+    await screen.findByLabelText("Dex number");
+    const before = spriteChoices().map((button) =>
+      button.querySelector("img")!.getAttribute("src"),
+    );
+
+    fireEvent.error(spriteChoices()[2].querySelector("img")!);
+    fireEvent.click(screen.getByRole("button", { name: "Skip" }));
+
+    expect(
+      spriteChoices().map((button) =>
+        button.querySelector("img")!.getAttribute("src"),
+      ),
+    ).not.toEqual(before);
+    expect(screen.getByRole("group", { name: "Correct" })).toHaveTextContent(
+      "0",
+    );
   });
 });
 
@@ -410,6 +563,17 @@ describe("quiz game", () => {
   function timeLeft() {
     return screen.getByRole("timer", { name: "Time left" });
   }
+
+  it("offers to skip when the prompt sprite never finishes loading", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/quiz/play?seconds=30");
+    await screen.findByRole("img", { name: "Mystery Pokémon" });
+
+    act(() => vi.advanceTimersByTime(SPRITE_LOAD_TIMEOUT_MS));
+
+    expect(screen.getByText("Couldn't load this Pokémon.")).toBeInTheDocument();
+    expect(timeLeft()).toHaveTextContent("30s");
+  });
 
   it("waits for the first sprite before the clock starts", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
