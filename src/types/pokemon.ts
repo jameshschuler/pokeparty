@@ -44,6 +44,7 @@ export type PokemonSummary = {
   variant: string | null;
   region: Region;
   legendary: boolean;
+  regional: boolean;
   searchText: string;
 };
 

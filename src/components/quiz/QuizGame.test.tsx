@@ -3,14 +3,19 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { findPokemon } from "../../lib/pokedex";
 import { formatPokemonLabel } from "../../lib/pokemon";
+import { REGION_LABELS } from "../../lib/regions";
 import { FEEDBACK_MS } from "../../lib/quiz";
 import { renderApp } from "../../test/renderApp";
 
-function currentAnswerLabel() {
+function currentPokemon() {
   const sprite = screen.getByRole("img", { name: "Mystery Pokémon" });
   const id = Number(sprite.getAttribute("src")!.match(/(\d+)\.png$/)![1]);
 
-  return formatPokemonLabel(findPokemon(id)!);
+  return findPokemon(id)!;
+}
+
+function currentAnswerLabel() {
+  return formatPokemonLabel(currentPokemon());
 }
 
 async function showQuestion() {
@@ -118,6 +123,54 @@ describe("quiz modes", () => {
 
     expect(router.state.location.pathname).toBe("/quiz");
     expect(router.state.location.search).toEqual({ mode: "silhouette" });
+  });
+});
+
+describe("region mode", () => {
+  it("can be picked on the setup screen", async () => {
+    const user = userEvent.setup();
+    const router = renderApp("/quiz");
+
+    await user.click(await screen.findByRole("button", { name: /Region/ }));
+    await user.click(screen.getByRole("link", { name: /30s/ }));
+
+    expect(router.state.location.search).toEqual({
+      mode: "region",
+      seconds: 30,
+    });
+  });
+
+  it("asks for the region and offers four regions", async () => {
+    renderApp("/quiz/play?mode=region&seconds=30");
+    await showQuestion();
+    const regionLabels = Object.values(REGION_LABELS);
+
+    expect(screen.getByText("Which region is it from?")).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Mystery Pokémon" }),
+    ).not.toHaveClass("brightness-0");
+
+    const labels = choiceButtons().map((button) => button.textContent!);
+
+    expect(labels).toHaveLength(4);
+    expect(labels.every((label) => regionLabels.includes(label))).toBe(true);
+    expect(labels).toContain(REGION_LABELS[currentPokemon().region]);
+  });
+
+  it("scores the right region and names it in the reveal", async () => {
+    renderApp("/quiz/play?mode=region&seconds=30");
+    await showQuestion();
+    const pokemon = currentPokemon();
+    const region = REGION_LABELS[pokemon.region];
+
+    fireEvent.click(screen.getByRole("button", { name: region }));
+
+    expect(screen.getByRole("group", { name: "Correct" })).toHaveTextContent(
+      "1",
+    );
+    expect(
+      screen.getByText(`It's ${formatPokemonLabel(pokemon)}, from ${region}!`),
+    ).toBeInTheDocument();
   });
 });
 

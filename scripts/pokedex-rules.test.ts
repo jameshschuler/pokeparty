@@ -14,6 +14,7 @@ describe("debutRegion", () => {
     ["legends-arceus", "generation-viii", "hisui"],
     ["the-teal-mask", "generation-ix", "paldea"],
     ["legends-za", "generation-ix", "kalos"],
+    ["lets-go-pikachu-lets-go-eevee", "generation-vii", "kanto"],
   ])("%s (%s) -> %s", (versionGroup, generation, region) => {
     expect(debutRegion(versionGroup, generation)).toBe(region);
   });
@@ -72,6 +73,21 @@ describe("formDisplayName", () => {
     ["Kyurem", "Black Kyurem", "Black Kyurem", null],
     ["Hoopa", "Hoopa Unbound", "Hoopa Unbound", null],
   ])("%s + %s -> %s / %s", (species, form, displayName, variant) => {
-    expect(formDisplayName(species, form)).toEqual({ displayName, variant });
+    expect(formDisplayName(species, form)).toMatchObject({
+      displayName,
+      variant,
+    });
+  });
+});
+
+describe("formDisplayName regional flag", () => {
+  it.each([
+    ["Ponyta", "Galarian Form", true],
+    ["Tauros", "Paldean Form (Aqua Breed)", true],
+    ["Dialga", "Origin Forme", false],
+    ["Basculin", "White-Striped Form", false],
+    ["Rotom", "Heat Rotom", false],
+  ])("%s + %s -> %s", (species, form, regional) => {
+    expect(formDisplayName(species, form).regional).toBe(regional);
   });
 });

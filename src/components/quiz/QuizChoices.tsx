@@ -1,27 +1,26 @@
 import { useQuizContext } from "../../contexts/quiz-context";
-import { formatPokemonLabel } from "../../lib/pokemon";
 import { choiceStyle } from "./quiz-styles";
 
 export function QuizChoices() {
   const { round, finished, waiting, answer } = useQuizContext();
   const { quiz } = round;
-  const revealed = quiz.pickedId !== null;
+  const revealed = quiz.pickedKey !== null;
 
   return (
     <ul className="grid grid-cols-2 gap-3">
       {quiz.current.choices.map((choice) => (
-        <li key={choice.id}>
+        <li key={choice.key}>
           <button
             type="button"
-            onClick={() => answer(choice.id)}
+            onClick={() => answer(choice.key)}
             disabled={revealed || finished || waiting}
             className={`border-ink flex min-h-14 w-full items-center justify-center rounded-2xl border-[3px] px-2 text-lg leading-tight font-semibold transition ${choiceStyle(
-              choice.id === quiz.current.answer.id,
-              choice.id === quiz.pickedId,
+              choice.key === quiz.current.answerKey,
+              choice.key === quiz.pickedKey,
               revealed,
             )}`}
           >
-            {formatPokemonLabel(choice)}
+            {choice.label}
           </button>
         </li>
       ))}

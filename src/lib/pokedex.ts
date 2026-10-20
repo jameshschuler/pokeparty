@@ -1,5 +1,6 @@
 import pokedexData from "../data/pokedex.json";
 import type { PokemonSummary, Region } from "../types/pokemon";
+import { QUIZ_MODE_RULES, type QuizMode } from "./quiz";
 import {
   buildSearchText,
   compareDexOrder,
@@ -21,6 +22,7 @@ export type PokedexData = {
     displayName: string;
     variant: string | null;
     region: Region;
+    regional: boolean;
   }[];
 };
 
@@ -41,6 +43,7 @@ export function buildPokedex(data: PokedexData): PokemonSummary[] {
     ...entry,
     speciesId: entry.id,
     variant: null,
+    regional: false,
   }));
   const forms = data.forms.map((form) => ({
     ...form,
@@ -61,3 +64,13 @@ export function findPokemon(id: number): PokemonSummary | undefined {
 export const SPECIES = POKEDEX.filter(
   (pokemon) => pokemon.id === pokemon.speciesId,
 );
+
+const SPECIES_WITH_REGIONAL_FORMS = POKEDEX.filter(
+  (pokemon) => pokemon.id === pokemon.speciesId || pokemon.regional,
+);
+
+export function quizPool(mode: QuizMode): PokemonSummary[] {
+  return QUIZ_MODE_RULES[mode].usesRegionalForms
+    ? SPECIES_WITH_REGIONAL_FORMS
+    : SPECIES;
+}
