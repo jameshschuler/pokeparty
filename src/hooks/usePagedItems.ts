@@ -5,6 +5,7 @@ const PAGE_SIZE = 48;
 export function usePagedItems<T>(items: T[]) {
   const [count, setCount] = useState(PAGE_SIZE);
   const [pagedItems, setPagedItems] = useState(items);
+
   if (items !== pagedItems) {
     setPagedItems(items);
     setCount(PAGE_SIZE);
@@ -14,6 +15,7 @@ export function usePagedItems<T>(items: T[]) {
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
+
     if (!sentinel || !hasMore) {
       return;
     }
@@ -26,6 +28,7 @@ export function usePagedItems<T>(items: T[]) {
       { rootMargin: "600px" },
     );
     observer.observe(sentinel);
+
     return () => observer.disconnect();
   }, [count, hasMore]);
 

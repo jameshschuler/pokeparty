@@ -17,6 +17,8 @@
   --color-primary: var(--ball-master);
   --color-accent: var(--ball-master-spot);
   --color-ink: #24123d;
+  --color-correct: #1f9d55;
+  --color-wrong: #e5484d;
 
   --color-type-normal: #a8a77a;
   --color-type-fire: #ee8130;

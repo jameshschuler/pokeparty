@@ -48,9 +48,11 @@ export type DisplayName = {
 export function debutRegion(versionGroup: string, generation: string): Region {
   const region =
     VERSION_GROUP_REGIONS[versionGroup] ?? GENERATION_REGIONS[generation];
+
   if (!region) {
     throw new Error(`No region for ${versionGroup} (${generation})`);
   }
+
   return region;
 }
 
@@ -67,12 +69,14 @@ export function formDisplayName(
   formName: string,
 ): DisplayName {
   const regional = formName.match(REGIONAL_FORM_NAME);
+
   if (regional) {
     return {
       displayName: `${regional[1]} ${speciesName}`,
       variant: regional[2] ?? null,
     };
   }
+
   return formName.includes(speciesName)
     ? { displayName: formName, variant: null }
     : { displayName: speciesName, variant: formName };

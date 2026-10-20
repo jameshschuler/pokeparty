@@ -17,6 +17,7 @@ export function TeamTray() {
         <ul className="grid grid-cols-6 gap-2">
           {Array.from({ length: TEAM_SIZE }, (_, index) => {
             const member = members[index];
+
             return (
               <li key={member?.pokemonId ?? `empty-${index}`}>
                 {member === undefined ? (

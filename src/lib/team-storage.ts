@@ -9,6 +9,7 @@ function isTeamMember(value: unknown): value is TeamMember {
     return false;
   }
   const member = value as Record<string, unknown>;
+
   return (
     typeof member.pokemonId === "number" &&
     isValidPokemonId(member.pokemonId) &&
@@ -20,9 +21,11 @@ function readMembers(team: Record<string, unknown>): unknown[] | null {
   if (Array.isArray(team.members)) {
     return team.members;
   }
+
   if (Array.isArray(team.pokemonIds)) {
     return team.pokemonIds.map((pokemonId) => ({ pokemonId, shiny: false }));
   }
+
   return null;
 }
 
@@ -32,6 +35,7 @@ function parseStoredTeam(value: unknown): Team | null {
   }
   const team = value as Record<string, unknown>;
   const members = readMembers(team);
+
   if (
     typeof team.id !== "string" ||
     typeof team.createdAt !== "number" ||
@@ -42,6 +46,7 @@ function parseStoredTeam(value: unknown): Team | null {
   ) {
     return null;
   }
+
   return {
     id: team.id,
     members,
@@ -53,10 +58,12 @@ function parseStoredTeam(value: unknown): Team | null {
 export function loadTeams(): Team[] {
   try {
     const raw = localStorage.getItem(TEAMS_STORAGE_KEY);
+
     if (!raw) {
       return [];
     }
     const parsed: unknown = JSON.parse(raw);
+
     return Array.isArray(parsed)
       ? parsed.flatMap((entry) => parseStoredTeam(entry) ?? [])
       : [];

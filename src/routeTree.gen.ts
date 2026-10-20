@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PartyRouteImport } from './routes/party'
 import { Route as ShareRouteImport } from './routes/share'
+import { Route as QuizIndexRouteImport } from './routes/quiz.index'
+import { Route as QuizPlayRouteImport } from './routes/quiz.play'
 import { Route as TeamTeamIdRouteImport } from './routes/team.$teamId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +31,16 @@ const ShareRoute = ShareRouteImport.update({
   path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QuizIndexRoute = QuizIndexRouteImport.update({
+  id: '/quiz/',
+  path: '/quiz/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuizPlayRoute = QuizPlayRouteImport.update({
+  id: '/quiz/play',
+  path: '/quiz/play',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeamTeamIdRoute = TeamTeamIdRouteImport.update({
   id: '/team/$teamId',
   path: '/team/$teamId',
@@ -39,34 +51,50 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/party': typeof PartyRoute
   '/share': typeof ShareRoute
+  '/quiz/play': typeof QuizPlayRoute
   '/team/$teamId': typeof TeamTeamIdRoute
+  '/quiz/': typeof QuizIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/party': typeof PartyRoute
   '/share': typeof ShareRoute
+  '/quiz/play': typeof QuizPlayRoute
   '/team/$teamId': typeof TeamTeamIdRoute
+  '/quiz': typeof QuizIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/party': typeof PartyRoute
   '/share': typeof ShareRoute
+  '/quiz/play': typeof QuizPlayRoute
   '/team/$teamId': typeof TeamTeamIdRoute
+  '/quiz/': typeof QuizIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/party' | '/share' | '/team/$teamId'
+  fullPaths:
+    '/' | '/party' | '/share' | '/quiz/play' | '/team/$teamId' | '/quiz/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/party' | '/share' | '/team/$teamId'
-  id: '__root__' | '/' | '/party' | '/share' | '/team/$teamId'
+  to: '/' | '/party' | '/share' | '/quiz/play' | '/team/$teamId' | '/quiz'
+  id:
+    | '__root__'
+    | '/'
+    | '/party'
+    | '/share'
+    | '/quiz/play'
+    | '/team/$teamId'
+    | '/quiz/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PartyRoute: typeof PartyRoute
   ShareRoute: typeof ShareRoute
+  QuizPlayRoute: typeof QuizPlayRoute
   TeamTeamIdRoute: typeof TeamTeamIdRoute
+  QuizIndexRoute: typeof QuizIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,6 +120,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quiz/': {
+      id: '/quiz/'
+      path: '/quiz'
+      fullPath: '/quiz/'
+      preLoaderRoute: typeof QuizIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quiz/play': {
+      id: '/quiz/play'
+      path: '/quiz/play'
+      fullPath: '/quiz/play'
+      preLoaderRoute: typeof QuizPlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/team/$teamId': {
       id: '/team/$teamId'
       path: '/team/$teamId'
@@ -106,7 +148,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PartyRoute: PartyRoute,
   ShareRoute: ShareRoute,
+  QuizPlayRoute: QuizPlayRoute,
   TeamTeamIdRoute: TeamTeamIdRoute,
+  QuizIndexRoute: QuizIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
