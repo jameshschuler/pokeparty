@@ -2,13 +2,15 @@ import { SkipForward } from "lucide-react";
 import { useState } from "react";
 import { useQuizContext } from "../../contexts/quiz-context";
 import { formatPokemonLabel } from "../../lib/pokemon";
+import { isPokemonHidden } from "../../lib/quiz";
 import { PokemonSprite } from "../pokemon/PokemonSprite";
 
 export function QuizPrompt() {
-  const { round, questionShown, skipQuestion } = useQuizContext();
+  const { round, mode, questionShown, skipQuestion } = useQuizContext();
   const [failed, setFailed] = useState(false);
   const { answer } = round.quiz.current;
   const revealed = round.quiz.pickedId !== null;
+  const hidden = isPokemonHidden(mode, revealed);
 
   return (
     <div className="border-ink shadow-sticker flex flex-col items-center rounded-3xl border-[3px] bg-white p-4">
@@ -29,7 +31,7 @@ export function QuizPrompt() {
           id={answer.id}
           shiny={false}
           alt="Mystery Pokémon"
-          className="w-48 sm:w-60"
+          className={`w-48 transition-[filter] duration-200 sm:w-60 ${hidden ? "brightness-0" : ""}`}
           eager
           onLoad={questionShown}
           onError={() => setFailed(true)}
