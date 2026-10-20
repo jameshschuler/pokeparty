@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { TeamList } from "../components/teams/TeamList";
+import { Hub } from "../components/hub/Hub";
 
 export const Route = createFileRoute("/")({
-  component: TeamList,
+  component: Hub,
 });
