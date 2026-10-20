@@ -9,8 +9,10 @@ import {
   CHOICE_COUNT,
   createRng,
   drawAnswer,
+  formatPenalty,
   holdRound,
   isClockRunning,
+  isRoundOver,
   isPokemonHidden,
   isRoundSeconds,
   nextQuestion,
@@ -24,6 +26,7 @@ import {
   startClock,
   startQuiz,
   startRound,
+  WRONG_ANSWER_PENALTY_MS,
 } from "./quiz";
 
 function pokemon(id: number, region: Region): PokemonSummary {
@@ -341,6 +344,65 @@ describe("quiz round", () => {
     expect(remainingMs(showQuestion(next, 9_000).clock, 9_000)).toBe(25_000);
   });
 
+  const wrongId = shown.quiz.current.choices.find(
+    (choice) => choice.id !== answerId,
+  )!.id;
+
+  it("takes time off for a wrong answer", () => {
+    const answered = answerRound(shown, wrongId, 7_000);
+
+    expect(answered.penaltyMs).toBe(WRONG_ANSWER_PENALTY_MS);
+    expect(remainingMs(answered.clock, 7_000)).toBe(
+      25_000 - WRONG_ANSWER_PENALTY_MS,
+    );
+  });
+
+  it("doesn't take time off for a right answer", () => {
+    const answered = answerRound(shown, answerId, 7_000);
+
+    expect(answered.penaltyMs).toBe(0);
+    expect(remainingMs(answered.clock, 7_000)).toBe(25_000);
+  });
+
+  it("only takes the time that's left", () => {
+    const answered = answerRound(shown, wrongId, 30_800);
+
+    expect(answered.penaltyMs).toBe(1_200);
+    expect(remainingMs(answered.clock, 30_800)).toBe(0);
+  });
+
+  it("uses up exactly the last 2 seconds", () => {
+    const answered = answerRound(shown, wrongId, 30_000);
+
+    expect(answered.penaltyMs).toBe(2_000);
+    expect(remainingMs(answered.clock, 30_000)).toBe(0);
+  });
+
+  it("doesn't penalize a second click on the same question", () => {
+    const answered = answerRound(shown, wrongId, 7_000);
+
+    expect(answerRound(answered, answerId, 7_050)).toBe(answered);
+  });
+
+  it("clears the penalty for the next question", () => {
+    const answered = answerRound(shown, wrongId, 7_000);
+
+    expect(nextQuestion(answered, pool, createRng(3), 7_300).penaltyMs).toBe(0);
+  });
+
+  it("finishes the round only after the reveal", () => {
+    const answered = answerRound(shown, wrongId, 31_000);
+    const next = nextQuestion(answered, pool, createRng(3), 31_300);
+
+    expect(isRoundOver(answered, 31_000)).toBe(false);
+    expect(isRoundOver(next, 31_300)).toBe(true);
+  });
+
+  it("finishes the round when time runs out on an open question", () => {
+    expect(isRoundOver(shown, 31_999)).toBe(false);
+    expect(isRoundOver(shown, 32_000)).toBe(true);
+  });
+
   it("pauses the clock and blocks answers while on hold", () => {
     const held = holdRound(shown, 5_000);
 
@@ -385,6 +447,16 @@ describe("quiz round", () => {
 
     expect(isClockRunning(loadedWhileHeld)).toBe(false);
     expect(isClockRunning(releaseRound(loadedWhileHeld, 3_000))).toBe(true);
+  });
+});
+
+describe("formatPenalty", () => {
+  it.each([
+    [2_000, "−2s"],
+    [1_200, "−1.2s"],
+    [450, "−0.5s"],
+  ])("%s -> %s", (ms, expected) => {
+    expect(formatPenalty(ms)).toBe(expected);
   });
 });
 
