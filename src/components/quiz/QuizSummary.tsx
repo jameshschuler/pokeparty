@@ -9,6 +9,7 @@ import {
   PRIMARY_BUTTON,
   SECONDARY_BUTTON,
 } from "../shared/button-styles";
+import { RankBadge } from "../game/RankBadge";
 import { QuizScore } from "./QuizScore";
 
 export function QuizSummary() {
@@ -20,11 +21,7 @@ export function QuizSummary() {
   return (
     <section className="border-ink shadow-sticker flex flex-col items-center gap-4 rounded-3xl border-[3px] bg-white p-6 text-center">
       <h1 className="text-3xl font-bold">Time's up!</h1>
-      {rank !== null && (
-        <p className="bg-accent border-ink rounded-full border-2 px-3 font-bold">
-          {rank === 1 ? "New best!" : `#${rank} on your board`}
-        </p>
-      )}
+      <RankBadge rank={rank} />
       <QuizScore result={result} />
       <div className="flex flex-wrap justify-center gap-3">
         <button type="button" onClick={playAgain} className={PRIMARY_BUTTON}>

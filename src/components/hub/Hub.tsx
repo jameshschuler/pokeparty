@@ -1,4 +1,4 @@
-import { CircleHelp, Users } from "lucide-react";
+import { CircleHelp, ListOrdered, Users } from "lucide-react";
 import { AppTile } from "./AppTile";
 
 export function Hub() {
@@ -20,6 +20,14 @@ export function Hub() {
             icon={<CircleHelp className="size-7" aria-hidden />}
             title="Who's That Pokémon?"
             description="Name as many Pokémon as you can before time runs out."
+          />
+        </li>
+        <li>
+          <AppTile
+            to="/dex-run"
+            icon={<ListOrdered className="size-7" aria-hidden />}
+            title="Dex Run"
+            description="Name every Pokémon in dex order before you run out of lives."
           />
         </li>
       </ul>

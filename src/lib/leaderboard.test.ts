@@ -4,19 +4,32 @@ import {
   BOARD_SIZE,
   bestRun,
   boardRuns,
+  dexRunScore,
   formatPlayedAt,
   loadRuns,
   roundRun,
   runRank,
   saveRuns,
+  type DexRunScore,
   type QuizRun,
 } from "./leaderboard";
+import { answerDexRun, showDexQuestion, startDexRun } from "./dex-run";
 import { quizPool } from "./pokedex";
 import { createRng, startRound } from "./quiz";
 
 function run(score: number, wrong: number, playedAt: number): QuizRun {
-  return { mode: "sprite", clock: 60, score, wrong, streak: 0, playedAt };
+  return {
+    game: "quiz",
+    mode: "sprite",
+    clock: 60,
+    score,
+    wrong,
+    streak: 0,
+    playedAt,
+  };
 }
+
+const SPRITE_60 = { game: "quiz", mode: "sprite", clock: 60 } as const;
 
 describe("roundRun", () => {
   it("stamps the result with when the round started", () => {
@@ -28,6 +41,7 @@ describe("roundRun", () => {
     );
 
     expect(roundRun(round)).toEqual({
+      game: "quiz",
       mode: "sprite",
       clock: "attack",
       score: 0,
@@ -38,11 +52,58 @@ describe("roundRun", () => {
   });
 });
 
+function dexScore(score: number, playedAt: number): DexRunScore {
+  return {
+    game: "dex-run",
+    range: 1,
+    score,
+    wrong: 1,
+    reached: score + 1,
+    playedAt,
+  };
+}
+
+describe("dexRunScore", () => {
+  it("scores right answers, lives lost and how far the run got", () => {
+    const shown = showDexQuestion(startDexRun(2, createRng(3), 7_000), 7_500);
+    const wrongKey = shown.question.choices.find(
+      (choice) => choice.key !== shown.question.answerKey,
+    )!.key;
+
+    expect(dexRunScore(answerDexRun(shown, wrongKey, 8_000))).toEqual({
+      game: "dex-run",
+      range: 2,
+      score: 0,
+      wrong: 1,
+      reached: 152,
+      playedAt: 7_000,
+    });
+  });
+});
+
+describe("game boards", () => {
+  it("keeps Dex Run ranges apart from each other and from the quiz", () => {
+    const runs = [
+      run(50, 0, 1),
+      dexScore(10, 2),
+      { ...dexScore(30, 3), range: "national" as const },
+    ];
+
+    expect(boardRuns(runs, { game: "dex-run", range: 1 })).toEqual([
+      dexScore(10, 2),
+    ]);
+    expect(bestRun(runs, { game: "dex-run", range: "national" })?.score).toBe(
+      30,
+    );
+    expect(boardRuns(runs, SPRITE_60)).toEqual([run(50, 0, 1)]);
+  });
+});
+
 describe("boardRuns", () => {
   it("ranks by score, then fewer wrong answers, then the earlier run", () => {
     const runs = [run(5, 0, 3), run(9, 2, 4), run(9, 1, 5), run(5, 0, 1)];
 
-    expect(boardRuns(runs, "sprite", 60).map((r) => r.playedAt)).toEqual([
+    expect(boardRuns(runs, SPRITE_60).map((r) => r.playedAt)).toEqual([
       5, 4, 1, 3,
     ]);
   });
@@ -54,8 +115,8 @@ describe("boardRuns", () => {
       { ...run(9, 0, 3), mode: "dex" as const },
     ];
 
-    expect(boardRuns(runs, "sprite", 60)).toEqual([run(5, 0, 1)]);
-    expect(boardRuns(runs, "sprite", "attack")).toEqual([]);
+    expect(boardRuns(runs, SPRITE_60)).toEqual([run(5, 0, 1)]);
+    expect(boardRuns(runs, { ...SPRITE_60, clock: "attack" })).toEqual([]);
   });
 });
 
@@ -63,8 +124,8 @@ describe("bestRun", () => {
   it("returns the top run, or null for an empty board", () => {
     const runs = [run(3, 0, 1), run(7, 0, 2)];
 
-    expect(bestRun(runs, "sprite", 60)).toEqual(run(7, 0, 2));
-    expect(bestRun(runs, "dex", 60)).toBeNull();
+    expect(bestRun(runs, SPRITE_60)).toEqual(run(7, 0, 2));
+    expect(bestRun(runs, { ...SPRITE_60, mode: "dex" })).toBeNull();
   });
 });
 
@@ -84,8 +145,11 @@ describe("addRun", () => {
     const other = { ...run(1, 0, 99), mode: "dex" as const };
     const next = addRun([...full, other], run(20, 0, 50));
 
-    expect(boardRuns(next, "sprite", 60)).toHaveLength(BOARD_SIZE);
-    expect(next.some((r) => r.score === 1 && r.mode === "sprite")).toBe(false);
+    expect(boardRuns(next, SPRITE_60)).toHaveLength(BOARD_SIZE);
+    expect(
+      next.filter((r) => r.game === "quiz" && r.mode === "sprite"),
+    ).toHaveLength(BOARD_SIZE);
+    expect(next.some((r) => r.score === 1 && r !== other)).toBe(false);
     expect(next).toContainEqual(other);
   });
 
@@ -154,6 +218,39 @@ describe("leaderboard storage", () => {
     localStorage.setItem("pokeparty:quiz-runs", raw);
 
     expect(loadRuns()).toEqual([]);
+  });
+
+  it("reads quiz runs saved before there were other games", () => {
+    const legacy = {
+      mode: "sprite",
+      clock: 60,
+      score: 5,
+      wrong: 1,
+      streak: 0,
+      playedAt: 1,
+    };
+    localStorage.setItem("pokeparty:quiz-runs", JSON.stringify([legacy]));
+
+    expect(loadRuns()).toEqual([run(5, 1, 1)]);
+  });
+
+  it("round-trips Dex Run scores and drops malformed ones", () => {
+    const valid = dexScore(40, 1);
+    localStorage.setItem(
+      "pokeparty:quiz-runs",
+      JSON.stringify([
+        valid,
+        { ...valid, range: 10 },
+        { ...valid, score: 152 },
+        { ...valid, wrong: 4 },
+        { ...valid, reached: 0 },
+        { ...valid, reached: 152 },
+        { ...valid, score: 40, reached: 30 },
+        { ...valid, game: "simon" },
+      ]),
+    );
+
+    expect(loadRuns()).toEqual([valid]);
   });
 
   it("drops malformed runs and keeps valid ones", () => {

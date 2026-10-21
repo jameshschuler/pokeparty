@@ -371,11 +371,15 @@ export function clockCapacityMs(setting: ClockSetting): number {
   return setting === "attack" ? TIME_ATTACK_MAX_MS : setting * 1000;
 }
 
-export function startClock(setting: ClockSetting, now: number): RoundClock {
-  const durationMs =
-    setting === "attack" ? TIME_ATTACK_START_MS : clockCapacityMs(setting);
-
+export function pausedClock(durationMs: number, now: number): RoundClock {
   return { endsAt: now + durationMs, pausedAt: now };
+}
+
+export function startClock(setting: ClockSetting, now: number): RoundClock {
+  return pausedClock(
+    setting === "attack" ? TIME_ATTACK_START_MS : clockCapacityMs(setting),
+    now,
+  );
 }
 
 export function pauseClock(clock: RoundClock, now: number): RoundClock {

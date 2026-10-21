@@ -2,22 +2,22 @@ import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useStoredList } from "../hooks/useStoredList";
 import {
   addRun,
-  LEADERBOARD_STORAGE_KEY,
+  RUNS_STORAGE_KEY,
   loadRuns,
   saveRuns,
-  type QuizRun,
+  type GameRun,
 } from "../lib/leaderboard";
 
 export type LeaderboardContextValue = {
-  runs: QuizRun[];
-  recordRun: (run: QuizRun) => void;
+  runs: GameRun[];
+  recordRun: (run: GameRun) => void;
 };
 
 const LeaderboardContext = createContext<LeaderboardContextValue | null>(null);
 
 export function LeaderboardProvider({ children }: { children: ReactNode }) {
   const [runs, commit] = useStoredList({
-    key: LEADERBOARD_STORAGE_KEY,
+    key: RUNS_STORAGE_KEY,
     load: loadRuns,
     save: saveRuns,
     saveErrorMessage:

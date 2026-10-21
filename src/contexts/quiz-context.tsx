@@ -142,7 +142,7 @@ export function QuizProvider({ mode, clock, children }: QuizProviderProps) {
           pickedKey: round.quiz.pickedKey,
           revealed: round.quiz.pickedKey !== null,
           shown: round.shown,
-          locked: round.quiz.pickedKey !== null || finished || !round.shown,
+          finished,
           answer,
           questionShown,
           skipQuestion,

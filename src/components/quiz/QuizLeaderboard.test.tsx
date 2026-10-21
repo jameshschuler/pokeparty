@@ -8,7 +8,15 @@ import { FEEDBACK_MS } from "../../lib/quiz";
 import { renderApp } from "../../test/renderApp";
 
 function run(score: number, wrong: number, playedAt: number): QuizRun {
-  return { mode: "sprite", clock: 60, score, wrong, streak: 0, playedAt };
+  return {
+    game: "quiz",
+    mode: "sprite",
+    clock: 60,
+    score,
+    wrong,
+    streak: 0,
+    playedAt,
+  };
 }
 
 async function showQuestion() {

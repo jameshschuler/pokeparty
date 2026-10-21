@@ -1,55 +1,94 @@
-import type { ClockSetting, QuizMode, QuizRound } from "./quiz";
-import { parseQuizResult, roundResult, type QuizResult } from "./quiz-result";
+import {
+  dexRangeBounds,
+  DEX_RUN_LIVES,
+  parseDexRange,
+  reachedNumber,
+  type DexRange,
+  type DexRun,
+} from "./dex-run";
+import type { QuizRound } from "./quiz";
+import {
+  parseCount,
+  parseQuizResult,
+  roundResult,
+  type QuizResult,
+} from "./quiz-result";
 import { loadStoredList } from "./storage";
 
-export type QuizRun = QuizResult & { playedAt: number };
+export type QuizRun = { game: "quiz" } & QuizResult & { playedAt: number };
+
+export type DexRunScore = {
+  game: "dex-run";
+  range: DexRange;
+  score: number;
+  wrong: number;
+  reached: number;
+  playedAt: number;
+};
+
+export type GameRun = QuizRun | DexRunScore;
+
+export type Board =
+  | Pick<QuizRun, "game" | "mode" | "clock">
+  | Pick<DexRunScore, "game" | "range">;
 
 export const BOARD_SIZE = 10;
 
-export const LEADERBOARD_STORAGE_KEY = "pokeparty:quiz-runs";
+export const RUNS_STORAGE_KEY = "pokeparty:quiz-runs";
 
 export function roundRun(round: QuizRound): QuizRun {
-  return { ...roundResult(round), playedAt: round.startedAt };
+  return { game: "quiz", ...roundResult(round), playedAt: round.startedAt };
 }
 
-function isOnBoard(run: QuizRun, mode: QuizMode, clock: ClockSetting): boolean {
-  return run.mode === mode && run.clock === clock;
+export function dexRunScore(run: DexRun): DexRunScore {
+  return {
+    game: "dex-run",
+    range: run.range,
+    score: run.correct,
+    wrong: DEX_RUN_LIVES - run.lives,
+    reached: reachedNumber(run),
+    playedAt: run.startedAt,
+  };
 }
 
-function isSameRun(a: QuizRun, b: QuizRun): boolean {
-  return a.playedAt === b.playedAt && isOnBoard(a, b.mode, b.clock);
+export function isQuizRun(run: GameRun): run is QuizRun {
+  return run.game === "quiz";
 }
 
-function compareRuns(a: QuizRun, b: QuizRun): number {
+function boardKey(board: Board): string {
+  return board.game === "quiz"
+    ? `quiz:${board.mode}:${board.clock}`
+    : `dex-run:${board.range}`;
+}
+
+function isOnBoard(run: GameRun, board: Board): boolean {
+  return boardKey(run) === boardKey(board);
+}
+
+function isSameRun(a: GameRun, b: GameRun): boolean {
+  return a.playedAt === b.playedAt && isOnBoard(a, b);
+}
+
+function compareRuns(a: GameRun, b: GameRun): number {
   return b.score - a.score || a.wrong - b.wrong || a.playedAt - b.playedAt;
 }
 
-export function boardRuns(
-  runs: QuizRun[],
-  mode: QuizMode,
-  clock: ClockSetting,
-): QuizRun[] {
+export function boardRuns<T extends GameRun>(runs: T[], board: Board): T[] {
   return runs
-    .filter((run) => isOnBoard(run, mode, clock))
+    .filter((run) => isOnBoard(run, board))
     .sort(compareRuns)
     .slice(0, BOARD_SIZE);
 }
 
-export function bestRun(
-  runs: QuizRun[],
-  mode: QuizMode,
-  clock: ClockSetting,
-): QuizRun | null {
-  return boardRuns(runs, mode, clock)[0] ?? null;
+export function bestRun<T extends GameRun>(runs: T[], board: Board): T | null {
+  return boardRuns(runs, board)[0] ?? null;
 }
 
-function boardIndex(runs: QuizRun[], run: QuizRun): number {
-  return boardRuns(runs, run.mode, run.clock).findIndex((stored) =>
-    isSameRun(stored, run),
-  );
+function boardIndex(runs: GameRun[], run: GameRun): number {
+  return boardRuns(runs, run).findIndex((stored) => isSameRun(stored, run));
 }
 
-export function addRun(runs: QuizRun[], run: QuizRun): QuizRun[] {
+export function addRun(runs: GameRun[], run: GameRun): GameRun[] {
   if (run.score === 0 || runs.some((stored) => isSameRun(stored, run))) {
     return runs;
   }
@@ -61,37 +100,75 @@ export function addRun(runs: QuizRun[], run: QuizRun): QuizRun[] {
   }
 
   return [
-    ...runs.filter((stored) => !isOnBoard(stored, run.mode, run.clock)),
-    ...boardRuns(withRun, run.mode, run.clock),
+    ...runs.filter((stored) => !isOnBoard(stored, run)),
+    ...boardRuns(withRun, run),
   ];
 }
 
-export function runRank(runs: QuizRun[], run: QuizRun): number | null {
+export function runRank(runs: GameRun[], run: GameRun): number | null {
   const index = boardIndex(addRun(runs, run), run);
 
   return index === -1 ? null : index + 1;
 }
 
-function parseStoredRun(value: unknown): QuizRun | null {
+function parseDexRunScore(
+  run: Record<string, unknown>,
+  playedAt: number,
+): DexRunScore | null {
+  const range = parseDexRange(run.range);
+
+  if (range === null) {
+    return null;
+  }
+
+  const { first, last } = dexRangeBounds(range);
+  const score = parseCount(run.score, last - first + 1);
+  const wrong = parseCount(run.wrong, DEX_RUN_LIVES);
+  const reached = parseCount(run.reached, last);
+
+  if (
+    score === null ||
+    wrong === null ||
+    reached === null ||
+    reached < first ||
+    score > reached - first + 1
+  ) {
+    return null;
+  }
+
+  return { game: "dex-run", range, score, wrong, reached, playedAt };
+}
+
+function parseStoredRun(value: unknown): GameRun | null {
   if (typeof value !== "object" || value === null) {
     return null;
   }
   const run = value as Record<string, unknown>;
-  const result = parseQuizResult(run);
 
-  if (!result || typeof run.playedAt !== "number") {
+  if (typeof run.playedAt !== "number") {
     return null;
   }
 
-  return { ...result, playedAt: run.playedAt };
+  if (run.game === "dex-run") {
+    return parseDexRunScore(run, run.playedAt);
+  }
+
+  const result =
+    run.game === undefined || run.game === "quiz" ? parseQuizResult(run) : null;
+
+  if (!result) {
+    return null;
+  }
+
+  return { game: "quiz", ...result, playedAt: run.playedAt };
 }
 
-export function loadRuns(): QuizRun[] {
-  return loadStoredList(LEADERBOARD_STORAGE_KEY, parseStoredRun);
+export function loadRuns(): GameRun[] {
+  return loadStoredList(RUNS_STORAGE_KEY, parseStoredRun);
 }
 
-export function saveRuns(runs: QuizRun[]): void {
-  localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(runs));
+export function saveRuns(runs: GameRun[]): void {
+  localStorage.setItem(RUNS_STORAGE_KEY, JSON.stringify(runs));
 }
 
 export function formatPlayedAt(playedAt: number): string {

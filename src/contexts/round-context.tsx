@@ -1,12 +1,12 @@
 import { createContext, useContext, type ReactNode } from "react";
 import type { QuizQuestion } from "../lib/quiz";
 
-export type RoundContextValue = {
+type RoundState = {
   question: QuizQuestion;
   pickedKey: string | null;
   revealed: boolean;
   shown: boolean;
-  locked: boolean;
+  finished: boolean;
   answer: (choiceKey: string) => void;
   questionShown: () => void;
   skipQuestion: () => void;
@@ -14,15 +14,19 @@ export type RoundContextValue = {
   release: () => void;
 };
 
+export type RoundContextValue = RoundState & { locked: boolean };
+
 const RoundContext = createContext<RoundContextValue | null>(null);
 
 type RoundProviderProps = {
-  value: RoundContextValue;
+  value: RoundState;
   children: ReactNode;
 };
 
 export function RoundProvider({ value, children }: RoundProviderProps) {
-  return <RoundContext value={value}>{children}</RoundContext>;
+  const locked = value.revealed || value.finished || !value.shown;
+
+  return <RoundContext value={{ ...value, locked }}>{children}</RoundContext>;
 }
 
 export function useRoundContext(): RoundContextValue {
