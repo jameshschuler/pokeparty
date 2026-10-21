@@ -4,7 +4,12 @@ import { useLeaderboardContext } from "../../contexts/leaderboard-context";
 import { useQuizContext } from "../../contexts/quiz-context";
 import { roundRun, runRank } from "../../lib/leaderboard";
 import { roundResult } from "../../lib/quiz-result";
-import { PILL_BUTTON, PRIMARY_BUTTON } from "../shared/button-styles";
+import {
+  PILL_BUTTON,
+  PRIMARY_BUTTON,
+  SECONDARY_BUTTON,
+} from "../shared/button-styles";
+import { RankBadge } from "../game/RankBadge";
 import { QuizScore } from "./QuizScore";
 
 export function QuizSummary() {
@@ -16,22 +21,14 @@ export function QuizSummary() {
   return (
     <section className="border-ink shadow-sticker flex flex-col items-center gap-4 rounded-3xl border-[3px] bg-white p-6 text-center">
       <h1 className="text-3xl font-bold">Time's up!</h1>
-      {rank !== null && (
-        <p className="bg-accent border-ink rounded-full border-2 px-3 font-bold">
-          {rank === 1 ? "New best!" : `#${rank} on your board`}
-        </p>
-      )}
+      <RankBadge rank={rank} />
       <QuizScore result={result} />
       <div className="flex flex-wrap justify-center gap-3">
         <button type="button" onClick={playAgain} className={PRIMARY_BUTTON}>
           <RotateCcw className="size-5" aria-hidden />
           Play again
         </button>
-        <Link
-          to="/quiz"
-          search={{ mode }}
-          className="border-ink shadow-sticker-sm flex min-h-12 items-center gap-2 rounded-2xl border-[3px] bg-white px-5 text-lg font-semibold"
-        >
+        <Link to="/quiz" search={{ mode }} className={SECONDARY_BUTTON}>
           <Timer className="size-5" aria-hidden />
           Change setup
         </Link>

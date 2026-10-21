@@ -1,11 +1,10 @@
-import { Link } from "@tanstack/react-router";
 import { Play, X } from "lucide-react";
-import { useRef } from "react";
-import { useQuizContext } from "../../contexts/quiz-context";
+import { useRef, type ReactNode } from "react";
+import { useRoundContext } from "../../contexts/round-context";
 import { PILL_BUTTON, PRIMARY_BUTTON } from "../shared/button-styles";
 
-export function QuizQuit() {
-  const { mode, hold, release } = useQuizContext();
+export function QuitRound({ exit }: { exit: ReactNode }) {
+  const { hold, release } = useRoundContext();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   function openWarning() {
@@ -42,13 +41,7 @@ export function QuizQuit() {
             <Play className="size-5" aria-hidden />
             Keep playing
           </button>
-          <Link
-            to="/quiz"
-            search={{ mode }}
-            className="border-ink shadow-sticker-sm flex min-h-12 items-center rounded-2xl border-[3px] bg-white px-5 text-lg font-semibold"
-          >
-            Quit
-          </Link>
+          {exit}
         </div>
       </dialog>
     </>

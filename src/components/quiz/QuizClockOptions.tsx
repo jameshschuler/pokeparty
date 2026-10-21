@@ -15,7 +15,7 @@ export function QuizClockOptions({ mode }: { mode: QuizMode }) {
   const { runs } = useLeaderboardContext();
 
   function bestLabel(clock: ClockSetting) {
-    return `Best ${bestRun(runs, mode, clock)?.score ?? "–"}`;
+    return `Best ${bestRun(runs, { game: "quiz", mode, clock })?.score ?? "–"}`;
   }
 
   return (

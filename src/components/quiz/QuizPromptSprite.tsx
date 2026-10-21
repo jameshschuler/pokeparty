@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useQuizContext } from "../../contexts/quiz-context";
+import { useRoundContext } from "../../contexts/round-context";
 import { useLoadTimeout } from "../../hooks/useLoadTimeout";
 import { isPokemonHidden, SPRITE_LOAD_TIMEOUT_MS } from "../../lib/quiz";
 import { PokemonSprite } from "../pokemon/PokemonSprite";
-import { SkipQuestion } from "./SkipQuestion";
+import { SkipQuestion } from "../game/SkipQuestion";
 
 export function QuizPromptSprite() {
-  const { round, questionShown } = useQuizContext();
+  const { round } = useQuizContext();
+  const { question, shown, questionShown } = useRoundContext();
   const [failed, setFailed] = useState(false);
-  const timedOut = useLoadTimeout(round.shown, SPRITE_LOAD_TIMEOUT_MS);
+  const timedOut = useLoadTimeout(shown, SPRITE_LOAD_TIMEOUT_MS);
 
   if (failed || timedOut) {
     return (
@@ -20,7 +22,7 @@ export function QuizPromptSprite() {
 
   return (
     <PokemonSprite
-      id={round.quiz.current.answer.id}
+      id={question.answer.id}
       shiny={false}
       alt="Mystery Pokémon"
       className={`w-48 transition-[filter] duration-200 sm:w-60 ${isPokemonHidden(round.quiz) ? "brightness-0" : ""}`}

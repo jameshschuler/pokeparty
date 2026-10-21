@@ -26,16 +26,17 @@ export function roundResult(round: QuizRound): QuizResult {
   };
 }
 
-function parseCount(value: unknown): number | null {
+export function parseCount(
+  value: unknown,
+  max = MAX_RESULT_COUNT,
+): number | null {
   if (typeof value !== "number" && typeof value !== "string") {
     return null;
   }
 
   const count = value === "" ? NaN : Number(value);
 
-  return Number.isInteger(count) && count >= 0 && count <= MAX_RESULT_COUNT
-    ? count
-    : null;
+  return Number.isInteger(count) && count >= 0 && count <= max ? count : null;
 }
 
 export function parseQuizResult(

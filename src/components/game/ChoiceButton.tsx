@@ -1,27 +1,25 @@
-import { useQuizContext } from "../../contexts/quiz-context";
+import { useRoundContext } from "../../contexts/round-context";
 import type { QuizChoice } from "../../lib/quiz";
 import { PokemonSprite } from "../pokemon/PokemonSprite";
-import { choiceStyle } from "./quiz-styles";
+import { choiceStyle } from "./game-styles";
 
-type QuizChoiceButtonProps = {
+type ChoiceButtonProps = {
   choice: QuizChoice;
   position: number;
   onSpriteLoad: (key: string) => void;
   onSpriteError: () => void;
 };
 
-export function QuizChoiceButton({
+export function ChoiceButton({
   choice,
   position,
   onSpriteLoad,
   onSpriteError,
-}: QuizChoiceButtonProps) {
-  const { round, finished, waiting, answer } = useQuizContext();
-  const { quiz } = round;
-  const revealed = quiz.pickedKey !== null;
+}: ChoiceButtonProps) {
+  const { question, pickedKey, revealed, locked, answer } = useRoundContext();
   const style = choiceStyle(
-    choice.key === quiz.current.answerKey,
-    choice.key === quiz.pickedKey,
+    choice.key === question.answerKey,
+    choice.key === pickedKey,
     revealed,
   );
 
@@ -29,7 +27,7 @@ export function QuizChoiceButton({
     <button
       type="button"
       onClick={() => answer(choice.key)}
-      disabled={revealed || finished || waiting}
+      disabled={locked}
       aria-label={
         choice.kind === "sprite" && !revealed ? `Choice ${position}` : undefined
       }

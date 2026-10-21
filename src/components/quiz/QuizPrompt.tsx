@@ -1,11 +1,11 @@
 import { useQuizContext } from "../../contexts/quiz-context";
-import { formatPokemonNumber } from "../../lib/pokemon";
 import {
   describeAnswer,
   formatClockDelta,
   QUIZ_MODE_RULES,
 } from "../../lib/quiz";
 import { QUIZ_MODE_DETAILS } from "./quiz-modes";
+import { DexNumber } from "../game/DexNumber";
 import { QuizPromptSprite } from "./QuizPromptSprite";
 
 export function QuizPrompt() {
@@ -17,14 +17,7 @@ export function QuizPrompt() {
   return (
     <div className="border-ink shadow-sticker flex flex-col items-center rounded-3xl border-[3px] bg-white p-4">
       {QUIZ_MODE_RULES[mode].shows === "number" ? (
-        <p
-          aria-label="Dex number"
-          className="text-primary py-2 text-5xl font-bold tabular-nums sm:py-6 sm:text-6xl"
-        >
-          {round.shown
-            ? formatPokemonNumber(round.quiz.current.answer.speciesId)
-            : "#????"}
-        </p>
+        <DexNumber />
       ) : (
         <QuizPromptSprite />
       )}

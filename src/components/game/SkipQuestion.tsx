@@ -1,9 +1,9 @@
 import { SkipForward } from "lucide-react";
-import { useQuizContext } from "../../contexts/quiz-context";
+import { useRoundContext } from "../../contexts/round-context";
 import { PILL_BUTTON } from "../shared/button-styles";
 
 export function SkipQuestion({ message }: { message: string }) {
-  const { skipQuestion } = useQuizContext();
+  const { skipQuestion } = useRoundContext();
 
   return (
     <div className="flex flex-col items-center justify-center gap-3 text-center">

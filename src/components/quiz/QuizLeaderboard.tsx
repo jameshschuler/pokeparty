@@ -1,6 +1,6 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useLeaderboardContext } from "../../contexts/leaderboard-context";
-import { BOARD_SIZE, boardRuns } from "../../lib/leaderboard";
+import { BOARD_SIZE, boardRuns, isQuizRun } from "../../lib/leaderboard";
 import {
   CLOCK_SETTINGS,
   formatClockSetting,
@@ -18,7 +18,11 @@ export function QuizLeaderboard() {
   const { mode, clock } = useSearch({ from: "/quiz/leaderboard" });
   const navigate = useNavigate();
   const { runs } = useLeaderboardContext();
-  const board = boardRuns(runs, mode, clock);
+  const board = boardRuns(runs.filter(isQuizRun), {
+    game: "quiz",
+    mode,
+    clock,
+  });
 
   function select(settings: Partial<QuizSettings>) {
     navigate({
