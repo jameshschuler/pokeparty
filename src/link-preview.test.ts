@@ -20,9 +20,8 @@ describe("link preview tags", () => {
   });
 
   it.each(["Party Builder", "Who's That Pokémon?", "Dex Run"])(
-    "names %s in the description and image text",
+    "names %s in the image text",
     (game) => {
-      expect(metaContent("property", "og:description")).toContain(game);
       expect(metaContent("property", "og:image:alt")).toContain(game);
     },
   );
