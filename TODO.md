@@ -1,6 +1,6 @@
 # TODO
 
-What's left for Who's That Pokémon?, roughly in the order I'd build it. Sprite, silhouette, region and dex number modes are done, along with the 30/60/90s and time attack clocks, quit, the wrong-answer penalty, the shareable result page (`/quiz/result`), and the personal leaderboard (`/quiz/leaderboard`).
+What's left for Who's That Pokémon?, roughly in the order I'd build it. Sprite, silhouette, region and dex number modes are done, along with the 30/60/90s and time attack clocks, quit, the wrong-answer penalty, the shareable result page (`/quiz/result`), and the personal scores page (`/scores`, a tile on the hub).
 
 ## Leaderboards
 
@@ -12,7 +12,7 @@ Both are ranked per mode and clock (Sprite 60s, Silhouette time attack, and so o
 
 ### Global
 
-Everyone's top runs, shown as a Global tab on `/quiz/leaderboard`. That means scores have to be trustworthy. Nothing the browser says about itself can be trusted, so the server owns the round:
+Everyone's top runs, shown as a Global view on `/scores`. That means scores have to be trustworthy. Nothing the browser says about itself can be trusted, so the server owns the round:
 
 1. **Start:** the browser asks for a round (`POST /rounds` with mode and clock). The server stores the round with a secret seed and sends back only the first question.
 2. **Images:** the question's image goes through the server under an opaque name (`/rounds/:id/image/3`). The sprite files are named by Pokémon ID, so linking them directly would give the answer away.

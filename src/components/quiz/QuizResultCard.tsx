@@ -4,7 +4,7 @@ import { DEFAULT_QUIZ_MODE } from "../../lib/quiz";
 import { quizResultUrl, type QuizResult } from "../../lib/quiz-result";
 import { CopyLinkButton } from "../share/CopyLinkButton";
 import { ShareButton } from "../share/ShareButton";
-import { PRIMARY_BUTTON } from "../shared/button-styles";
+import { PRIMARY_BUTTON, TEXT_LINK } from "../shared/button-styles";
 import { QuizScore } from "./QuizScore";
 
 export function QuizResultCard({ result }: { result: QuizResult | null }) {
@@ -15,7 +15,7 @@ export function QuizResultCard({ result }: { result: QuizResult | null }) {
         <Link
           to="/quiz"
           search={{ mode: DEFAULT_QUIZ_MODE }}
-          className="font-semibold underline underline-offset-4"
+          className={TEXT_LINK}
         >
           Play Who's That Pokémon?
         </Link>
