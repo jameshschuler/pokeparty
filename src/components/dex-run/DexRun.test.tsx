@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEX_RUN_ANSWER_MS, DEX_RUN_MISS_REVEAL_MS } from "../../lib/dex-run";
 import { loadRuns, saveRuns } from "../../lib/leaderboard";
-import { FEEDBACK_MS } from "../../lib/quiz";
+import { CLOCK_TICK_MS, FEEDBACK_MS } from "../../lib/quiz";
 import { renderApp } from "../../test/renderApp";
 
 function choiceButtons() {
@@ -127,6 +127,37 @@ describe("dex run", () => {
     answer(true);
 
     expect(screen.getByText("#0001 is Bulbasaur!")).toBeInTheDocument();
+  });
+
+  it("restarts the clock after a miss", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/dex-run/play?range=1");
+    await showQuestion();
+    act(() => vi.advanceTimersByTime(DEX_RUN_ANSWER_MS - 1_000));
+
+    answer(false);
+    act(() => vi.advanceTimersByTime(CLOCK_TICK_MS));
+
+    expect(screen.getByRole("timer", { name: "Time left" })).toHaveTextContent(
+      "10s",
+    );
+
+    act(() =>
+      vi.advanceTimersByTime(DEX_RUN_ANSWER_MS - 1_000 - CLOCK_TICK_MS),
+    );
+
+    expect(
+      screen.getByRole("img", { name: "2 of 3 lives left" }),
+    ).toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(1_000));
+
+    expect(
+      screen.getByText("Too slow! #0001 is Bulbasaur!"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "1 of 3 lives left" }),
+    ).toBeInTheDocument();
   });
 
   it("takes a life when time runs out", async () => {

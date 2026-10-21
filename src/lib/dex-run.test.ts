@@ -136,7 +136,13 @@ describe("answerDexRun", () => {
     expect(answered.ruledOutKeys).toEqual([wrongKey]);
     expect(isRevealed(answered)).toBe(false);
     expect(answered.clock.pausedAt).toBeNull();
-    expect(remainingMs(answered.clock, 5_000)).toBe(DEX_RUN_ANSWER_MS - 3_000);
+    expect(remainingMs(answered.clock, 5_000)).toBe(DEX_RUN_ANSWER_MS - 1_000);
+  });
+
+  it("gives a full clock again after a miss in the last second", () => {
+    const answered = answerDexRun(shown, wrongKey, 11_900);
+
+    expect(remainingMs(answered.clock, 11_900)).toBe(DEX_RUN_ANSWER_MS);
   });
 
   it("ignores a second pick of a ruled-out choice", () => {
@@ -171,13 +177,15 @@ describe("answerDexRun", () => {
     expect(out.ruledOutKeys).toEqual([first, second]);
     expect(isRevealed(out)).toBe(true);
     expect(out.clock.pausedAt).toBe(4_000);
+    expect(remainingMs(out.clock, 60_000)).toBe(DEX_RUN_ANSWER_MS - 1_000);
   });
 
   it("charges a time-out after a wrong guess and reveals the answer", () => {
-    const timedOut = timeOutDexQuestion(
-      answerDexRun(shown, wrongKey, 4_000),
-      12_000,
-    );
+    const missed = answerDexRun(shown, wrongKey, 4_000);
+
+    expect(timeOutDexQuestion(missed, 12_000)).toBe(missed);
+
+    const timedOut = timeOutDexQuestion(missed, 4_000 + DEX_RUN_ANSWER_MS);
 
     expect(timedOut.lives).toBe(DEX_RUN_LIVES - 2);
     expect(timedOut.ruledOutKeys).toEqual([wrongKey]);

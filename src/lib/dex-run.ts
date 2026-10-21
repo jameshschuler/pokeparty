@@ -160,11 +160,14 @@ export function answerDexRun(
     return settleClock({ ...run, pickedKey, correct: run.correct + 1 }, now);
   }
 
+  const lives = run.lives - 1;
+
   return settleClock(
     {
       ...run,
-      lives: run.lives - 1,
+      lives,
       ruledOutKeys: [...run.ruledOutKeys, pickedKey],
+      clock: lives > 0 ? pausedClock(DEX_RUN_ANSWER_MS, now) : run.clock,
     },
     now,
   );
