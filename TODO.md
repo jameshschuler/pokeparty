@@ -38,13 +38,6 @@ Open decisions:
 - **Server language.** With the server making the questions, Go works fine, since nothing has to match the browser exactly. TypeScript could still share the question-building code in `src/lib/quiz.ts`. Either works; pick whichever you'd rather maintain.
 - **Hosting.** Render's free web services sleep, which adds a 30–50 s delay before a round starts. Plan for a paid instance, or use a host that doesn't sleep, plus managed Postgres.
 
-## Smaller follow-ups
-
-- Warn before the browser's back button leaves a round. TanStack Router's `useBlocker` can do it, but some exits will show the browser's own "Leave site?" dialog.
-- Daily challenge without a server: seed the deck with the UTC date so everyone plays the same Pokémon. Anyone can compute that seed, so it's for fun, not for a board (the global daily board uses the server's secret seed). It needs a fresh `createRng(seed)` per round: today the quiz context makes one random generator and Play Again keeps drawing from it.
-- Fold the Party Builder filters into a collapsible panel. Three rows of chips take about a quarter of a phone screen.
-- Swap the browser-tab favicon to match the chosen ball theme.
-
 ## Needs a server (v2)
 
 - The global leaderboard.
