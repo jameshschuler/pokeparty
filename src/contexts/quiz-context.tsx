@@ -26,18 +26,13 @@ import {
   type QuizRound,
 } from "../lib/quiz";
 import { useLeaderboardContext } from "./leaderboard-context";
+import { RoundProvider } from "./round-context";
 
 export type QuizContextValue = {
   round: QuizRound;
   mode: QuizMode;
   clockSetting: ClockSetting;
   finished: boolean;
-  waiting: boolean;
-  answer: (choiceKey: string) => void;
-  questionShown: () => void;
-  skipQuestion: () => void;
-  hold: () => void;
-  release: () => void;
   playAgain: () => void;
 };
 
@@ -56,7 +51,6 @@ export function QuizProvider({ mode, clock, children }: QuizProviderProps) {
   );
   const [checkedAt, setCheckedAt] = useState(Date.now);
   const finished = isRoundOver(round, checkedAt);
-  const waiting = !round.shown;
   const { recordRun } = useLeaderboardContext();
   const recordedRoundRef = useRef<number | null>(null);
 
@@ -138,16 +132,25 @@ export function QuizProvider({ mode, clock, children }: QuizProviderProps) {
         mode: round.quiz.mode,
         clockSetting: round.clockSetting,
         finished,
-        waiting,
-        answer,
-        questionShown,
-        skipQuestion,
-        hold,
-        release,
         playAgain,
       }}
     >
-      {children}
+      <RoundProvider
+        value={{
+          question: round.quiz.current,
+          pickedKey: round.quiz.pickedKey,
+          revealed: round.quiz.pickedKey !== null,
+          shown: round.shown,
+          locked: round.quiz.pickedKey !== null || finished || !round.shown,
+          answer,
+          questionShown,
+          skipQuestion,
+          hold,
+          release,
+        }}
+      >
+        {children}
+      </RoundProvider>
     </QuizContext>
   );
 }

@@ -4,7 +4,11 @@ import { useLeaderboardContext } from "../../contexts/leaderboard-context";
 import { useQuizContext } from "../../contexts/quiz-context";
 import { roundRun, runRank } from "../../lib/leaderboard";
 import { roundResult } from "../../lib/quiz-result";
-import { PILL_BUTTON, PRIMARY_BUTTON } from "../shared/button-styles";
+import {
+  PILL_BUTTON,
+  PRIMARY_BUTTON,
+  SECONDARY_BUTTON,
+} from "../shared/button-styles";
 import { QuizScore } from "./QuizScore";
 
 export function QuizSummary() {
@@ -27,11 +31,7 @@ export function QuizSummary() {
           <RotateCcw className="size-5" aria-hidden />
           Play again
         </button>
-        <Link
-          to="/quiz"
-          search={{ mode }}
-          className="border-ink shadow-sticker-sm flex min-h-12 items-center gap-2 rounded-2xl border-[3px] bg-white px-5 text-lg font-semibold"
-        >
+        <Link to="/quiz" search={{ mode }} className={SECONDARY_BUTTON}>
           <Timer className="size-5" aria-hidden />
           Change setup
         </Link>

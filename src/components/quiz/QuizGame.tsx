@@ -1,12 +1,14 @@
+import { Link } from "@tanstack/react-router";
 import { useQuizContext } from "../../contexts/quiz-context";
-import { QuizChoices } from "./QuizChoices";
+import { ChoiceGrid } from "../game/ChoiceGrid";
+import { QuitRound } from "../game/QuitRound";
+import { SECONDARY_BUTTON } from "../shared/button-styles";
 import { QuizHud } from "./QuizHud";
 import { QuizPrompt } from "./QuizPrompt";
-import { QuizQuit } from "./QuizQuit";
 import { QuizSummary } from "./QuizSummary";
 
 export function QuizGame() {
-  const { round, finished } = useQuizContext();
+  const { round, mode, finished } = useQuizContext();
 
   if (finished) {
     return <QuizSummary />;
@@ -15,10 +17,16 @@ export function QuizGame() {
   return (
     <section className="mx-auto flex max-w-md flex-col gap-4">
       <h1 className="sr-only">Who's That Pokémon?</h1>
-      <QuizQuit />
+      <QuitRound
+        exit={
+          <Link to="/quiz" search={{ mode }} className={SECONDARY_BUTTON}>
+            Quit
+          </Link>
+        }
+      />
       <QuizHud />
       <QuizPrompt key={`prompt-${round.quiz.questionNumber}`} />
-      <QuizChoices key={`choices-${round.quiz.questionNumber}`} />
+      <ChoiceGrid key={`choices-${round.quiz.questionNumber}`} />
     </section>
   );
 }
