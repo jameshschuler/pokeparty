@@ -1,6 +1,20 @@
 # TODO
 
-What's left for Who's That Pokémon?, roughly in the order I'd build it. Sprite, silhouette, region and dex number modes are done, along with the 30/60/90s and time attack clocks, quit, the wrong-answer penalty, the shareable result page (`/quiz/result`), and the personal scores page (`/scores`, a tile on the hub).
+What's left to build, roughly in order. Done so far: Party Builder; Who's That Pokémon? with sprite, silhouette, region and dex number modes, 30/60/90s and time attack clocks, and a shareable result page (`/quiz/result`); Dex Run; and the personal scores page (`/scores`, a tile on the hub).
+
+## Games
+
+### Simon (Pokémon Memory)
+
+Four Pokémon on screen light up in a sequence that grows by one each round. You tap them back in the same order. One wrong tap ends the game, and the score is the longest sequence you repeated.
+
+- **Board:** a fresh random set each game, so it looks different every time. Start with four, but keep the board size a setting in the engine, so it can grow to 6 or 9 later without a rewrite.
+- **Getting harder:** play the sequence back faster as it grows. Maybe also grow the board at set lengths.
+- **Sound:** each Pokémon plays its cry when it lights up (PokeAPI has the cries). Add a mute button, since many people play with sound off.
+- **Not just color:** a lit Pokémon also grows and gets an outline, so color-blind players can follow. Respect the reduced-motion setting.
+- **Input:** no clock on the whole game, but give up after a few seconds without a tap so a round can't hang.
+- **Code:** its own small engine in `src/lib/` (the sequence, playback and checking taps). Sprites can use `components/pokemon/PokemonSprite.tsx` as is. Quit (`components/game/QuitRound.tsx`) reads `hold` and `release` from the shared round state in `round-context.tsx`, which is built around multiple-choice questions, so Simon either provides that state or Quit takes those two actions another way.
+- **Scores:** a third tab on `/scores`. That's a `scores.simon.tsx` route, a Simon scores component, and one more game in `src/lib/leaderboard.ts` (its saved shape, parser and board key). All runs are saved under `pokeparty:quiz-runs`, a name from when only the quiz had scores. Decide then whether each game should own its score format and storage key, with a migration for scores already saved.
 
 ## Leaderboards
 
