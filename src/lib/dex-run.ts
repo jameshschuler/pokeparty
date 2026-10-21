@@ -47,6 +47,7 @@ export type DexRun = {
   question: QuizQuestion;
   upcoming: QuizQuestion | null;
   pickedKey: string | null;
+  ruledOutKeys: string[];
   timedOut: boolean;
   shown: boolean;
   onHold: boolean;
@@ -110,6 +111,7 @@ export function startDexRun(range: DexRange, rng: Rng, now: number): DexRun {
     question: dexQuestion(pool, 0, rng)!,
     upcoming: dexQuestion(pool, 1, rng),
     pickedKey: null,
+    ruledOutKeys: [],
     timedOut: false,
     shown: false,
     onHold: false,
@@ -122,7 +124,7 @@ export function startDexRun(range: DexRange, rng: Rng, now: number): DexRun {
 }
 
 export function isRevealed(run: DexRun): boolean {
-  return run.pickedKey !== null || run.timedOut;
+  return run.pickedKey !== null || run.timedOut || run.lives === 0;
 }
 
 function isOpen(run: DexRun): boolean {
@@ -146,18 +148,23 @@ export function answerDexRun(
   pickedKey: string,
   now: number,
 ): DexRun {
-  if (!isOpen(run) || remainingMs(run.clock, now) === 0) {
+  if (
+    !isOpen(run) ||
+    remainingMs(run.clock, now) === 0 ||
+    run.ruledOutKeys.includes(pickedKey)
+  ) {
     return run;
   }
 
-  const right = pickedKey === run.question.answerKey;
+  if (pickedKey === run.question.answerKey) {
+    return settleClock({ ...run, pickedKey, correct: run.correct + 1 }, now);
+  }
 
   return settleClock(
     {
       ...run,
-      pickedKey,
-      correct: right ? run.correct + 1 : run.correct,
-      lives: right ? run.lives : run.lives - 1,
+      lives: run.lives - 1,
+      ruledOutKeys: [...run.ruledOutKeys, pickedKey],
     },
     now,
   );
@@ -182,6 +189,7 @@ export function advanceDexRun(run: DexRun, rng: Rng, now: number): DexRun {
     question: run.upcoming,
     upcoming: dexQuestion(run.pool, run.index + 2, rng),
     pickedKey: null,
+    ruledOutKeys: [],
     timedOut: false,
     shown: false,
     clock: pausedClock(DEX_RUN_ANSWER_MS, now),

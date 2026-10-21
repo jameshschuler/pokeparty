@@ -16,10 +16,20 @@ export function ChoiceButton({
   onSpriteLoad,
   onSpriteError,
 }: ChoiceButtonProps) {
-  const { question, pickedKey, revealed, locked, answer } = useRoundContext();
+  const {
+    question,
+    pickedKey,
+    ruledOutKeys = [],
+    revealed,
+    locked,
+    answer,
+  } = useRoundContext();
+  const ruledOut = ruledOutKeys.includes(choice.key);
+  const named = revealed || ruledOut;
   const style = choiceStyle(
     choice.key === question.answerKey,
     choice.key === pickedKey,
+    ruledOut,
     revealed,
   );
 
@@ -27,9 +37,9 @@ export function ChoiceButton({
     <button
       type="button"
       onClick={() => answer(choice.key)}
-      disabled={locked}
+      disabled={locked || ruledOut}
       aria-label={
-        choice.kind === "sprite" && !revealed ? `Choice ${position}` : undefined
+        choice.kind === "sprite" && !named ? `Choice ${position}` : undefined
       }
       className={`border-ink flex w-full flex-col items-center justify-center rounded-2xl border-[3px] font-semibold transition ${
         choice.kind === "sprite" ? "p-2" : "min-h-14 px-2 text-lg leading-tight"
@@ -47,7 +57,7 @@ export function ChoiceButton({
             onError={onSpriteError}
           />
           <span className="min-h-6 text-sm leading-tight">
-            {revealed ? choice.label : ""}
+            {named ? choice.label : ""}
           </span>
         </>
       ) : (
