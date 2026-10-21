@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEX_RUN_ANSWER_MS, DEX_RUN_MISS_REVEAL_MS } from "../../lib/dex-run";
 import { loadRuns, saveRuns } from "../../lib/leaderboard";
-import { FEEDBACK_MS } from "../../lib/quiz";
+import { CLOCK_TICK_MS, FEEDBACK_MS } from "../../lib/quiz";
 import { renderApp } from "../../test/renderApp";
 
 function choiceButtons() {
@@ -29,7 +29,9 @@ function answer(right: boolean) {
     screen.getByLabelText("Dex number").textContent!.replace("#", ""),
   );
   const button = choiceButtons().find(
-    (choice) => (Number(spriteId(choice)) === number) === right,
+    (choice) =>
+      !choice.hasAttribute("disabled") &&
+      (Number(spriteId(choice)) === number) === right,
   )!;
   fireEvent.click(button);
 }
@@ -101,16 +103,61 @@ describe("dex run", () => {
     ).toBeInTheDocument();
   });
 
-  it("takes a life for a wrong answer and shows the right one", async () => {
+  it("takes a life for a wrong answer and stays on the same number", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     renderApp("/dex-run/play?range=1");
     await showQuestion();
 
     answer(false);
+    act(() => vi.advanceTimersByTime(DEX_RUN_MISS_REVEAL_MS));
 
     expect(
       screen.getByRole("img", { name: "2 of 3 lives left" }),
     ).toBeInTheDocument();
+    expect(screen.getByText("Not that one. 2 lives left.")).toBeInTheDocument();
+
+    answer(false);
+
+    expect(screen.getByText("Not that one. 1 life left.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Dex number")).toHaveTextContent("#0001");
+    expect(
+      choiceButtons().filter((button) => button.hasAttribute("disabled")),
+    ).toHaveLength(2);
+
+    answer(true);
+
     expect(screen.getByText("#0001 is Bulbasaur!")).toBeInTheDocument();
+  });
+
+  it("restarts the clock after a miss", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/dex-run/play?range=1");
+    await showQuestion();
+    act(() => vi.advanceTimersByTime(DEX_RUN_ANSWER_MS - 1_000));
+
+    answer(false);
+    act(() => vi.advanceTimersByTime(CLOCK_TICK_MS));
+
+    expect(screen.getByRole("timer", { name: "Time left" })).toHaveTextContent(
+      "10s",
+    );
+
+    act(() =>
+      vi.advanceTimersByTime(DEX_RUN_ANSWER_MS - 1_000 - CLOCK_TICK_MS),
+    );
+
+    expect(
+      screen.getByRole("img", { name: "2 of 3 lives left" }),
+    ).toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(1_000));
+
+    expect(
+      screen.getByText("Too slow! #0001 is Bulbasaur!"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "1 of 3 lives left" }),
+    ).toBeInTheDocument();
   });
 
   it("takes a life when time runs out", async () => {
@@ -149,17 +196,17 @@ describe("dex run", () => {
     answer(true);
     act(() => vi.advanceTimersByTime(FEEDBACK_MS));
 
+    await showQuestion();
     for (let miss = 0; miss < 3; miss++) {
-      await showQuestion();
       answer(false);
-      act(() => vi.advanceTimersByTime(DEX_RUN_MISS_REVEAL_MS));
     }
+    act(() => vi.advanceTimersByTime(DEX_RUN_MISS_REVEAL_MS));
 
     expect(
       screen.getByRole("heading", { name: "Out of lives!" }),
     ).toBeInTheDocument();
     expect(screen.getByText("named · Gen 1 · Kanto")).toBeInTheDocument();
-    expect(screen.getByText("Reached #0004 of #0151")).toBeInTheDocument();
+    expect(screen.getByText("Reached #0002 of #0151")).toBeInTheDocument();
     expect(screen.getByText("New best!")).toBeInTheDocument();
     expect(loadRuns()).toEqual([
       expect.objectContaining({ game: "dex-run", range: 1, score: 1 }),

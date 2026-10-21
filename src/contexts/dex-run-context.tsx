@@ -129,6 +129,7 @@ export function DexRunProvider({ range, children }: DexRunProviderProps) {
         value={{
           question: run.question,
           pickedKey: run.pickedKey,
+          ruledOutKeys: run.ruledOutKeys,
           revealed,
           shown: run.shown,
           finished: run.finished,

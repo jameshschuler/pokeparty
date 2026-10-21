@@ -14,7 +14,7 @@ export function DexRunSetup() {
         <h1 className="text-3xl font-bold">Dex Run</h1>
         <p className="text-ink/70 mt-1">
           Name every Pokémon in dex order. You have {DEX_RUN_LIVES} lives and{" "}
-          {DEX_RUN_ANSWER_MS / 1000} seconds for each number.
+          {DEX_RUN_ANSWER_MS / 1000} seconds for each guess.
         </p>
       </div>
       <h2 className="text-xl font-semibold">Pick a dex</h2>

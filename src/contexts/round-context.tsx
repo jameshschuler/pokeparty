@@ -4,6 +4,7 @@ import type { QuizQuestion } from "../lib/quiz";
 type RoundState = {
   question: QuizQuestion;
   pickedKey: string | null;
+  ruledOutKeys?: string[];
   revealed: boolean;
   shown: boolean;
   finished: boolean;

@@ -15,7 +15,11 @@ export function DexRunPrompt() {
         {isRevealed(run) ? (
           describeDexAnswer(run)
         ) : (
-          <span className="text-ink/70">Which Pokémon is this?</span>
+          <span className="text-ink/70">
+            {run.ruledOutKeys.length > 0
+              ? `Not that one. ${run.lives} ${run.lives === 1 ? "life" : "lives"} left.`
+              : "Which Pokémon is this?"}
+          </span>
         )}
       </p>
     </div>
