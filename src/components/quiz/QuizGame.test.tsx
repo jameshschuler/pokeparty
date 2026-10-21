@@ -670,6 +670,20 @@ describe("quiz game", () => {
     );
   });
 
+  it("ends the round when the timer fires a moment early", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/quiz/play?clock=30");
+    await showQuestion();
+
+    act(() => vi.advanceTimersByTime(30_000 - 1));
+    vi.setSystemTime(Date.now() - 5);
+    act(() => vi.advanceTimersByTime(1));
+
+    expect(
+      screen.getByRole("heading", { name: "Time's up!" }),
+    ).toBeInTheDocument();
+  });
+
   it("ignores a guess made after time runs out", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     renderApp("/quiz/play?clock=30");

@@ -67,8 +67,9 @@ export function QuizProvider({ mode, clock, children }: QuizProviderProps) {
       return;
     }
 
+    const { endsAt } = round.clock;
     const timeout = setTimeout(
-      () => setCheckedAt(Date.now()),
+      () => setCheckedAt(Math.max(Date.now(), endsAt)),
       remainingMs(round.clock, Date.now()),
     );
 
