@@ -19,9 +19,23 @@ describe("link preview tags", () => {
     expect(metaContent(attribute, key)).toBeTruthy();
   });
 
+  it.each(["Party Builder", "Who's That Pokémon?", "Dex Run"])(
+    "names %s in the description and image text",
+    (game) => {
+      expect(metaContent("property", "og:description")).toContain(game);
+      expect(metaContent("property", "og:image:alt")).toContain(game);
+    },
+  );
+
+  it("uses the same description for search results and previews", () => {
+    expect(metaContent("name", "description")).toBe(
+      metaContent("property", "og:description"),
+    );
+  });
+
   it("builds og:image from the site URL", () => {
     expect(metaContent("property", "og:image")).toBe(
-      "%VITE_SITE_URL%/og-image.png",
+      "%VITE_SITE_URL%/og-hub.png",
     );
   });
 

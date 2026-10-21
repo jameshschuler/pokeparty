@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=block"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        width: 1200px;
+        height: 630px;
+        font-family: Fredoka, sans-serif;
+        color: #24123d;
+        background: #6a2fbd;
+        background-image: radial-gradient(#ff5aa5 3px, transparent 3px);
+        background-size: 44px 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .card {
+        width: 1080px;
+        height: 510px;
+        background: #f6f0ff;
+        border: 8px solid #24123d;
+        border-radius: 48px;
+        box-shadow: 14px 14px 0 #24123d;
+        padding: 40px 56px;
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      .brand img {
+        width: 96px;
+        height: 96px;
+      }
+      h1 {
+        font-size: 92px;
+        font-weight: 700;
+        line-height: 1;
+        color: #6a2fbd;
+        text-shadow: 5px 5px 0 #24123d;
+      }
+      .games {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 26px;
+        flex: 1;
+      }
+      .game {
+        background: #fff;
+        border: 6px solid #24123d;
+        border-radius: 32px;
+        box-shadow: 6px 6px 0 #24123d;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 12px 20px;
+      }
+      .art {
+        height: 170px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      .art img {
+        height: 150px;
+      }
+      .party img {
+        height: 120px;
+        margin: 0 -22px;
+      }
+      .silhouette img {
+        filter: brightness(0);
+        height: 165px;
+      }
+      .silhouette span {
+        position: absolute;
+        right: 22px;
+        top: 0;
+        font-size: 84px;
+        font-weight: 700;
+        color: #ff5aa5;
+        text-shadow: 4px 4px 0 #24123d;
+      }
+      .dex {
+        flex-direction: column;
+      }
+      .dex b {
+        font-size: 72px;
+        color: #6a2fbd;
+        line-height: 1;
+      }
+      .dex img {
+        height: 100px;
+      }
+      .label {
+        font-size: 38px;
+        font-weight: 700;
+        text-align: center;
+        line-height: 1.05;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="brand">
+        <img src="../public/favicon.svg" />
+        <h1>PokeParty</h1>
+      </div>
+      <div class="games">
+        <div class="game">
+          <div class="art party" id="party"></div>
+          <div class="label">Party Builder</div>
+        </div>
+        <div class="game">
+          <div class="art silhouette"><img id="mystery" /><span>?</span></div>
+          <div class="label">Who's That Pokémon?</div>
+        </div>
+        <div class="game">
+          <div class="art dex"><b>#0001</b><img id="dex" /></div>
+          <div class="label">Dex Run</div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const base =
+        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
+      for (const id of [6, 25, 94]) {
+        const img = document.createElement("img");
+        img.src = `${base}${id}.png`;
+        party.append(img);
+      }
+      mystery.src = `${base}25.png`;
+      dex.src = `${base}1.png`;
+    </script>
+  </body>
+</html>
