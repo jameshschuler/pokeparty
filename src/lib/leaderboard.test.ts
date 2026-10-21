@@ -6,6 +6,8 @@ import {
   boardRuns,
   dexRunScore,
   formatPlayedAt,
+  isDexRunScore,
+  isQuizRun,
   loadRuns,
   roundRun,
   runRank,
@@ -78,6 +80,16 @@ describe("dexRunScore", () => {
       reached: 152,
       playedAt: 7_000,
     });
+  });
+});
+
+describe("isQuizRun and isDexRunScore", () => {
+  it.each([
+    [run(5, 0, 1), true, false],
+    [dexScore(5, 1), false, true],
+  ])("%j -> quiz %s, dex run %s", (target, quiz, dexRun) => {
+    expect(isQuizRun(target)).toBe(quiz);
+    expect(isDexRunScore(target)).toBe(dexRun);
   });
 });
 

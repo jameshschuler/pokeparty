@@ -3,7 +3,7 @@ import { Shuffle } from "lucide-react";
 import { useTeamsContext } from "../../contexts/teams-context";
 import { resolveSharedTeam } from "../../lib/share";
 import type { TeamMember } from "../../types/team";
-import { PRIMARY_BUTTON } from "../shared/button-styles";
+import { PRIMARY_BUTTON, TEXT_LINK } from "../shared/button-styles";
 import { SharedPokemon } from "./SharedPokemon";
 
 export function SharedTeam({ members }: { members: TeamMember[] }) {
@@ -20,10 +20,7 @@ export function SharedTeam({ members }: { members: TeamMember[] }) {
     return (
       <section className="flex flex-col items-center gap-4 py-12 text-center">
         <h1 className="text-2xl font-bold">This link doesn't have a team</h1>
-        <Link
-          to="/party"
-          className="font-semibold underline underline-offset-4"
-        >
+        <Link to="/party" className={TEXT_LINK}>
           Go to my teams
         </Link>
       </section>

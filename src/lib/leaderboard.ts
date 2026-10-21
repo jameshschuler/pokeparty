@@ -55,6 +55,10 @@ export function isQuizRun(run: GameRun): run is QuizRun {
   return run.game === "quiz";
 }
 
+export function isDexRunScore(run: GameRun): run is DexRunScore {
+  return run.game === "dex-run";
+}
+
 function boardKey(board: Board): string {
   return board.game === "quiz"
     ? `quiz:${board.mode}:${board.clock}`

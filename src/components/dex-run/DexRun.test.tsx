@@ -165,6 +165,11 @@ describe("dex run", () => {
       expect.objectContaining({ game: "dex-run", range: 1, score: 1 }),
     ]);
 
+    expect(screen.getByRole("link", { name: "Your scores" })).toHaveAttribute(
+      "href",
+      "/scores/dex-run?range=1",
+    );
+
     fireEvent.click(screen.getByRole("button", { name: "Play again" }));
     await showQuestion();
 

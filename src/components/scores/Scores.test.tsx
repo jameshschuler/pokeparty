@@ -38,7 +38,7 @@ async function playRound(seconds: number, rightAnswers: number) {
   act(() => vi.advanceTimersByTime(seconds * 1000 + 200));
 }
 
-describe("personal leaderboard", () => {
+describe("your scores", () => {
   beforeEach(() => {
     localStorage.clear();
   });
@@ -48,7 +48,7 @@ describe("personal leaderboard", () => {
   });
 
   it("says when a board has no runs yet", async () => {
-    renderApp("/quiz/leaderboard?mode=dex&clock=attack");
+    renderApp("/scores/quiz?mode=dex&clock=attack");
 
     await expect(screen.findByText("No runs yet")).resolves.toBeInTheDocument();
     expect(
@@ -58,7 +58,7 @@ describe("personal leaderboard", () => {
 
   it("lists the board's runs best first", async () => {
     saveRuns([run(4, 0, 1), run(9, 3, 2), { ...run(20, 0, 3), clock: 30 }]);
-    renderApp("/quiz/leaderboard?mode=sprite&clock=60");
+    renderApp("/scores/quiz?mode=sprite&clock=60");
 
     const list = await screen.findByRole("list", { name: "Top runs" });
     const rows = within(list).getAllByRole("listitem");
@@ -71,7 +71,7 @@ describe("personal leaderboard", () => {
 
   it("switches boards with the mode and clock chips", async () => {
     const user = userEvent.setup();
-    const router = renderApp("/quiz/leaderboard?mode=sprite&clock=60");
+    const router = renderApp("/scores/quiz?mode=sprite&clock=60");
 
     const region = await screen.findByRole("button", { name: "Region" });
     await user.click(region);
@@ -85,6 +85,63 @@ describe("personal leaderboard", () => {
       "aria-pressed",
       "true",
     );
+  });
+
+  it("is a tile on the hub that opens the quiz board", async () => {
+    const user = userEvent.setup();
+    const router = renderApp("/");
+
+    const tile = await screen.findByRole("link", { name: /Your scores/ });
+    await user.click(tile);
+
+    expect(router.state.location.pathname).toBe("/scores/quiz");
+    expect(router.state.location.search).toEqual({ mode: "sprite", clock: 60 });
+    expect(
+      screen.getByRole("link", { name: "Who's That Pokémon?" }),
+    ).toHaveAttribute("aria-current", "page");
+  });
+
+  it("switches to the Dex Run boards", async () => {
+    saveRuns([
+      {
+        game: "dex-run",
+        range: 1,
+        score: 42,
+        wrong: 3,
+        reached: 45,
+        playedAt: 1,
+      },
+      {
+        game: "dex-run",
+        range: "national",
+        score: 9,
+        wrong: 3,
+        reached: 12,
+        playedAt: 2,
+      },
+    ]);
+    const user = userEvent.setup();
+    const router = renderApp("/scores/quiz?mode=sprite&clock=60");
+
+    const tab = await screen.findByRole("link", { name: "Dex Run" });
+    await user.click(tab);
+    const kanto = await screen.findByRole("button", { name: "Gen 1 · Kanto" });
+    await user.click(kanto);
+
+    expect(router.state.location.search).toEqual({ range: 1 });
+    const rows = within(
+      screen.getByRole("list", { name: "Top runs" }),
+    ).getAllByRole("listitem");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toHaveTextContent("Reached #0045 · 3 missed");
+  });
+
+  it("links an empty Dex Run board to that dex", async () => {
+    renderApp("/scores/dex-run?range=4");
+
+    await expect(
+      screen.findByRole("link", { name: "Play Gen 4 · Sinnoh" }),
+    ).resolves.toHaveAttribute("href", "/dex-run/play?range=4");
   });
 
   it("shows your best under each clock on the setup screen", async () => {

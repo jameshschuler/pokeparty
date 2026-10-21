@@ -1,11 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { ListOrdered, RotateCcw } from "lucide-react";
+import { ListOrdered, RotateCcw, Trophy } from "lucide-react";
 import { useDexRunContext } from "../../contexts/dex-run-context";
 import { useLeaderboardContext } from "../../contexts/leaderboard-context";
 import { clearedRange, formatDexRange, reachedNumber } from "../../lib/dex-run";
 import { dexRunScore, runRank } from "../../lib/leaderboard";
 import { formatPokemonNumber } from "../../lib/pokemon";
-import { PRIMARY_BUTTON, SECONDARY_BUTTON } from "../shared/button-styles";
+import {
+  PILL_BUTTON,
+  PRIMARY_BUTTON,
+  SECONDARY_BUTTON,
+} from "../shared/button-styles";
 import { RankBadge } from "../game/RankBadge";
 
 export function DexRunSummary() {
@@ -39,6 +43,14 @@ export function DexRunSummary() {
           Change dex
         </Link>
       </div>
+      <Link
+        to="/scores/dex-run"
+        search={{ range: run.range }}
+        className={PILL_BUTTON}
+      >
+        <Trophy className="size-5" aria-hidden />
+        Your scores
+      </Link>
     </section>
   );
 }

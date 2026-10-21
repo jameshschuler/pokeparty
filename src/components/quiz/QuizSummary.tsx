@@ -39,7 +39,7 @@ export function QuizSummary() {
           Share result
         </Link>
         <Link
-          to="/quiz/leaderboard"
+          to="/scores/quiz"
           search={{ mode, clock: result.clock }}
           className={PILL_BUTTON}
         >
