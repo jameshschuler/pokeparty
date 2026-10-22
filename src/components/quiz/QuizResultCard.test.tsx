@@ -16,6 +16,10 @@ describe("quiz result page", () => {
     expect(screen.getByText("23")).toBeInTheDocument();
     expect(screen.getByText("85%")).toBeInTheDocument();
     expect(screen.getByText("11")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Main menu" })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
   it("copies the result link", async () => {

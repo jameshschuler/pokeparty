@@ -30,7 +30,7 @@
         border: 8px solid #24123d;
         border-radius: 48px;
         box-shadow: 14px 14px 0 #24123d;
-        padding: 40px 48px;
+        padding: 40px 40px;
         display: flex;
         flex-direction: column;
         gap: 26px;
@@ -53,8 +53,8 @@
       }
       .games {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 16px;
         flex: 1;
       }
       .game {
@@ -66,7 +66,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: space-between;
-        padding: 16px 8px 18px;
+        padding: 14px 6px 16px;
       }
       .art {
         height: 170px;
@@ -80,18 +80,18 @@
         height: 130px;
       }
       .party img {
-        height: 92px;
-        margin: 0 -20px;
+        height: 74px;
+        margin: 0 -18px;
       }
       .silhouette img {
         filter: brightness(0);
-        height: 150px;
+        height: 120px;
       }
       .silhouette span {
         position: absolute;
         right: 10px;
         top: 0;
-        font-size: 72px;
+        font-size: 60px;
         font-weight: 700;
         color: #ff5aa5;
         text-shadow: 4px 4px 0 #24123d;
@@ -100,22 +100,22 @@
         flex-direction: column;
       }
       .dex b {
-        font-size: 58px;
+        font-size: 46px;
         color: #6a2fbd;
         line-height: 1;
       }
       .dex img {
-        height: 90px;
+        height: 76px;
       }
       .simon {
         display: grid;
-        grid-template-columns: repeat(2, 72px);
+        grid-template-columns: repeat(2, 60px);
         gap: 10px;
         justify-content: center;
         align-content: center;
       }
       .simon div {
-        height: 72px;
+        height: 60px;
         border: 4px solid #24123d;
         border-radius: 16px;
         background: #fff;
@@ -130,10 +130,37 @@
         transform: scale(1.08);
       }
       .simon img {
-        height: 56px;
+        height: 46px;
+      }
+      .match {
+        display: grid;
+        grid-template-columns: repeat(2, 60px);
+        gap: 10px;
+        justify-content: center;
+        align-content: center;
+      }
+      .match div {
+        height: 60px;
+        border: 4px solid #24123d;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .match .back {
+        background: #6a2fbd;
+      }
+      .match .back img {
+        height: 34px;
+      }
+      .match .found {
+        background: #d3eedd;
+      }
+      .match .found img {
+        height: 48px;
       }
       .label {
-        font-size: 32px;
+        font-size: 26px;
         font-weight: 700;
         text-align: center;
         line-height: 1.05;
@@ -163,6 +190,10 @@
           <div class="art simon" id="simon"></div>
           <div class="label">Simon</div>
         </div>
+        <div class="game">
+          <div class="art match" id="match"></div>
+          <div class="label">Pokémon Match</div>
+        </div>
       </div>
     </div>
     <script>
@@ -185,6 +216,14 @@
         tile.className = lit ? "lit" : "";
         tile.innerHTML = `<img src="${base}${id}.png" />`;
         simon.append(tile);
+      }
+      for (const found of [false, true, true, false]) {
+        const tile = document.createElement("div");
+        tile.className = found ? "found" : "back";
+        tile.innerHTML = found
+          ? `<img src="${base}143.png" />`
+          : `<img src="../public/favicon.svg" />`;
+        match.append(tile);
       }
     </script>
   </body>

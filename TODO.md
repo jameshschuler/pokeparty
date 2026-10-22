@@ -1,18 +1,8 @@
 # TODO
 
-What's left to build. Done so far: Party Builder, Who's That Pokémon?, Dex Run and Simon (each game has a shareable result page), and the personal scores page (`/scores`).
+What's left to build. Done so far: Party Builder, Who's That Pokémon?, Dex Run, Simon and Pokémon Match (each game has a shareable result page), and the personal scores page (`/scores`).
 
-Suggested order: Pokémon Match, typing mode, then the server (Ranked rounds and the global boards), then multiplayer on the same server. Offline play comes later.
-
-## Pokémon Match
-
-A memory card game. The cards start face down; flip two at a time to find the pairs. No server needed.
-
-- **Levels:** 3×4 (6 pairs), 4×4 (8 pairs) and 4×6 (12 pairs). A fresh random set of Pokémon each game.
-- **Score:** fewer flips wins, then the faster time. One board per level on `/scores`, plus a shareable result page like the other games.
-- **Flow:** a matched pair stays face up. A miss stays visible for about a second, then flips back; tapping a third card flips the miss back early.
-- **Later variants:** match a Pokémon to its evolution, or to its silhouette.
-- **Reuse:** sprites, `sample`/`shuffle` from `src/lib/random.ts`, the scores page, `ResultCard`, Quit.
+Suggested order: typing mode, then the server (Ranked rounds and the global boards), then multiplayer on the same server. Match variants fit in whenever there's a gap, and offline play comes later.
 
 ## Typing mode
 
@@ -22,11 +12,15 @@ Type the name instead of picking it. Harder, and it's what multiplayer will use.
 - **Input:** a text field with autocomplete, autocorrect and spellcheck off. Enter submits. A wrong guess costs the same 2 s as a wrong tap. A Pass button reveals the answer and costs the same.
 - **Phones:** the keyboard covers half the screen, so the sprite and the input field have to fit above it.
 
+## Pokémon Match variants
+
+Harder versions of Match: pair a Pokémon with its evolution, or with its silhouette. Each is a new level option with its own board.
+
 ## Leaderboards
 
 The personal boards on this device are done. Each board is one game setting (Sprite 60s, Dex Run Gen 1, and so on).
 
-Each game defines its own ranking. Today they all share one rule in `src/lib/leaderboard.ts`: higher score, then fewer mistakes, then whoever got there first. Pokémon Match breaks that (fewer flips wins, then the faster time), so it's the point to give each game its own comparator.
+Each game defines its own ranking in `scoring()` in `src/lib/leaderboard.ts`: the quiz and Dex Run rank by score then fewer mistakes, Simon by score, and Match by fewer flips then the faster time. Ties go to whoever got there first.
 
 Every game gets two ways to play:
 
@@ -108,7 +102,7 @@ What needs it:
 - Ranked rounds and the global leaderboard.
 - Multiplayer rooms.
 - Accounts, or at least a device ID, so teams and bests sync across devices.
-- Link previews that show the actual team or score. Preview apps don't run JavaScript, so the server has to rewrite the preview tags for `/share` and every result page (`/quiz/result`, `/dex-run/result`, `/simon/result`, and Match's once it exists) and draw the image.
+- Link previews that show the actual team or score. Preview apps don't run JavaScript, so the server has to rewrite the preview tags for `/share` and every result page (`/quiz/result`, `/dex-run/result`, `/simon/result` and `/match/result`) and draw the image.
 
 Decided:
 

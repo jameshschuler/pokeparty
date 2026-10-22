@@ -9,6 +9,7 @@ import {
   PRIMARY_BUTTON,
   SECONDARY_BUTTON,
 } from "../shared/button-styles";
+import { MainMenuLink } from "../shared/MainMenuLink";
 import { RankBadge } from "../game/RankBadge";
 import { DexRunScoreCard } from "./DexRunScoreCard";
 
@@ -48,6 +49,7 @@ export function DexRunSummary() {
           <Trophy className="size-5" aria-hidden />
           Your scores
         </Link>
+        <MainMenuLink />
       </div>
     </section>
   );

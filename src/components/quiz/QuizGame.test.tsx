@@ -711,6 +711,11 @@ describe("quiz game", () => {
     await showQuestion();
     act(() => vi.advanceTimersByTime(30_200));
 
+    expect(screen.getByRole("link", { name: "Main menu" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+
     await user.click(screen.getByRole("link", { name: "Share result" }));
 
     expect(router.state.location.pathname).toBe("/quiz/result");

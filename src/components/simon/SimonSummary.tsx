@@ -11,6 +11,7 @@ import {
   PRIMARY_BUTTON,
   SECONDARY_BUTTON,
 } from "../shared/button-styles";
+import { MainMenuLink } from "../shared/MainMenuLink";
 import { SimonScoreCard } from "./SimonScoreCard";
 
 export function SimonSummary() {
@@ -54,6 +55,7 @@ export function SimonSummary() {
           <Trophy className="size-5" aria-hidden />
           Your scores
         </Link>
+        <MainMenuLink />
       </div>
     </section>
   );

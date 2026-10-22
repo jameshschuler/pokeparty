@@ -5,11 +5,11 @@ import {
   formatDexRange,
   type DexRange,
 } from "../../lib/dex-run";
-import { bestRun } from "../../lib/leaderboard";
+import { bestScore } from "../../lib/leaderboard";
 
 export function DexRangeOption({ range }: { range: DexRange }) {
   const { runs } = useLeaderboardContext();
-  const best = bestRun(runs, { game: "dex-run", range });
+  const best = bestScore(runs, { game: "dex-run", range });
 
   return (
     <Link
@@ -24,7 +24,7 @@ export function DexRangeOption({ range }: { range: DexRange }) {
         </span>
       </span>
       <span className="text-sm font-semibold whitespace-nowrap">
-        Best {best?.score ?? "–"}
+        Best {best ?? "–"}
       </span>
     </Link>
   );

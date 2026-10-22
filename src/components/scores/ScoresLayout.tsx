@@ -2,6 +2,7 @@ import { Link, Outlet } from "@tanstack/react-router";
 import { DEFAULT_DEX_RANGE } from "../../lib/dex-run";
 import { BOARD_SIZE } from "../../lib/leaderboard";
 import { DEFAULT_CLOCK_SETTING, DEFAULT_QUIZ_MODE } from "../../lib/quiz";
+import { DEFAULT_MATCH_LEVEL } from "../../lib/match";
 import { DEFAULT_SIMON_LEVEL } from "../../lib/simon";
 import { BackLink } from "../layout/BackLink";
 import { SCORES_TAB } from "./scores-styles";
@@ -16,7 +17,7 @@ export function ScoresLayout() {
           Your top {BOARD_SIZE} runs on each board, saved on this device.
         </p>
       </div>
-      <nav aria-label="Games" className="flex gap-2">
+      <nav aria-label="Games" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Link
           to="/scores/quiz"
           search={{ mode: DEFAULT_QUIZ_MODE, clock: DEFAULT_CLOCK_SETTING }}
@@ -37,6 +38,13 @@ export function ScoresLayout() {
           {...SCORES_TAB}
         >
           Simon
+        </Link>
+        <Link
+          to="/scores/match"
+          search={{ level: DEFAULT_MATCH_LEVEL }}
+          {...SCORES_TAB}
+        >
+          Match
         </Link>
       </nav>
       <Outlet />

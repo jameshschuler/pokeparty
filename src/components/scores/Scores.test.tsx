@@ -158,6 +158,25 @@ describe("your scores", () => {
     expect(rows[0]).toHaveTextContent(/^#19in a row/);
   });
 
+  it("has a Match tab ranked by fewest flips", async () => {
+    saveRuns([
+      { game: "match", level: "easy", flips: 18, timeMs: 20_000, playedAt: 1 },
+      { game: "match", level: "easy", flips: 14, timeMs: 65_000, playedAt: 2 },
+    ]);
+    const user = userEvent.setup();
+    renderApp("/scores/quiz?mode=sprite&clock=60");
+
+    const tab = await screen.findByRole("link", { name: "Match" });
+    await user.click(tab);
+
+    const list = await screen.findByRole("list", { name: "Top runs" });
+    const rows = within(list).getAllByRole("listitem");
+    expect(rows.map((row) => row.textContent)).toEqual([
+      expect.stringMatching(/^#114flips · 1:05/),
+      expect.stringMatching(/^#218flips · 0:20/),
+    ]);
+  });
+
   it("links an empty Dex Run board to that dex", async () => {
     renderApp("/scores/dex-run?range=4");
 

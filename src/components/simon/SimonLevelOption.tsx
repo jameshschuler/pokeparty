@@ -1,12 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { useLeaderboardContext } from "../../contexts/leaderboard-context";
 import { unlockCries } from "../../lib/audio";
-import { bestRun } from "../../lib/leaderboard";
+import { bestScore } from "../../lib/leaderboard";
 import { formatSimonLevel, type SimonLevel } from "../../lib/simon";
 
 export function SimonLevelOption({ level }: { level: SimonLevel }) {
   const { runs } = useLeaderboardContext();
-  const best = bestRun(runs, { game: "simon", level });
+  const best = bestScore(runs, { game: "simon", level });
 
   return (
     <Link
@@ -17,7 +17,7 @@ export function SimonLevelOption({ level }: { level: SimonLevel }) {
     >
       <span className="text-lg font-bold">{formatSimonLevel(level)}</span>
       <span className="text-sm font-semibold whitespace-nowrap">
-        Best {best?.score ?? "–"}
+        Best {best ?? "–"}
       </span>
     </Link>
   );
