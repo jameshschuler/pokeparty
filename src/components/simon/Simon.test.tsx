@@ -198,6 +198,10 @@ describe("simon", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("New best!")).toBeInTheDocument();
     expect(screen.getByText("in a row · Easy · 4 Pokémon")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Main menu" })).toHaveAttribute(
+      "href",
+      "/",
+    );
     expect(screen.getByRole("link", { name: "Share result" })).toHaveAttribute(
       "href",
       "/simon/result?level=easy&score=1",

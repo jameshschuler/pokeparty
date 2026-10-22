@@ -3,7 +3,7 @@ import { Play } from "lucide-react";
 import { matchResultUrl, type MatchResult } from "../../lib/match-result";
 import { MissingResult } from "../share/MissingResult";
 import { ResultCard } from "../share/ResultCard";
-import { PRIMARY_BUTTON, TEXT_LINK } from "../shared/button-styles";
+import { PRIMARY_BUTTON } from "../shared/button-styles";
 import { MatchScoreCard } from "./MatchScoreCard";
 
 export function MatchResultCard({ result }: { result: MatchResult | null }) {
@@ -11,7 +11,7 @@ export function MatchResultCard({ result }: { result: MatchResult | null }) {
     return (
       <MissingResult
         playLink={
-          <Link to="/match" className={TEXT_LINK}>
+          <Link to="/match" className={PRIMARY_BUTTON}>
             Play Pokémon Match
           </Link>
         }

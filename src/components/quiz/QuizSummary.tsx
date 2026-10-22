@@ -9,6 +9,7 @@ import {
   PRIMARY_BUTTON,
   SECONDARY_BUTTON,
 } from "../shared/button-styles";
+import { MainMenuLink } from "../shared/MainMenuLink";
 import { RankBadge } from "../game/RankBadge";
 import { QuizScore } from "./QuizScore";
 
@@ -46,6 +47,7 @@ export function QuizSummary() {
           <Trophy className="size-5" aria-hidden />
           Your scores
         </Link>
+        <MainMenuLink />
       </div>
     </section>
   );

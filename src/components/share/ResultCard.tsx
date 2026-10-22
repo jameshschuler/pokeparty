@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { MainMenuLink } from "../shared/MainMenuLink";
 import { CopyLinkButton } from "./CopyLinkButton";
 import { ShareButton } from "./ShareButton";
 
@@ -26,6 +27,7 @@ export function ResultCard({
         <ShareButton url={url} title={shareTitle} />
       </div>
       {playLink}
+      <MainMenuLink />
     </section>
   );
 }

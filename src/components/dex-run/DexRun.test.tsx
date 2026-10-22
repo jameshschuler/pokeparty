@@ -208,6 +208,10 @@ describe("dex run", () => {
     expect(screen.getByText("named · Gen 1 · Kanto")).toBeInTheDocument();
     expect(screen.getByText("Reached #0002 of #0151")).toBeInTheDocument();
     expect(screen.getByText("New best!")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Main menu" })).toHaveAttribute(
+      "href",
+      "/",
+    );
     expect(loadRuns()).toEqual([
       expect.objectContaining({ game: "dex-run", range: 1, score: 1 }),
     ]);

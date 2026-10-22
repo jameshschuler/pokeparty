@@ -151,6 +151,10 @@ describe("pokémon match", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("New best!")).toBeInTheDocument();
     expect(screen.getByText("flips · Easy · 6 pairs")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Main menu" })).toHaveAttribute(
+      "href",
+      "/",
+    );
     expect(screen.getByRole("link", { name: "Share result" })).toHaveAttribute(
       "href",
       expect.stringMatching(

@@ -33,5 +33,9 @@ describe("match result page", () => {
     await expect(
       screen.findByRole("heading", { name: "This link doesn't have a result" }),
     ).resolves.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Main menu" })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 });

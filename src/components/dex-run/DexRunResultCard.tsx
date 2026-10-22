@@ -3,7 +3,7 @@ import { Play } from "lucide-react";
 import { dexRunResultUrl, type DexRunResult } from "../../lib/dex-run-result";
 import { MissingResult } from "../share/MissingResult";
 import { ResultCard } from "../share/ResultCard";
-import { PRIMARY_BUTTON, TEXT_LINK } from "../shared/button-styles";
+import { PRIMARY_BUTTON } from "../shared/button-styles";
 import { DexRunScoreCard } from "./DexRunScoreCard";
 
 export function DexRunResultCard({ result }: { result: DexRunResult | null }) {
@@ -11,7 +11,7 @@ export function DexRunResultCard({ result }: { result: DexRunResult | null }) {
     return (
       <MissingResult
         playLink={
-          <Link to="/dex-run" className={TEXT_LINK}>
+          <Link to="/dex-run" className={PRIMARY_BUTTON}>
             Play Dex Run
           </Link>
         }

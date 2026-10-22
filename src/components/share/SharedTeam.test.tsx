@@ -11,6 +11,10 @@ describe("shared team", () => {
 
     await expect(screen.findByText("Bulbasaur")).resolves.toBeInTheDocument();
     expect(screen.getByText("Charmander")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Main menu" })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
   it("saves a remix as a new team and opens it", async () => {
@@ -37,6 +41,9 @@ describe("shared team", () => {
       await expect(
         screen.findByText("This link doesn't have a team"),
       ).resolves.toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: "Main menu" }),
+      ).toBeInTheDocument();
     },
   );
 
