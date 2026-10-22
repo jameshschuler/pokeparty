@@ -10,8 +10,8 @@ import {
   resumeClock,
   type QuizQuestion,
   type RoundClock,
-  type Rng,
 } from "./quiz";
+import type { Rng } from "./random";
 import { REGION_LABELS } from "./regions";
 
 export const GENERATIONS = [

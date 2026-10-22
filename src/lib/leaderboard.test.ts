@@ -17,7 +17,8 @@ import {
 } from "./leaderboard";
 import { answerDexRun, showDexQuestion, startDexRun } from "./dex-run";
 import { quizPool } from "./pokedex";
-import { createRng, startRound } from "./quiz";
+import { startRound } from "./quiz";
+import { createRng } from "./random";
 
 function run(score: number, wrong: number, playedAt: number): QuizRun {
   return {

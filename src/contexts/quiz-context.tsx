@@ -11,7 +11,6 @@ import { quizPool } from "../lib/pokedex";
 import { spriteUrl } from "../lib/pokemon";
 import {
   answerRound,
-  createRng,
   holdRound,
   isRoundOver,
   FEEDBACK_MS,
@@ -25,6 +24,7 @@ import {
   type QuizMode,
   type QuizRound,
 } from "../lib/quiz";
+import { createRng } from "../lib/random";
 import { useLeaderboardContext } from "./leaderboard-context";
 import { RoundProvider } from "./round-context";
 

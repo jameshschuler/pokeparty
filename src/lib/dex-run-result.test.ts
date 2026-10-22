@@ -7,7 +7,7 @@ import {
   parseDexRunResult,
   type DexRunResult,
 } from "./dex-run-result";
-import { createRng } from "./quiz";
+import { createRng } from "./random";
 
 const result: DexRunResult = { range: 1, score: 42, wrong: 3, reached: 43 };
 
