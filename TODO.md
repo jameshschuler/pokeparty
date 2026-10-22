@@ -1,32 +1,29 @@
 # TODO
 
-What's left to build, roughly in order. Done so far: Party Builder; Who's That Pokémon? with sprite, silhouette, region and dex number modes, 30/60/90s and time attack clocks, and a shareable result page (`/quiz/result`); Dex Run; and the personal scores page (`/scores`, a tile on the hub).
+What's left to build. Done so far: Party Builder, Who's That Pokémon?, Dex Run (both games have shareable result pages), and the personal scores page (`/scores`).
 
-## Games
+## Simon
 
-### Simon (Pokémon Memory)
+Pokémon on a board light up in a sequence that grows by one each round. You tap them back in the same order. One wrong tap ends the game, and the score is the longest sequence you repeated.
 
-Four Pokémon on screen light up in a sequence that grows by one each round. You tap them back in the same order. One wrong tap ends the game, and the score is the longest sequence you repeated.
-
-- **Board:** a fresh random set each game, so it looks different every time. Start with four, but keep the board size a setting in the engine, so it can grow to 6 or 9 later without a rewrite.
-- **Getting harder:** play the sequence back faster as it grows. Maybe also grow the board at set lengths.
-- **Sound:** each Pokémon plays its cry when it lights up (PokeAPI has the cries). Add a mute button, since many people play with sound off.
+- **Levels:** easy (4 Pokémon), medium (6) and hard (9). A fresh random board each game.
+- **Getting harder:** the sequence plays back faster as it grows.
+- **Sound:** each Pokémon plays its cry when it lights up (PokeAPI has the cries), with a mute button. Check Safari, which may not play the `.ogg` files.
 - **Not just color:** a lit Pokémon also grows and gets an outline, so color-blind players can follow. Respect the reduced-motion setting.
-- **Input:** no clock on the whole game, but give up after a few seconds without a tap so a round can't hang.
-- **Code:** its own small engine in `src/lib/` (the sequence, playback and checking taps). Sprites can use `components/pokemon/PokemonSprite.tsx` as is. Quit (`components/game/QuitRound.tsx`) reads `hold` and `release` from the shared round state in `round-context.tsx`, which is built around multiple-choice questions, so Simon either provides that state or Quit takes those two actions another way.
-- **Scores:** a third tab on `/scores`. That's a `scores.simon.tsx` route, a Simon scores component, and one more game in `src/lib/leaderboard.ts` (its saved shape, parser and board key). All runs are saved under `pokeparty:quiz-runs`, a name from when only the quiz had scores. Decide then whether each game should own its score format and storage key, with a migration for scores already saved.
+- **Input:** no clock on the game, but it ends after a few seconds without a tap.
+- **Scores:** a Simon tab on `/scores`, one board per level, and a shareable result page like the other games.
 
 ## Leaderboards
 
-Two boards: a personal one kept on this device, which is done, and a global one that needs a server, which is v2.
+The personal boards on this device are done. A global board needs a server, so it's v2.
 
-Anyone can type a better score into a result link. That's fine until there's a global leaderboard, which needs the server anyway.
+Each board is one game setting (Sprite 60s, Dex Run Gen 1, and so on). Ties go to fewer mistakes, then to whoever got there first.
 
-Both are ranked per mode and clock (Sprite 60s, Silhouette time attack, and so on). Mixing them would be meaningless. Ties go to accuracy, then to whoever got there first.
+Anyone can type a better score into a result link. That's fine until there's a global board.
 
 ### Global
 
-Everyone's top runs, shown as a Global view on `/scores`. That means scores have to be trustworthy. Nothing the browser says about itself can be trusted, so the server owns the round:
+Everyone's top runs, shown as a Global view on `/scores`. That means scores have to be trustworthy. Nothing the browser says about itself can be trusted, so the server owns the round. The steps below are written for the quiz; Dex Run and Simon follow the same pattern.
 
 1. **Start:** the browser asks for a round (`POST /rounds` with mode and clock). The server stores the round with a secret seed and sends back only the first question.
 2. **Images:** the question's image goes through the server under an opaque name (`/rounds/:id/image/3`). The sprite files are named by Pokémon ID, so linking them directly would give the answer away.
@@ -50,10 +47,10 @@ Storage:
 Open decisions:
 
 - **Server language.** With the server making the questions, Go works fine, since nothing has to match the browser exactly. TypeScript could still share the question-building code in `src/lib/quiz.ts`. Either works; pick whichever you'd rather maintain.
-- **Hosting.** Render's free web services sleep, which adds a 30–50 s delay before a round starts. Plan for a paid instance, or use a host that doesn't sleep, plus managed Postgres.
+- **Hosting.** Stay on Render. Free web services sleep, which adds a 30–50 s delay before a round starts, so use a paid instance, plus managed Postgres.
 
 ## Needs a server (v2)
 
 - The global leaderboard.
 - Accounts, or at least a device ID, so teams and bests sync across devices.
-- Link previews that show the actual team or score.
+- Link previews that show the actual team or score. Preview apps don't run JavaScript, so the server has to rewrite the preview tags for `/share`, `/quiz/result` and `/dex-run/result` and draw the image. It runs on the same Render web service as the global board.
