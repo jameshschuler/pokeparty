@@ -5,6 +5,7 @@ import {
   type QuizMode,
   type QuizRound,
 } from "./quiz";
+import { parseCount } from "./parse";
 
 export type QuizResult = {
   mode: QuizMode;
@@ -26,26 +27,13 @@ export function roundResult(round: QuizRound): QuizResult {
   };
 }
 
-export function parseCount(
-  value: unknown,
-  max = MAX_RESULT_COUNT,
-): number | null {
-  if (typeof value !== "number" && typeof value !== "string") {
-    return null;
-  }
-
-  const count = value === "" ? NaN : Number(value);
-
-  return Number.isInteger(count) && count >= 0 && count <= max ? count : null;
-}
-
 export function parseQuizResult(
   search: Record<string, unknown>,
 ): QuizResult | null {
   const clock = parseClockSetting(search.clock);
-  const score = parseCount(search.score);
-  const wrong = parseCount(search.wrong);
-  const streak = parseCount(search.streak);
+  const score = parseCount(search.score, MAX_RESULT_COUNT);
+  const wrong = parseCount(search.wrong, MAX_RESULT_COUNT);
+  const streak = parseCount(search.streak, MAX_RESULT_COUNT);
 
   if (
     !isQuizMode(search.mode) ||

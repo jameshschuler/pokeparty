@@ -59,7 +59,7 @@ function dexScore(score: number, playedAt: number): DexRunScore {
     game: "dex-run",
     range: 1,
     score,
-    wrong: 1,
+    wrong: 3,
     reached: score + 1,
     playedAt,
   };

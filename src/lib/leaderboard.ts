@@ -1,30 +1,18 @@
+import type { DexRun } from "./dex-run";
 import {
-  dexRangeBounds,
-  DEX_RUN_LIVES,
-  parseDexRange,
-  reachedNumber,
-  type DexRange,
-  type DexRun,
-} from "./dex-run";
+  dexRunResult,
+  parseDexRunResult,
+  type DexRunResult,
+} from "./dex-run-result";
 import type { QuizRound } from "./quiz";
-import {
-  parseCount,
-  parseQuizResult,
-  roundResult,
-  type QuizResult,
-} from "./quiz-result";
+import { parseQuizResult, roundResult, type QuizResult } from "./quiz-result";
 import { loadStoredList } from "./storage";
 
 export type QuizRun = { game: "quiz" } & QuizResult & { playedAt: number };
 
-export type DexRunScore = {
-  game: "dex-run";
-  range: DexRange;
-  score: number;
-  wrong: number;
-  reached: number;
-  playedAt: number;
-};
+export type DexRunScore = { game: "dex-run" } & DexRunResult & {
+    playedAt: number;
+  };
 
 export type GameRun = QuizRun | DexRunScore;
 
@@ -41,14 +29,7 @@ export function roundRun(round: QuizRound): QuizRun {
 }
 
 export function dexRunScore(run: DexRun): DexRunScore {
-  return {
-    game: "dex-run",
-    range: run.range,
-    score: run.correct,
-    wrong: DEX_RUN_LIVES - run.lives,
-    reached: reachedNumber(run),
-    playedAt: run.startedAt,
-  };
+  return { game: "dex-run", ...dexRunResult(run), playedAt: run.startedAt };
 }
 
 export function isQuizRun(run: GameRun): run is QuizRun {
@@ -119,28 +100,13 @@ function parseDexRunScore(
   run: Record<string, unknown>,
   playedAt: number,
 ): DexRunScore | null {
-  const range = parseDexRange(run.range);
+  const result = parseDexRunResult(run);
 
-  if (range === null) {
+  if (!result) {
     return null;
   }
 
-  const { first, last } = dexRangeBounds(range);
-  const score = parseCount(run.score, last - first + 1);
-  const wrong = parseCount(run.wrong, DEX_RUN_LIVES);
-  const reached = parseCount(run.reached, last);
-
-  if (
-    score === null ||
-    wrong === null ||
-    reached === null ||
-    reached < first ||
-    score > reached - first + 1
-  ) {
-    return null;
-  }
-
-  return { game: "dex-run", range, score, wrong, reached, playedAt };
+  return { game: "dex-run", ...result, playedAt };
 }
 
 function parseStoredRun(value: unknown): GameRun | null {

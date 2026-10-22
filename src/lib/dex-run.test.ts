@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   advanceDexRun,
   answerDexRun,
-  clearedRange,
   describeDexAnswer,
   dexRangeBounds,
   dexRangePool,
@@ -23,6 +22,7 @@ import {
   timeOutDexQuestion,
   type DexRun,
 } from "./dex-run";
+import { clearedResult, dexRunResult } from "./dex-run-result";
 import { createRng, FEEDBACK_MS, remainingMs } from "./quiz";
 
 const started = startDexRun(1, createRng(4), 1_000);
@@ -252,7 +252,7 @@ describe("advanceDexRun", () => {
     const ended = advanceDexRun(lastLife, createRng(2), 5_000);
 
     expect(ended.finished).toBe(true);
-    expect(clearedRange(ended)).toBe(false);
+    expect(clearedResult(dexRunResult(ended))).toBe(false);
   });
 
   it("clears the range after the last number", () => {
@@ -260,7 +260,7 @@ describe("advanceDexRun", () => {
     const ended = advanceDexRun(answered, createRng(2), 5_000);
 
     expect(ended.finished).toBe(true);
-    expect(clearedRange(ended)).toBe(true);
+    expect(clearedResult(dexRunResult(ended))).toBe(true);
     expect(reachedNumber(ended)).toBe(151);
   });
 });
