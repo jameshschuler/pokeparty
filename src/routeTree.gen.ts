@@ -16,11 +16,15 @@ import { Route as ShareRouteImport } from './routes/share'
 import { Route as DexRunIndexRouteImport } from './routes/dex-run.index'
 import { Route as DexRunPlayRouteImport } from './routes/dex-run.play'
 import { Route as DexRunResultRouteImport } from './routes/dex-run.result'
+import { Route as MatchIndexRouteImport } from './routes/match.index'
+import { Route as MatchPlayRouteImport } from './routes/match.play'
+import { Route as MatchResultRouteImport } from './routes/match.result'
 import { Route as QuizIndexRouteImport } from './routes/quiz.index'
 import { Route as QuizPlayRouteImport } from './routes/quiz.play'
 import { Route as QuizResultRouteImport } from './routes/quiz.result'
 import { Route as ScoresIndexRouteImport } from './routes/scores.index'
 import { Route as ScoresDexRunRouteImport } from './routes/scores.dex-run'
+import { Route as ScoresMatchRouteImport } from './routes/scores.match'
 import { Route as ScoresQuizRouteImport } from './routes/scores.quiz'
 import { Route as ScoresSimonRouteImport } from './routes/scores.simon'
 import { Route as SimonIndexRouteImport } from './routes/simon.index'
@@ -63,6 +67,21 @@ const DexRunResultRoute = DexRunResultRouteImport.update({
   path: '/dex-run/result',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MatchIndexRoute = MatchIndexRouteImport.update({
+  id: '/match/',
+  path: '/match/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchPlayRoute = MatchPlayRouteImport.update({
+  id: '/match/play',
+  path: '/match/play',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchResultRoute = MatchResultRouteImport.update({
+  id: '/match/result',
+  path: '/match/result',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuizIndexRoute = QuizIndexRouteImport.update({
   id: '/quiz/',
   path: '/quiz/',
@@ -86,6 +105,11 @@ const ScoresIndexRoute = ScoresIndexRouteImport.update({
 const ScoresDexRunRoute = ScoresDexRunRouteImport.update({
   id: '/dex-run',
   path: '/dex-run',
+  getParentRoute: () => ScoresRoute,
+} as any)
+const ScoresMatchRoute = ScoresMatchRouteImport.update({
+  id: '/match',
+  path: '/match',
   getParentRoute: () => ScoresRoute,
 } as any)
 const ScoresQuizRoute = ScoresQuizRouteImport.update({
@@ -126,15 +150,19 @@ export interface FileRoutesByFullPath {
   '/share': typeof ShareRoute
   '/dex-run/play': typeof DexRunPlayRoute
   '/dex-run/result': typeof DexRunResultRoute
+  '/match/play': typeof MatchPlayRoute
+  '/match/result': typeof MatchResultRoute
   '/quiz/play': typeof QuizPlayRoute
   '/quiz/result': typeof QuizResultRoute
   '/scores/dex-run': typeof ScoresDexRunRoute
+  '/scores/match': typeof ScoresMatchRoute
   '/scores/quiz': typeof ScoresQuizRoute
   '/scores/simon': typeof ScoresSimonRoute
   '/simon/play': typeof SimonPlayRoute
   '/simon/result': typeof SimonResultRoute
   '/team/$teamId': typeof TeamTeamIdRoute
   '/dex-run/': typeof DexRunIndexRoute
+  '/match/': typeof MatchIndexRoute
   '/quiz/': typeof QuizIndexRoute
   '/scores/': typeof ScoresIndexRoute
   '/simon/': typeof SimonIndexRoute
@@ -145,15 +173,19 @@ export interface FileRoutesByTo {
   '/share': typeof ShareRoute
   '/dex-run/play': typeof DexRunPlayRoute
   '/dex-run/result': typeof DexRunResultRoute
+  '/match/play': typeof MatchPlayRoute
+  '/match/result': typeof MatchResultRoute
   '/quiz/play': typeof QuizPlayRoute
   '/quiz/result': typeof QuizResultRoute
   '/scores/dex-run': typeof ScoresDexRunRoute
+  '/scores/match': typeof ScoresMatchRoute
   '/scores/quiz': typeof ScoresQuizRoute
   '/scores/simon': typeof ScoresSimonRoute
   '/simon/play': typeof SimonPlayRoute
   '/simon/result': typeof SimonResultRoute
   '/team/$teamId': typeof TeamTeamIdRoute
   '/dex-run': typeof DexRunIndexRoute
+  '/match': typeof MatchIndexRoute
   '/quiz': typeof QuizIndexRoute
   '/scores': typeof ScoresIndexRoute
   '/simon': typeof SimonIndexRoute
@@ -166,15 +198,19 @@ export interface FileRoutesById {
   '/share': typeof ShareRoute
   '/dex-run/play': typeof DexRunPlayRoute
   '/dex-run/result': typeof DexRunResultRoute
+  '/match/play': typeof MatchPlayRoute
+  '/match/result': typeof MatchResultRoute
   '/quiz/play': typeof QuizPlayRoute
   '/quiz/result': typeof QuizResultRoute
   '/scores/dex-run': typeof ScoresDexRunRoute
+  '/scores/match': typeof ScoresMatchRoute
   '/scores/quiz': typeof ScoresQuizRoute
   '/scores/simon': typeof ScoresSimonRoute
   '/simon/play': typeof SimonPlayRoute
   '/simon/result': typeof SimonResultRoute
   '/team/$teamId': typeof TeamTeamIdRoute
   '/dex-run/': typeof DexRunIndexRoute
+  '/match/': typeof MatchIndexRoute
   '/quiz/': typeof QuizIndexRoute
   '/scores/': typeof ScoresIndexRoute
   '/simon/': typeof SimonIndexRoute
@@ -188,15 +224,19 @@ export interface FileRouteTypes {
     | '/share'
     | '/dex-run/play'
     | '/dex-run/result'
+    | '/match/play'
+    | '/match/result'
     | '/quiz/play'
     | '/quiz/result'
     | '/scores/dex-run'
+    | '/scores/match'
     | '/scores/quiz'
     | '/scores/simon'
     | '/simon/play'
     | '/simon/result'
     | '/team/$teamId'
     | '/dex-run/'
+    | '/match/'
     | '/quiz/'
     | '/scores/'
     | '/simon/'
@@ -207,15 +247,19 @@ export interface FileRouteTypes {
     | '/share'
     | '/dex-run/play'
     | '/dex-run/result'
+    | '/match/play'
+    | '/match/result'
     | '/quiz/play'
     | '/quiz/result'
     | '/scores/dex-run'
+    | '/scores/match'
     | '/scores/quiz'
     | '/scores/simon'
     | '/simon/play'
     | '/simon/result'
     | '/team/$teamId'
     | '/dex-run'
+    | '/match'
     | '/quiz'
     | '/scores'
     | '/simon'
@@ -227,15 +271,19 @@ export interface FileRouteTypes {
     | '/share'
     | '/dex-run/play'
     | '/dex-run/result'
+    | '/match/play'
+    | '/match/result'
     | '/quiz/play'
     | '/quiz/result'
     | '/scores/dex-run'
+    | '/scores/match'
     | '/scores/quiz'
     | '/scores/simon'
     | '/simon/play'
     | '/simon/result'
     | '/team/$teamId'
     | '/dex-run/'
+    | '/match/'
     | '/quiz/'
     | '/scores/'
     | '/simon/'
@@ -248,12 +296,15 @@ export interface RootRouteChildren {
   ShareRoute: typeof ShareRoute
   DexRunPlayRoute: typeof DexRunPlayRoute
   DexRunResultRoute: typeof DexRunResultRoute
+  MatchPlayRoute: typeof MatchPlayRoute
+  MatchResultRoute: typeof MatchResultRoute
   QuizPlayRoute: typeof QuizPlayRoute
   QuizResultRoute: typeof QuizResultRoute
   SimonPlayRoute: typeof SimonPlayRoute
   SimonResultRoute: typeof SimonResultRoute
   TeamTeamIdRoute: typeof TeamTeamIdRoute
   DexRunIndexRoute: typeof DexRunIndexRoute
+  MatchIndexRoute: typeof MatchIndexRoute
   QuizIndexRoute: typeof QuizIndexRoute
   SimonIndexRoute: typeof SimonIndexRoute
 }
@@ -309,6 +360,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DexRunResultRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/match/': {
+      id: '/match/'
+      path: '/match'
+      fullPath: '/match/'
+      preLoaderRoute: typeof MatchIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/match/play': {
+      id: '/match/play'
+      path: '/match/play'
+      fullPath: '/match/play'
+      preLoaderRoute: typeof MatchPlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/match/result': {
+      id: '/match/result'
+      path: '/match/result'
+      fullPath: '/match/result'
+      preLoaderRoute: typeof MatchResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quiz/': {
       id: '/quiz/'
       path: '/quiz'
@@ -342,6 +414,13 @@ declare module '@tanstack/react-router' {
       path: '/dex-run'
       fullPath: '/scores/dex-run'
       preLoaderRoute: typeof ScoresDexRunRouteImport
+      parentRoute: typeof ScoresRoute
+    }
+    '/scores/match': {
+      id: '/scores/match'
+      path: '/match'
+      fullPath: '/scores/match'
+      preLoaderRoute: typeof ScoresMatchRouteImport
       parentRoute: typeof ScoresRoute
     }
     '/scores/quiz': {
@@ -391,6 +470,7 @@ declare module '@tanstack/react-router' {
 
 interface ScoresRouteChildren {
   ScoresDexRunRoute: typeof ScoresDexRunRoute
+  ScoresMatchRoute: typeof ScoresMatchRoute
   ScoresQuizRoute: typeof ScoresQuizRoute
   ScoresSimonRoute: typeof ScoresSimonRoute
   ScoresIndexRoute: typeof ScoresIndexRoute
@@ -398,6 +478,7 @@ interface ScoresRouteChildren {
 
 const ScoresRouteChildren: ScoresRouteChildren = {
   ScoresDexRunRoute: ScoresDexRunRoute,
+  ScoresMatchRoute: ScoresMatchRoute,
   ScoresQuizRoute: ScoresQuizRoute,
   ScoresSimonRoute: ScoresSimonRoute,
   ScoresIndexRoute: ScoresIndexRoute,
@@ -413,12 +494,15 @@ const rootRouteChildren: RootRouteChildren = {
   ShareRoute: ShareRoute,
   DexRunPlayRoute: DexRunPlayRoute,
   DexRunResultRoute: DexRunResultRoute,
+  MatchPlayRoute: MatchPlayRoute,
+  MatchResultRoute: MatchResultRoute,
   QuizPlayRoute: QuizPlayRoute,
   QuizResultRoute: QuizResultRoute,
   SimonPlayRoute: SimonPlayRoute,
   SimonResultRoute: SimonResultRoute,
   TeamTeamIdRoute: TeamTeamIdRoute,
   DexRunIndexRoute: DexRunIndexRoute,
+  MatchIndexRoute: MatchIndexRoute,
   QuizIndexRoute: QuizIndexRoute,
   SimonIndexRoute: SimonIndexRoute,
 }

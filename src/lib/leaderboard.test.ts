@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   addRun,
   BOARD_SIZE,
-  bestRun,
+  bestScore,
   boardRuns,
   dexRunScore,
+  displayScore,
   formatPlayedAt,
   isDexRunScore,
+  isMatchScore,
   isQuizRun,
   isSimonScore,
   loadRuns,
@@ -14,6 +16,7 @@ import {
   runRank,
   saveRuns,
   type DexRunScore,
+  type GameRun,
   type QuizRun,
 } from "./leaderboard";
 import { answerDexRun, showDexQuestion, startDexRun } from "./dex-run";
@@ -125,6 +128,60 @@ describe("Simon scores", () => {
   });
 });
 
+describe("Match scores", () => {
+  function match(flips: number, timeMs: number, playedAt: number) {
+    return {
+      game: "match" as const,
+      level: "easy" as const,
+      flips,
+      timeMs,
+      playedAt,
+    };
+  }
+
+  const EASY = { game: "match", level: "easy" } as const;
+
+  it("ranks fewer flips first, then the faster time, then the earlier run", () => {
+    const runs = [
+      match(20, 30_000, 1),
+      match(14, 50_000, 2),
+      match(14, 40_000, 3),
+      match(14, 40_000, 4),
+    ];
+
+    expect(boardRuns(runs, EASY).map((run) => run.playedAt)).toEqual([
+      3, 4, 2, 1,
+    ]);
+    expect(bestScore(runs, EASY)).toBe(14);
+  });
+
+  it("saves every finished game and reads it back", () => {
+    saveRuns(addRun([], match(12, 9_000, 1)));
+
+    expect(loadRuns()).toEqual([match(12, 9_000, 1)]);
+    expect(isMatchScore(loadRuns()[0])).toBe(true);
+    expect(displayScore(match(12, 9_000, 1))).toBe(12);
+  });
+
+  it.each([
+    ["more flips than a result can hold", match(1_000, 9_000, 1)],
+    ["a game longer than a day", match(12, 25 * 60 * 60 * 1000, 1)],
+  ])("doesn't save %s, since it couldn't be loaded back", (_, long) => {
+    const runs: GameRun[] = [];
+
+    expect(addRun(runs, long)).toBe(runs);
+  });
+
+  it("drops a stored Match score that couldn't happen", () => {
+    localStorage.setItem(
+      "pokeparty:quiz-runs",
+      JSON.stringify([{ ...match(12, 9_000, 1), flips: 3 }]),
+    );
+
+    expect(loadRuns()).toEqual([]);
+  });
+});
+
 describe("game boards", () => {
   it("keeps Dex Run ranges apart from each other and from the quiz", () => {
     const runs = [
@@ -136,9 +193,7 @@ describe("game boards", () => {
     expect(boardRuns(runs, { game: "dex-run", range: 1 })).toEqual([
       dexScore(10, 2),
     ]);
-    expect(bestRun(runs, { game: "dex-run", range: "national" })?.score).toBe(
-      30,
-    );
+    expect(bestScore(runs, { game: "dex-run", range: "national" })).toBe(30);
     expect(boardRuns(runs, SPRITE_60)).toEqual([run(50, 0, 1)]);
   });
 });
@@ -164,12 +219,12 @@ describe("boardRuns", () => {
   });
 });
 
-describe("bestRun", () => {
+describe("bestScore", () => {
   it("returns the top run, or null for an empty board", () => {
     const runs = [run(3, 0, 1), run(7, 0, 2)];
 
-    expect(bestRun(runs, SPRITE_60)).toEqual(run(7, 0, 2));
-    expect(bestRun(runs, { ...SPRITE_60, mode: "dex" })).toBeNull();
+    expect(bestScore(runs, SPRITE_60)).toBe(7);
+    expect(bestScore(runs, { ...SPRITE_60, mode: "dex" })).toBeNull();
   });
 });
 
@@ -193,7 +248,7 @@ describe("addRun", () => {
     expect(
       next.filter((r) => r.game === "quiz" && r.mode === "sprite"),
     ).toHaveLength(BOARD_SIZE);
-    expect(next.some((r) => r.score === 1 && r !== other)).toBe(false);
+    expect(next.some((r) => displayScore(r) === 1 && r !== other)).toBe(false);
     expect(next).toContainEqual(other);
   });
 

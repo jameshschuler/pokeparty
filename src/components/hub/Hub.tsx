@@ -1,4 +1,11 @@
-import { CircleHelp, Grid3x3, ListOrdered, Trophy, Users } from "lucide-react";
+import {
+  CircleHelp,
+  Grid2x2,
+  Grid3x3,
+  ListOrdered,
+  Trophy,
+  Users,
+} from "lucide-react";
 import { AppTile } from "./AppTile";
 
 export function Hub() {
@@ -36,6 +43,14 @@ export function Hub() {
             icon={<Grid3x3 className="size-7" aria-hidden />}
             title="Simon"
             description="Watch the Pokémon light up, then tap them back in order."
+          />
+        </li>
+        <li>
+          <AppTile
+            to="/match"
+            icon={<Grid2x2 className="size-7" aria-hidden />}
+            title="Pokémon Match"
+            description="Flip two cards at a time to find every pair."
           />
         </li>
         <li>

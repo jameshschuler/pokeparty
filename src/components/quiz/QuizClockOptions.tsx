@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Timer, Zap } from "lucide-react";
 import { useLeaderboardContext } from "../../contexts/leaderboard-context";
-import { bestRun } from "../../lib/leaderboard";
+import { bestScore } from "../../lib/leaderboard";
 import {
   ROUND_SECONDS,
   TIME_ATTACK_BONUS_MS,
@@ -15,7 +15,7 @@ export function QuizClockOptions({ mode }: { mode: QuizMode }) {
   const { runs } = useLeaderboardContext();
 
   function bestLabel(clock: ClockSetting) {
-    return `Best ${bestRun(runs, { game: "quiz", mode, clock })?.score ?? "–"}`;
+    return `Best ${bestScore(runs, { game: "quiz", mode, clock }) ?? "–"}`;
   }
 
   return (

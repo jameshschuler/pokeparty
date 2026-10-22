@@ -1,0 +1,58 @@
+import { useMatchContext } from "../../contexts/match-context";
+import { formatPokemonLabel } from "../../lib/pokemon";
+import { canFlip, isFaceUp, isMiss } from "../../lib/match";
+import { BallIcon } from "../layout/BallIcon";
+import { PokemonSprite } from "../pokemon/PokemonSprite";
+import { matchFaceStyle } from "./match-styles";
+
+type MatchCardProps = {
+  index: number;
+  onSpriteLoad: () => void;
+  onSpriteError: () => void;
+};
+
+export function MatchCard({
+  index,
+  onSpriteLoad,
+  onSpriteError,
+}: MatchCardProps) {
+  const { game, flip } = useMatchContext();
+  const pokemon = game.cards[index];
+  const faceUp = isFaceUp(game, index);
+  const matched = game.matched[index];
+  const missed = isMiss(game) && game.faceUp.includes(index);
+  const name = formatPokemonLabel(pokemon);
+
+  return (
+    <button
+      type="button"
+      onClick={() => flip(index)}
+      disabled={!canFlip(game, index)}
+      aria-label={
+        faceUp ? `${name}${matched ? ", matched" : ""}` : `Card ${index + 1}`
+      }
+      className="aspect-square w-full touch-manipulation perspective-midrange"
+    >
+      <span
+        className={`relative block size-full transition-transform duration-300 transform-3d motion-reduce:transition-none ${faceUp ? "rotate-y-180" : ""}`}
+      >
+        <span className="border-ink bg-primary shadow-sticker-sm absolute inset-0 flex items-center justify-center rounded-2xl border-[3px] backface-hidden">
+          <BallIcon className="w-1/2" />
+        </span>
+        <span
+          className={`border-ink shadow-sticker-sm absolute inset-0 flex rotate-y-180 items-center justify-center rounded-2xl border-[3px] p-1 backface-hidden ${matchFaceStyle(matched, missed)}`}
+        >
+          <PokemonSprite
+            id={pokemon.id}
+            shiny={false}
+            alt=""
+            className="w-full"
+            eager
+            onLoad={onSpriteLoad}
+            onError={onSpriteError}
+          />
+        </span>
+      </span>
+    </button>
+  );
+}

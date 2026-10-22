@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { GameRun } from "../../lib/leaderboard";
+import { displayScore, type GameRun } from "../../lib/leaderboard";
 import { ScoreRow } from "./ScoreRow";
 
 type ScoreBoardProps<T extends GameRun> = {
@@ -28,7 +28,7 @@ export function ScoreBoard<T extends GameRun>({
         <ScoreRow
           key={index}
           rank={index + 1}
-          score={run.score}
+          score={displayScore(run)}
           detail={describe(run)}
           playedAt={run.playedAt}
         />
