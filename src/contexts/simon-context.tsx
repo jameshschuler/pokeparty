@@ -6,13 +6,16 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useCries, type Cries } from "../hooks/useCries";
 import { simonScore } from "../lib/leaderboard";
 import { createRng } from "../lib/random";
 import {
+  acceptsTap,
   advancePlayback,
   boardLoaded,
   finishSimon,
   holdSimon,
+  litIndex,
   playbackDelayMs,
   randomIndex,
   releaseSimon,
@@ -28,6 +31,7 @@ import { useLeaderboardContext } from "./leaderboard-context";
 
 export type SimonContextValue = {
   game: SimonGame;
+  sound: Pick<Cries, "supported" | "muted" | "toggleMuted">;
   tap: (index: number) => void;
   loaded: () => void;
   hold: () => void;
@@ -48,8 +52,18 @@ export function SimonProvider({ level, children }: SimonProviderProps) {
   const { recordRun } = useLeaderboardContext();
   const recordedGameRef = useRef<number | null>(null);
   const playing = game.phase === "watch" && !game.onHold;
-  const waitingForTap = game.phase === "repeat" && !game.onHold;
+  const waitingForTap = acceptsTap(game);
   const delay = playbackDelayMs(game);
+  const lit = litIndex(game);
+  const { play, stop, ...sound } = useCries(
+    game.board.map((pokemon) => pokemon.speciesId),
+  );
+
+  useEffect(() => {
+    if (lit !== null) {
+      play(lit);
+    }
+  }, [lit, play]);
 
   useEffect(() => {
     if (!playing) {
@@ -102,12 +116,19 @@ export function SimonProvider({ level, children }: SimonProviderProps) {
     <SimonContext
       value={{
         game,
+        sound,
         tap: (index) => {
+          if (acceptsTap(game)) {
+            play(index);
+          }
           const nextIndex = randomIndex(game.board.length, rng);
           setGame((current) => tapSimon(current, index, nextIndex));
         },
         loaded: () => setGame((current) => boardLoaded(current)),
-        hold: () => setGame((current) => holdSimon(current)),
+        hold: () => {
+          stop();
+          setGame((current) => holdSimon(current));
+        },
         release: () => setGame((current) => releaseSimon(current)),
         playAgain: () => setGame(startSimon(level, rng, Date.now())),
       }}

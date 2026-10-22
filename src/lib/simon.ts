@@ -125,12 +125,16 @@ export function expectedIndex(game: SimonGame): number | null {
   return game.phase === "over" ? game.sequence[game.step] : null;
 }
 
+export function acceptsTap(game: SimonGame): boolean {
+  return game.phase === "repeat" && !game.onHold;
+}
+
 export function tapSimon(
   game: SimonGame,
   index: number,
   nextIndex: number,
 ): SimonGame {
-  if (game.phase !== "repeat" || game.onHold) {
+  if (!acceptsTap(game)) {
     return game;
   }
 
@@ -153,9 +157,7 @@ export function tapSimon(
 }
 
 export function timeOutSimon(game: SimonGame): SimonGame {
-  return game.phase === "repeat" && !game.onHold
-    ? { ...game, phase: "over" }
-    : game;
+  return acceptsTap(game) ? { ...game, phase: "over" } : game;
 }
 
 export function finishSimon(game: SimonGame): SimonGame {

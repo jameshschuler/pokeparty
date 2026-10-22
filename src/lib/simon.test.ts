@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "./random";
 import {
+  acceptsTap,
   advancePlayback,
   boardLoaded,
   completedLength,
@@ -161,6 +162,17 @@ describe("tapSimon", () => {
 
   it("never gives away the next step before the game is over", () => {
     expect(expectedIndex(repeating([1, 3]))).toBeNull();
+  });
+});
+
+describe("acceptsTap", () => {
+  it.each([
+    ["while repeating", repeating([1]), true],
+    ["while watching", watching([1]), false],
+    ["while on hold", holdSimon(repeating([1])), false],
+    ["once over", timeOutSimon(repeating([1])), false],
+  ])("%s -> %s", (_, game, expected) => {
+    expect(acceptsTap(game)).toBe(expected);
   });
 });
 

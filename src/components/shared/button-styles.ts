@@ -8,5 +8,8 @@ export const SECONDARY_BUTTON =
 
 export const TEXT_LINK = "font-semibold underline underline-offset-4";
 
+export const ICON_BUTTON =
+  "border-ink shadow-sticker-sm flex size-11 shrink-0 items-center justify-center rounded-full border-[3px] bg-white transition active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:bg-white/60 disabled:shadow-none";
+
 export const PILL_BUTTON =
   "border-ink shadow-sticker-sm flex min-h-11 w-fit items-center gap-1.5 rounded-full border-[3px] bg-white px-4 font-semibold transition active:translate-x-0.5 active:translate-y-0.5 active:shadow-none";

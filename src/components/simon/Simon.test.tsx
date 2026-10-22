@@ -2,6 +2,8 @@ import { act, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadRuns, saveRuns } from "../../lib/leaderboard";
+import { findPokemon } from "../../lib/pokedex";
+import { formatPokemonLabel } from "../../lib/pokemon";
 import { SPRITE_LOAD_TIMEOUT_MS } from "../../lib/quiz";
 import { SIMON_IDLE_MS, SIMON_REVEAL_MS } from "../../lib/simon";
 import { renderApp } from "../../test/renderApp";
@@ -54,6 +56,7 @@ describe("simon", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("is on the hub", async () => {
@@ -186,6 +189,112 @@ describe("simon", () => {
     act(() => vi.advanceTimersByTime(SPRITE_LOAD_TIMEOUT_MS * 2));
 
     expect(screen.queryByText("Couldn't load these Pokémon.")).toBeNull();
+  });
+
+  it("has no mute button where the browser can't play the cries", async () => {
+    vi.spyOn(HTMLMediaElement.prototype, "canPlayType").mockReturnValue("");
+    renderApp("/simon/play?level=easy");
+    await screen.findByRole("list", { name: "Board" });
+
+    expect(screen.queryByRole("button", { name: "Mute" })).toBeNull();
+  });
+
+  describe("with sound", () => {
+    let played: string[];
+
+    beforeEach(() => {
+      played = [];
+      vi.spyOn(HTMLMediaElement.prototype, "canPlayType").mockReturnValue(
+        "probably",
+      );
+      vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(
+        () => undefined,
+      );
+      vi.spyOn(HTMLMediaElement.prototype, "load").mockImplementation(
+        () => undefined,
+      );
+      vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(function (
+        this: HTMLMediaElement,
+      ) {
+        played.push(this.src);
+
+        return Promise.resolve();
+      });
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    function playedNames() {
+      return played.map((src) => {
+        const id = Number(src.match(/(\d+)\.ogg$/)![1]);
+
+        return formatPokemonLabel(findPokemon(id)!);
+      });
+    }
+
+    it("plays each Pokémon's cry when it lights up and when it's tapped", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      renderApp("/simon/play?level=easy");
+      await loadBoard();
+
+      const [first] = watchSequence();
+
+      expect(playedNames()).toEqual([first]);
+
+      tap(first);
+
+      expect(playedNames()).toEqual([first, first]);
+    });
+
+    it("starts muted when the player muted before", async () => {
+      localStorage.setItem("pokeparty:muted", "true");
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      renderApp("/simon/play?level=easy");
+      await loadBoard();
+
+      watchSequence();
+
+      expect(screen.getByRole("button", { name: "Mute" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      expect(played).toEqual([]);
+    });
+
+    it("stops the playing cry when muted or paused", async () => {
+      const pause = vi.mocked(HTMLMediaElement.prototype.pause);
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      renderApp("/simon/play?level=easy");
+      await loadBoard();
+      watchSequence();
+      pause.mockClear();
+
+      fireEvent.click(screen.getByRole("button", { name: "Mute" }));
+
+      expect(pause).toHaveBeenCalled();
+
+      pause.mockClear();
+      fireEvent.click(screen.getByRole("button", { name: "Quit" }));
+
+      expect(pause).toHaveBeenCalled();
+    });
+
+    it("stays quiet when muted, and remembers it", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      renderApp("/simon/play?level=easy");
+      await loadBoard();
+
+      const mute = screen.getByRole("button", { name: "Mute" });
+      fireEvent.click(mute);
+      const [first] = watchSequence();
+      tap(first);
+
+      expect(mute).toHaveAttribute("aria-pressed", "true");
+      expect(played).toEqual([]);
+      expect(localStorage.getItem("pokeparty:muted")).toBe("true");
+    });
   });
 
   it("quits back to the level picker without saving", async () => {

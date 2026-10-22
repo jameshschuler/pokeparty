@@ -2,10 +2,6 @@
 
 What's left to build. Done so far: Party Builder, Who's That Pokémon?, Dex Run and Simon (each game has a shareable result page), and the personal scores page (`/scores`).
 
-## Simon sound
-
-Each Pokémon plays its cry when it lights up (PokeAPI has the cries), with a mute button, since many people play with sound off. Check Safari, which may not play the `.ogg` files.
-
 ## Leaderboards
 
 The personal boards on this device are done. A global board needs a server, so it's v2.
