@@ -1,38 +1,30 @@
 import { Link } from "@tanstack/react-router";
-import { ListOrdered, RotateCcw, Trophy } from "lucide-react";
+import { ListOrdered, RotateCcw, Share2, Trophy } from "lucide-react";
 import { useDexRunContext } from "../../contexts/dex-run-context";
 import { useLeaderboardContext } from "../../contexts/leaderboard-context";
-import { clearedRange, formatDexRange, reachedNumber } from "../../lib/dex-run";
+import { clearedResult, dexRunResult } from "../../lib/dex-run-result";
 import { dexRunScore, runRank } from "../../lib/leaderboard";
-import { formatPokemonNumber } from "../../lib/pokemon";
 import {
   PILL_BUTTON,
   PRIMARY_BUTTON,
   SECONDARY_BUTTON,
 } from "../shared/button-styles";
 import { RankBadge } from "../game/RankBadge";
+import { DexRunScoreCard } from "./DexRunScoreCard";
 
 export function DexRunSummary() {
   const { run, playAgain } = useDexRunContext();
   const { runs } = useLeaderboardContext();
+  const result = dexRunResult(run);
   const rank = runRank(runs, dexRunScore(run));
 
   return (
     <section className="border-ink shadow-sticker flex flex-col items-center gap-4 rounded-3xl border-[3px] bg-white p-6 text-center">
       <h1 className="text-3xl font-bold">
-        {clearedRange(run) ? "Cleared!" : "Out of lives!"}
+        {clearedResult(result) ? "Cleared!" : "Out of lives!"}
       </h1>
       <RankBadge rank={rank} />
-      <p>
-        <span className="text-primary block text-6xl font-bold">
-          {run.correct}
-        </span>
-        named · {formatDexRange(run.range)}
-      </p>
-      <p className="bg-surface rounded-2xl px-4 py-2 font-semibold">
-        Reached {formatPokemonNumber(reachedNumber(run))} of{" "}
-        {formatPokemonNumber(run.pool.at(-1)!.speciesId)}
-      </p>
+      <DexRunScoreCard result={result} />
       <div className="flex flex-wrap justify-center gap-3">
         <button type="button" onClick={playAgain} className={PRIMARY_BUTTON}>
           <RotateCcw className="size-5" aria-hidden />
@@ -43,14 +35,20 @@ export function DexRunSummary() {
           Change dex
         </Link>
       </div>
-      <Link
-        to="/scores/dex-run"
-        search={{ range: run.range }}
-        className={PILL_BUTTON}
-      >
-        <Trophy className="size-5" aria-hidden />
-        Your scores
-      </Link>
+      <div className="flex flex-wrap justify-center gap-3">
+        <Link to="/dex-run/result" search={result} className={PILL_BUTTON}>
+          <Share2 className="size-5" aria-hidden />
+          Share result
+        </Link>
+        <Link
+          to="/scores/dex-run"
+          search={{ range: run.range }}
+          className={PILL_BUTTON}
+        >
+          <Trophy className="size-5" aria-hidden />
+          Your scores
+        </Link>
+      </div>
     </section>
   );
 }

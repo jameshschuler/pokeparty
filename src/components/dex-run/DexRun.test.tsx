@@ -212,6 +212,10 @@ describe("dex run", () => {
       expect.objectContaining({ game: "dex-run", range: 1, score: 1 }),
     ]);
 
+    expect(screen.getByRole("link", { name: "Share result" })).toHaveAttribute(
+      "href",
+      "/dex-run/result?range=1&score=1&wrong=3&reached=2",
+    );
     expect(screen.getByRole("link", { name: "Your scores" })).toHaveAttribute(
       "href",
       "/scores/dex-run?range=1",

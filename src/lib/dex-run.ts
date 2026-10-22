@@ -221,10 +221,6 @@ export function reachedNumber(run: DexRun): number {
   return run.pool[run.index].speciesId;
 }
 
-export function clearedRange(run: DexRun): boolean {
-  return run.finished && run.lives > 0;
-}
-
 export function formatDexRange(range: DexRange): string {
   return range === "national"
     ? "National Dex"
