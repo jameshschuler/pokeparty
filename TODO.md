@@ -1,8 +1,8 @@
 # TODO
 
-What's left to build. Done so far: Party Builder, Who's That Pokémon?, Dex Run, Simon and Pokémon Match (each game has a shareable result page), and the personal scores page (`/scores`).
+What's left to build. Done so far: Party Builder, Who's That Pokémon?, Dex Run, Simon and Pokémon Match with its Silhouette and Evolution levels (each game has a shareable result page), and the personal scores page (`/scores`).
 
-Suggested order: typing mode, then the server (Ranked rounds and the global boards), then multiplayer on the same server. Match variants fit in whenever there's a gap, and offline play comes later.
+Suggested order: typing mode, then the server (Ranked rounds and the global boards), then multiplayer on the same server. Offline play comes later.
 
 ## Typing mode
 
@@ -11,10 +11,6 @@ Type the name instead of picking it. Harder, and it's what multiplayer will use.
 - **Matching:** compare normalized names: lowercase, no accents, spaces or punctuation, and ♀/♂ become "f"/"m", so "Mr. Mime" matches "mrmime" and Nidoran♀ is "nidoranf". Allow one typo for names of 5 letters or more, unless the guess is as close or closer to another Pokémon's name (so "Nidorino" is wrong for Nidorina).
 - **Input:** a text field with autocomplete, autocorrect and spellcheck off. Enter submits. A wrong guess costs the same 2 s as a wrong tap. A Pass button reveals the answer and costs the same.
 - **Phones:** the keyboard covers half the screen, so the sprite and the input field have to fit above it.
-
-## Pokémon Match variants
-
-Harder versions of Match: pair a Pokémon with its evolution, or with its silhouette. Each is a new level option with its own board.
 
 ## Leaderboards
 

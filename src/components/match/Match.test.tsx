@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadRuns, saveRuns } from "../../lib/leaderboard";
 import { MATCH_MISS_MS } from "../../lib/match";
+import { EVOLUTION_FAMILIES } from "../../lib/pokedex";
 import { renderApp } from "../../test/renderApp";
 
 function cards(): HTMLElement[] {
@@ -13,6 +14,10 @@ function cards(): HTMLElement[] {
 
 function spriteId(card: HTMLElement): string {
   return card.querySelector("img")!.getAttribute("src")!;
+}
+
+function idFromSrc(src: string): number {
+  return Number(src.match(/(\d+)\.png$/)![1]);
 }
 
 async function loadBoard() {
@@ -69,7 +74,7 @@ describe("pokémon match", () => {
     ).resolves.toHaveAttribute("href", "/match");
   });
 
-  it("offers three levels with your best", async () => {
+  it("offers five levels with your best", async () => {
     saveRuns([
       {
         game: "match",
@@ -88,6 +93,8 @@ describe("pokémon match", () => {
       "Easy · 6 pairsBest –",
       "Medium · 8 pairsBest 20 flips",
       "Hard · 12 pairsBest –",
+      "Silhouette · 8 pairsMatch each Pokémon to its silhouette.Best –",
+      "Evolution · 8 pairsMatch each Pokémon to what it evolves into.Best –",
     ]);
   });
 
@@ -101,6 +108,54 @@ describe("pokémon match", () => {
 
     expect(cards()).toHaveLength(count);
     expect(cards()[0]).toHaveAccessibleName("Card 1");
+  });
+
+  it("pairs each Pokémon with its silhouette on the Silhouette level", async () => {
+    renderApp("/match/play?level=silhouette");
+    await loadBoard();
+    const pairs = pairIndexes();
+
+    expect(pairs).toHaveLength(8);
+    for (const [first, second] of pairs) {
+      const shaded = [first, second].filter((index) =>
+        cards()[index].querySelector("img")!.classList.contains("brightness-0"),
+      );
+      expect(shaded).toHaveLength(1);
+    }
+
+    const [[first, second]] = pairs;
+    flip(first);
+    flip(second);
+
+    expect(
+      cards()
+        .map((card) => card.querySelector("img")!)
+        .filter((img) => img.classList.contains("brightness-0")),
+    ).toHaveLength(7);
+  });
+
+  it("pairs each Pokémon with its evolution on the Evolution level", async () => {
+    renderApp("/match/play?level=evolution");
+    await loadBoard();
+    const ids = cards().map((card) => idFromSrc(spriteId(card)));
+    const pairs = EVOLUTION_FAMILIES.flat().flatMap((link) => {
+      const from = ids.indexOf(link.from.id);
+      const to = ids.indexOf(link.to.id);
+
+      return from >= 0 && to >= 0 ? [[from, to]] : [];
+    });
+
+    expect(new Set(pairs.flat()).size).toBe(16);
+
+    for (const [from, to] of pairs) {
+      flip(from);
+      flip(to);
+    }
+
+    expect(
+      screen.getByRole("heading", { name: "All pairs found!" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("flips · Evolution · 8 pairs")).toBeInTheDocument();
   });
 
   it("doesn't let cards be flipped before the sprites load", async () => {

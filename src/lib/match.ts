@@ -1,17 +1,50 @@
 import type { PokemonSummary } from "../types/pokemon";
-import { SPECIES } from "./pokedex";
+import { EVOLUTION_FAMILIES, SPECIES } from "./pokedex";
 import { sample, shuffle, type Rng } from "./random";
 
-export const MATCH_LEVELS = ["easy", "medium", "hard"] as const;
+export const MATCH_LEVELS = [
+  "easy",
+  "medium",
+  "hard",
+  "silhouette",
+  "evolution",
+] as const;
 
 export type MatchLevel = (typeof MATCH_LEVELS)[number];
 
 export const DEFAULT_MATCH_LEVEL: MatchLevel = "easy";
 
-export const MATCH_PAIRS: Record<MatchLevel, number> = {
-  easy: 6,
-  medium: 8,
-  hard: 12,
+export type MatchPairing = "same" | "silhouette" | "evolution";
+
+type MatchLevelRules = {
+  label: string;
+  pairs: number;
+  pairing: MatchPairing;
+  hint: string | null;
+};
+
+export const MATCH_LEVEL_RULES: Record<MatchLevel, MatchLevelRules> = {
+  easy: { label: "Easy", pairs: 6, pairing: "same", hint: null },
+  medium: { label: "Medium", pairs: 8, pairing: "same", hint: null },
+  hard: { label: "Hard", pairs: 12, pairing: "same", hint: null },
+  silhouette: {
+    label: "Silhouette",
+    pairs: 8,
+    pairing: "silhouette",
+    hint: "Match each Pokémon to its silhouette.",
+  },
+  evolution: {
+    label: "Evolution",
+    pairs: 8,
+    pairing: "evolution",
+    hint: "Match each Pokémon to what it evolves into.",
+  },
+};
+
+export type MatchCard = {
+  pokemon: PokemonSummary;
+  pair: number;
+  silhouette: boolean;
 };
 
 export const MATCH_MISS_MS = 1_000;
@@ -20,7 +53,7 @@ export type MatchPhase = "loading" | "playing" | "done";
 
 export type MatchGame = {
   level: MatchLevel;
-  cards: PokemonSummary[];
+  cards: MatchCard[];
   matched: boolean[];
   faceUp: number[];
   flips: number;
@@ -41,13 +74,39 @@ export function parseMatchLevelSearch(search: Record<string, unknown>): {
   return { level: parseMatchLevel(search.level) ?? DEFAULT_MATCH_LEVEL };
 }
 
+function evolutionPairs(count: number, rng: Rng): PokemonSummary[][] {
+  return sample(EVOLUTION_FAMILIES, count, rng).map((links) => {
+    const [link] = sample(links, 1, rng);
+
+    return [link.from, link.to];
+  });
+}
+
+function dealPairs(
+  pairing: MatchPairing,
+  count: number,
+  rng: Rng,
+): MatchCard[][] {
+  if (pairing === "evolution") {
+    return evolutionPairs(count, rng).map(([from, to], pair) => [
+      { pokemon: from, pair, silhouette: false },
+      { pokemon: to, pair, silhouette: false },
+    ]);
+  }
+
+  return sample(SPECIES, count, rng).map((pokemon, pair) => [
+    { pokemon, pair, silhouette: false },
+    { pokemon, pair, silhouette: pairing === "silhouette" },
+  ]);
+}
+
 export function startMatch(
   level: MatchLevel,
   rng: Rng,
   now: number,
 ): MatchGame {
-  const pokemon = sample(SPECIES, MATCH_PAIRS[level], rng);
-  const cards = shuffle([...pokemon, ...pokemon], rng);
+  const { pairs, pairing } = MATCH_LEVEL_RULES[level];
+  const cards = shuffle(dealPairs(pairing, pairs, rng).flat(), rng);
 
   return {
     level,
@@ -120,7 +179,7 @@ export function flipCard(
 
   const [first, second] = flipped.faceUp;
 
-  if (game.cards[first].id !== game.cards[second].id) {
+  if (game.cards[first].pair !== game.cards[second].pair) {
     return flipped;
   }
 
@@ -160,14 +219,10 @@ export function pairsFound(game: MatchGame): number {
   return game.matched.filter(Boolean).length / 2;
 }
 
-const LEVEL_LABELS: Record<MatchLevel, string> = {
-  easy: "Easy",
-  medium: "Medium",
-  hard: "Hard",
-};
-
 export function formatMatchLevel(level: MatchLevel): string {
-  return `${LEVEL_LABELS[level]} · ${MATCH_PAIRS[level]} pairs`;
+  const { label, pairs } = MATCH_LEVEL_RULES[level];
+
+  return `${label} · ${pairs} pairs`;
 }
 
 export function formatMatchTime(ms: number): string {

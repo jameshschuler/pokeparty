@@ -21,8 +21,8 @@ export function MatchBoard() {
       aria-label="Cards"
       className={`grid gap-2 sm:gap-3 ${MATCH_BOARD_COLUMNS[game.level]}`}
     >
-      {game.cards.map((pokemon, index) => (
-        <li key={`${pokemon.id}-${index}`}>
+      {game.cards.map((card, index) => (
+        <li key={`${card.pokemon.id}-${index}`}>
           <MatchCard
             index={index}
             onSpriteLoad={sprites.handleLoad}
