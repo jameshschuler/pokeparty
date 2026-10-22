@@ -8,6 +8,7 @@ import {
   formatPlayedAt,
   isDexRunScore,
   isQuizRun,
+  isSimonScore,
   loadRuns,
   roundRun,
   runRank,
@@ -91,6 +92,36 @@ describe("isQuizRun and isDexRunScore", () => {
   ])("%j -> quiz %s, dex run %s", (target, quiz, dexRun) => {
     expect(isQuizRun(target)).toBe(quiz);
     expect(isDexRunScore(target)).toBe(dexRun);
+  });
+});
+
+describe("Simon scores", () => {
+  it("keeps each level on its own board and saves them", () => {
+    const easy = {
+      game: "simon" as const,
+      level: "easy" as const,
+      score: 8,
+      playedAt: 1,
+    };
+    const hard = { ...easy, level: "hard" as const, score: 3, playedAt: 2 };
+    saveRuns([easy, hard, run(20, 0, 3)]);
+
+    expect(boardRuns(loadRuns(), { game: "simon", level: "easy" })).toEqual([
+      easy,
+    ]);
+    expect(isSimonScore(hard)).toBe(true);
+    expect(isSimonScore(run(1, 0, 1))).toBe(false);
+  });
+
+  it("drops a stored Simon score with an unknown level", () => {
+    localStorage.setItem(
+      "pokeparty:quiz-runs",
+      JSON.stringify([
+        { game: "simon", level: "expert", score: 4, playedAt: 1 },
+      ]),
+    );
+
+    expect(loadRuns()).toEqual([]);
   });
 });
 

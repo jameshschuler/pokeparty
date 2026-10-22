@@ -1,17 +1,10 @@
 # TODO
 
-What's left to build. Done so far: Party Builder, Who's That Pokémon?, Dex Run (both games have shareable result pages), and the personal scores page (`/scores`).
+What's left to build. Done so far: Party Builder, Who's That Pokémon?, Dex Run and Simon (each game has a shareable result page), and the personal scores page (`/scores`).
 
-## Simon
+## Simon sound
 
-Pokémon on a board light up in a sequence that grows by one each round. You tap them back in the same order. One wrong tap ends the game, and the score is the longest sequence you repeated.
-
-- **Levels:** easy (4 Pokémon), medium (6) and hard (9). A fresh random board each game.
-- **Getting harder:** the sequence plays back faster as it grows.
-- **Sound:** each Pokémon plays its cry when it lights up (PokeAPI has the cries), with a mute button. Check Safari, which may not play the `.ogg` files.
-- **Not just color:** a lit Pokémon also grows and gets an outline, so color-blind players can follow. Respect the reduced-motion setting.
-- **Input:** no clock on the game, but it ends after a few seconds without a tap.
-- **Scores:** a Simon tab on `/scores`, one board per level, and a shareable result page like the other games.
+Each Pokémon plays its cry when it lights up (PokeAPI has the cries), with a mute button, since many people play with sound off. Check Safari, which may not play the `.ogg` files.
 
 ## Leaderboards
 
@@ -53,4 +46,4 @@ Open decisions:
 
 - The global leaderboard.
 - Accounts, or at least a device ID, so teams and bests sync across devices.
-- Link previews that show the actual team or score. Preview apps don't run JavaScript, so the server has to rewrite the preview tags for `/share`, `/quiz/result` and `/dex-run/result` and draw the image. It runs on the same Render web service as the global board.
+- Link previews that show the actual team or score. Preview apps don't run JavaScript, so the server has to rewrite the preview tags for `/share`, `/quiz/result`, `/dex-run/result` and `/simon/result` and draw the image. It runs on the same Render web service as the global board.

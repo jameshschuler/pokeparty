@@ -2,6 +2,7 @@ import { Link, Outlet } from "@tanstack/react-router";
 import { DEFAULT_DEX_RANGE } from "../../lib/dex-run";
 import { BOARD_SIZE } from "../../lib/leaderboard";
 import { DEFAULT_CLOCK_SETTING, DEFAULT_QUIZ_MODE } from "../../lib/quiz";
+import { DEFAULT_SIMON_LEVEL } from "../../lib/simon";
 import { BackLink } from "../layout/BackLink";
 import { SCORES_TAB } from "./scores-styles";
 
@@ -29,6 +30,13 @@ export function ScoresLayout() {
           {...SCORES_TAB}
         >
           Dex Run
+        </Link>
+        <Link
+          to="/scores/simon"
+          search={{ level: DEFAULT_SIMON_LEVEL }}
+          {...SCORES_TAB}
+        >
+          Simon
         </Link>
       </nav>
       <Outlet />
