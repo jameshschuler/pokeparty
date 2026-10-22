@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Grid3x3, RotateCcw, Share2, Trophy } from "lucide-react";
 import { useLeaderboardContext } from "../../contexts/leaderboard-context";
 import { useSimonContext } from "../../contexts/simon-context";
+import { unlockCries } from "../../lib/audio";
 import { runRank, simonScore } from "../../lib/leaderboard";
 import { simonResult } from "../../lib/simon-result";
 import { RankBadge } from "../game/RankBadge";
@@ -24,7 +25,14 @@ export function SimonSummary() {
       <RankBadge rank={rank} />
       <SimonScoreCard result={result} />
       <div className="flex flex-wrap justify-center gap-3">
-        <button type="button" onClick={playAgain} className={PRIMARY_BUTTON}>
+        <button
+          type="button"
+          onClick={() => {
+            unlockCries();
+            playAgain();
+          }}
+          className={PRIMARY_BUTTON}
+        >
           <RotateCcw className="size-5" aria-hidden />
           Play again
         </button>

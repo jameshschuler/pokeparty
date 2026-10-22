@@ -1,4 +1,4 @@
-import type { SimonLevel } from "../../lib/simon";
+import type { SimonLevel, SimonPhase } from "../../lib/simon";
 
 type PadState = {
   lit: boolean;
@@ -16,11 +16,19 @@ export function simonPadStyle({ lit, expected, missed }: PadState): string {
   }
 
   if (lit) {
-    return "bg-accent shadow-sticker outline-ink outline-4 outline-offset-2 motion-safe:scale-105";
+    return "bg-accent outline-ink outline-4 outline-offset-2 motion-safe:scale-105";
   }
 
-  return "bg-white shadow-sticker-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none";
+  return "bg-white";
 }
+
+export const SIMON_BANNER_STYLES: Record<SimonPhase, string> = {
+  loading: "bg-white",
+  ready: "bg-accent",
+  watch: "bg-white",
+  repeat: "bg-primary text-white",
+  over: "bg-wrong text-white",
+};
 
 export const SIMON_BOARD_COLUMNS: Record<SimonLevel, string> = {
   easy: "grid-cols-2",

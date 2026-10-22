@@ -5,7 +5,12 @@ import { loadRuns, saveRuns } from "../../lib/leaderboard";
 import { findPokemon } from "../../lib/pokedex";
 import { formatPokemonLabel } from "../../lib/pokemon";
 import { SPRITE_LOAD_TIMEOUT_MS } from "../../lib/quiz";
-import { SIMON_IDLE_MS, SIMON_REVEAL_MS } from "../../lib/simon";
+import {
+  SIMON_IDLE_MS,
+  SIMON_READY_MS,
+  SIMON_REVEAL_MS,
+  SIMON_TAP_FLASH_MS,
+} from "../../lib/simon";
 import { renderApp } from "../../test/renderApp";
 
 async function loadBoard() {
@@ -100,12 +105,16 @@ describe("simon", () => {
 
     await screen.findByText("Getting the Pokémon ready…");
     await loadBoard();
+    expect(screen.getByText("Round 1")).toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(SIMON_READY_MS));
+
     expect(screen.getByText("Watch closely…")).toBeInTheDocument();
 
     const first = watchSequence();
 
     expect(first).toHaveLength(1);
-    expect(screen.getByText("Your turn: 1 of 1")).toBeInTheDocument();
+    expect(screen.getByText("Tap 1 of 1")).toBeInTheDocument();
 
     tap(first[0]);
     const second = watchSequence();
@@ -113,6 +122,61 @@ describe("simon", () => {
     expect(second).toHaveLength(2);
     expect(second[0]).toBe(first[0]);
     expect(screen.getByLabelText("Score")).toHaveTextContent("1");
+  });
+
+  it("gives the player time to get ready before the next round", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/simon/play?level=easy");
+    await loadBoard();
+    const [first] = watchSequence();
+
+    tap(first);
+
+    expect(screen.getByText("Get ready!")).toBeInTheDocument();
+    expect(screen.getByText("Round 2")).toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(SIMON_READY_MS - 100));
+
+    expect(screen.getByText("Get ready!")).toBeInTheDocument();
+    expect(litName()).toBe("");
+
+    act(() => vi.advanceTimersByTime(100));
+
+    expect(screen.getByText("Watch closely…")).toBeInTheDocument();
+  });
+
+  it("shows a countdown for each tap and hides it while paused", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/simon/play?level=easy");
+    await loadBoard();
+
+    expect(document.querySelector("[data-countdown]")).toBeNull();
+
+    watchSequence();
+
+    expect(document.querySelector("[data-countdown]")).not.toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Quit" }));
+
+    expect(document.querySelector("[data-countdown]")).toBeNull();
+  });
+
+  it("lights a Pokémon briefly when it's tapped", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/simon/play?level=easy");
+    await loadBoard();
+    const [first] = watchSequence();
+    tap(first);
+    const sequence = watchSequence();
+    const pad = screen.getByRole("button", { name: sequence[0] });
+
+    tap(sequence[0]);
+
+    expect(pad).toHaveClass("bg-accent");
+
+    act(() => vi.advanceTimersByTime(SIMON_TAP_FLASH_MS));
+
+    expect(pad).not.toHaveClass("bg-accent");
   });
 
   it("ends on a wrong tap, saves the score and links to share it", async () => {
@@ -202,28 +266,63 @@ describe("simon", () => {
   describe("with sound", () => {
     let played: string[];
 
+    let stopped: number;
+    let contextState: string;
+
+    class FakeAudioContext {
+      destination = {};
+
+      get state() {
+        return contextState;
+      }
+
+      createGain() {
+        return { gain: { value: 1 }, connect: () => undefined };
+      }
+
+      createBufferSource() {
+        const source = {
+          buffer: null as string | null,
+          connect: () => undefined,
+          start: () => played.push(source.buffer!),
+          stop: () => {
+            stopped += 1;
+          },
+        };
+
+        return source;
+      }
+
+      decodeAudioData(data: string) {
+        return Promise.resolve(data);
+      }
+
+      resume() {
+        contextState = "running";
+
+        return Promise.resolve();
+      }
+
+      close() {
+        return Promise.resolve();
+      }
+    }
+
     beforeEach(() => {
       played = [];
+      stopped = 0;
+      contextState = "running";
       vi.spyOn(HTMLMediaElement.prototype, "canPlayType").mockReturnValue(
         "probably",
       );
-      vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(
-        () => undefined,
+      vi.stubGlobal("AudioContext", FakeAudioContext);
+      vi.stubGlobal("fetch", (url: string) =>
+        Promise.resolve({ arrayBuffer: () => Promise.resolve(url) }),
       );
-      vi.spyOn(HTMLMediaElement.prototype, "load").mockImplementation(
-        () => undefined,
-      );
-      vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(function (
-        this: HTMLMediaElement,
-      ) {
-        played.push(this.src);
-
-        return Promise.resolve();
-      });
     });
 
     afterEach(() => {
-      vi.restoreAllMocks();
+      vi.unstubAllGlobals();
     });
 
     function playedNames() {
@@ -248,6 +347,27 @@ describe("simon", () => {
       expect(playedNames()).toEqual([first, first]);
     });
 
+    it("unlocks sound when the player picks a level", async () => {
+      contextState = "suspended";
+      const user = userEvent.setup();
+      renderApp("/simon");
+
+      const easy = await screen.findByRole("link", { name: /^Easy/ });
+      await user.click(easy);
+
+      expect(contextState).toBe("running");
+    });
+
+    it("unlocks sound again on a tap during the game", async () => {
+      renderApp("/simon/play?level=easy");
+      await loadBoard();
+      contextState = "interrupted";
+
+      fireEvent.click(screen.getByRole("button", { name: "Mute" }));
+
+      expect(contextState).toBe("running");
+    });
+
     it("starts muted when the player muted before", async () => {
       localStorage.setItem("pokeparty:muted", "true");
       vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -264,21 +384,22 @@ describe("simon", () => {
     });
 
     it("stops the playing cry when muted or paused", async () => {
-      const pause = vi.mocked(HTMLMediaElement.prototype.pause);
       vi.useFakeTimers({ shouldAdvanceTime: true });
       renderApp("/simon/play?level=easy");
       await loadBoard();
-      watchSequence();
-      pause.mockClear();
+      const [first] = watchSequence();
+      stopped = 0;
 
       fireEvent.click(screen.getByRole("button", { name: "Mute" }));
 
-      expect(pause).toHaveBeenCalled();
+      expect(stopped).toBe(1);
 
-      pause.mockClear();
+      fireEvent.click(screen.getByRole("button", { name: "Mute" }));
+      tap(first);
+      stopped = 0;
       fireEvent.click(screen.getByRole("button", { name: "Quit" }));
 
-      expect(pause).toHaveBeenCalled();
+      expect(stopped).toBe(1);
     });
 
     it("stays quiet when muted, and remembers it", async () => {

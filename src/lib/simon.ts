@@ -16,11 +16,17 @@ export const SIMON_BOARD_SIZES: Record<SimonLevel, number> = {
 
 export const SIMON_IDLE_MS = 5_000;
 
-export const SIMON_ROUND_PAUSE_MS = 800;
+export const SIMON_READY_MS = 1_500;
+
+export const SIMON_LEAD_IN_MS = 400;
+
+export const SIMON_HANDOVER_MS = 500;
 
 export const SIMON_GAP_MS = 150;
 
 export const SIMON_REVEAL_MS = 1_200;
+
+export const SIMON_TAP_FLASH_MS = 180;
 
 const SLOWEST_FLASH_MS = 600;
 
@@ -28,7 +34,7 @@ const FASTEST_FLASH_MS = 300;
 
 const FLASH_SPEEDUP_MS = 25;
 
-export type SimonPhase = "loading" | "watch" | "repeat" | "over";
+export type SimonPhase = "loading" | "ready" | "watch" | "repeat" | "over";
 
 export type SimonGame = {
   level: SimonLevel;
@@ -83,7 +89,13 @@ export function completedLength(game: SimonGame): number {
 }
 
 export function boardLoaded(game: SimonGame): SimonGame {
-  return game.phase === "loading" ? { ...game, phase: "watch" } : game;
+  return game.phase === "loading" ? { ...game, phase: "ready" } : game;
+}
+
+export function startWatching(game: SimonGame): SimonGame {
+  return game.phase === "ready" && !game.onHold
+    ? { ...game, phase: "watch" }
+    : game;
 }
 
 export function flashMs(game: SimonGame): number {
@@ -98,7 +110,11 @@ export function playbackDelayMs(game: SimonGame): number {
     return flashMs(game);
   }
 
-  return game.step === 0 ? SIMON_ROUND_PAUSE_MS : SIMON_GAP_MS;
+  if (game.step === 0) {
+    return SIMON_LEAD_IN_MS;
+  }
+
+  return game.step === game.sequence.length ? SIMON_HANDOVER_MS : SIMON_GAP_MS;
 }
 
 export function advancePlayback(game: SimonGame): SimonGame {
@@ -106,15 +122,13 @@ export function advancePlayback(game: SimonGame): SimonGame {
     return game;
   }
 
-  if (!game.lit) {
-    return { ...game, lit: true };
+  if (game.step === game.sequence.length) {
+    return { ...game, phase: "repeat", step: 0 };
   }
 
-  const step = game.step + 1;
-
-  return step === game.sequence.length
-    ? { ...game, lit: false, phase: "repeat", step: 0 }
-    : { ...game, lit: false, step };
+  return game.lit
+    ? { ...game, lit: false, step: game.step + 1 }
+    : { ...game, lit: true };
 }
 
 export function litIndex(game: SimonGame): number | null {
@@ -151,7 +165,7 @@ export function tapSimon(
   return {
     ...game,
     sequence: [...game.sequence, nextIndex],
-    phase: "watch",
+    phase: "ready",
     step: 0,
   };
 }
@@ -182,16 +196,32 @@ export function releaseSimon(game: SimonGame): SimonGame {
 
 export const SIMON_SCORE_LABEL = "in a row";
 
-export function describeSimonStatus(game: SimonGame): string {
+export type SimonBannerText = {
+  title: string;
+  detail: string | null;
+};
+
+export function describeSimonBanner(game: SimonGame): SimonBannerText {
   switch (game.phase) {
     case "loading":
-      return "Getting the Pokémon ready…";
+      return { title: "Getting the Pokémon ready…", detail: null };
+    case "ready":
+      return {
+        title: "Get ready!",
+        detail: `Round ${game.sequence.length}`,
+      };
     case "watch":
-      return "Watch closely…";
+      return { title: "Watch closely…", detail: null };
     case "repeat":
-      return `Your turn: ${game.step + 1} of ${game.sequence.length}`;
+      return {
+        title: "Your turn!",
+        detail: `Tap ${game.step + 1} of ${game.sequence.length}`,
+      };
     case "over":
-      return game.missedIndex === null ? "Too slow!" : "Not that one!";
+      return {
+        title: game.missedIndex === null ? "Too slow!" : "Not that one!",
+        detail: null,
+      };
     default:
       return game.phase satisfies never;
   }

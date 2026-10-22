@@ -44,6 +44,7 @@
 
   --animate-pop: pop 300ms ease-out;
   --animate-toast: toast 200ms ease-out;
+  --animate-countdown: countdown linear forwards;
 
   @keyframes pop {
     0% {
@@ -61,6 +62,12 @@
     from {
       opacity: 0;
       transform: translateY(8px);
+    }
+  }
+
+  @keyframes countdown {
+    to {
+      transform: scaleX(0);
     }
   }
 }

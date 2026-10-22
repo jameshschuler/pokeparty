@@ -20,8 +20,10 @@ import {
   randomIndex,
   releaseSimon,
   SIMON_IDLE_MS,
+  SIMON_READY_MS,
   SIMON_REVEAL_MS,
   startSimon,
+  startWatching,
   tapSimon,
   timeOutSimon,
   type SimonGame,
@@ -31,7 +33,7 @@ import { useLeaderboardContext } from "./leaderboard-context";
 
 export type SimonContextValue = {
   game: SimonGame;
-  sound: Pick<Cries, "supported" | "muted" | "toggleMuted">;
+  sound: Pick<Cries, "supported" | "muted" | "toggleMuted" | "unlock">;
   tap: (index: number) => void;
   loaded: () => void;
   hold: () => void;
@@ -77,6 +79,19 @@ export function SimonProvider({ level, children }: SimonProviderProps) {
 
     return () => clearTimeout(timeout);
   }, [playing, game.step, game.lit, delay]);
+
+  useEffect(() => {
+    if (game.phase !== "ready" || game.onHold) {
+      return;
+    }
+
+    const timeout = setTimeout(
+      () => setGame((current) => startWatching(current)),
+      SIMON_READY_MS,
+    );
+
+    return () => clearTimeout(timeout);
+  }, [game.phase, game.onHold]);
 
   useEffect(() => {
     if (!waitingForTap) {

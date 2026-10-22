@@ -1,6 +1,7 @@
 import { useSimonContext } from "../../contexts/simon-context";
 import { formatPokemonLabel } from "../../lib/pokemon";
-import { expectedIndex, litIndex } from "../../lib/simon";
+import { useEffect, useState } from "react";
+import { expectedIndex, litIndex, SIMON_TAP_FLASH_MS } from "../../lib/simon";
 import { PokemonSprite } from "../pokemon/PokemonSprite";
 import { simonPadStyle } from "./simon-styles";
 
@@ -17,8 +18,21 @@ export function SimonPad({
 }: SimonPadProps) {
   const { game, tap } = useSimonContext();
   const pokemon = game.board[index];
+  const [presses, setPresses] = useState(0);
+  const [pressed, setPressed] = useState(false);
+
+  useEffect(() => {
+    if (presses === 0) {
+      return;
+    }
+
+    const timeout = setTimeout(() => setPressed(false), SIMON_TAP_FLASH_MS);
+
+    return () => clearTimeout(timeout);
+  }, [presses]);
+
   const style = simonPadStyle({
-    lit: litIndex(game) === index,
+    lit: litIndex(game) === index || pressed,
     expected: expectedIndex(game) === index,
     missed: game.missedIndex === index,
   });
@@ -26,9 +40,13 @@ export function SimonPad({
   return (
     <button
       type="button"
-      onClick={() => tap(index)}
+      onClick={() => {
+        setPressed(true);
+        setPresses((count) => count + 1);
+        tap(index);
+      }}
       disabled={game.phase !== "repeat" || game.onHold}
-      className={`border-ink flex w-full flex-col items-center rounded-2xl border-[3px] p-2 font-semibold transition duration-150 ${style}`}
+      className={`border-ink shadow-sticker-sm flex w-full touch-manipulation flex-col items-center rounded-2xl border-[3px] p-2 font-semibold transition-[transform,background-color] duration-150 ${style}`}
     >
       <PokemonSprite
         id={pokemon.id}
