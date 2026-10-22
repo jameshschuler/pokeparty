@@ -19,7 +19,7 @@ describe("link preview tags", () => {
     expect(metaContent(attribute, key)).toBeTruthy();
   });
 
-  it.each(["Party Builder", "Who's That Pokémon?", "Dex Run"])(
+  it.each(["Party Builder", "Who's That Pokémon?", "Dex Run", "Simon"])(
     "names %s in the image text",
     (game) => {
       expect(metaContent("property", "og:image:alt")).toContain(game);
@@ -34,7 +34,7 @@ describe("link preview tags", () => {
 
   it("builds og:image from the site URL", () => {
     expect(metaContent("property", "og:image")).toBe(
-      "%VITE_SITE_URL%/og-hub.png",
+      "%VITE_SITE_URL%/og-games.png",
     );
   });
 
