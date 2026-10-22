@@ -6,14 +6,18 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useCries, type Cries } from "../hooks/useCries";
 import { matchScore } from "../lib/leaderboard";
 import {
   boardLoaded,
+  finishMatch,
   flipCard,
   hideMiss,
   holdMatch,
   isMiss,
+  MATCH_FINISH_MS,
   MATCH_MISS_MS,
+  matchedCryCard,
   releaseMatch,
   resumeClock,
   startMatch,
@@ -26,6 +30,7 @@ import { useLeaderboardContext } from "./leaderboard-context";
 
 export type MatchContextValue = {
   game: MatchGame;
+  sound: Pick<Cries, "supported" | "muted" | "toggleMuted" | "unlock">;
   flip: (index: number) => void;
   loaded: () => void;
   hold: () => void;
@@ -46,6 +51,29 @@ export function MatchProvider({ level, children }: MatchProviderProps) {
   const { recordRun } = useLeaderboardContext();
   const recordedGameRef = useRef<number | null>(null);
   const showingMiss = isMiss(game) && !game.onHold;
+  const { play, stop, ...sound } = useCries(
+    game.cards.map((card) => card.pokemon.speciesId),
+  );
+  const matchedCard = matchedCryCard(game);
+
+  useEffect(() => {
+    if (matchedCard !== null) {
+      play(matchedCard);
+    }
+  }, [matchedCard, play]);
+
+  useEffect(() => {
+    if (game.phase !== "done" || game.finished || game.onHold) {
+      return;
+    }
+
+    const timeout = setTimeout(
+      () => setGame((current) => finishMatch(current)),
+      MATCH_FINISH_MS,
+    );
+
+    return () => clearTimeout(timeout);
+  }, [game.phase, game.finished, game.onHold]);
 
   useEffect(() => {
     if (!showingMiss) {
@@ -55,6 +83,7 @@ export function MatchProvider({ level, children }: MatchProviderProps) {
     const timeout = setTimeout(
       () => setGame((current) => hideMiss(current)),
       MATCH_MISS_MS,
+      matchedCryCard,
     );
 
     return () => clearTimeout(timeout);
@@ -89,6 +118,7 @@ export function MatchProvider({ level, children }: MatchProviderProps) {
   }
 
   function hold() {
+    stop();
     const heldAt = Date.now();
     setGame((current) => holdMatch(current, heldAt));
   }
@@ -102,6 +132,7 @@ export function MatchProvider({ level, children }: MatchProviderProps) {
     <MatchContext
       value={{
         game,
+        sound,
         flip,
         loaded: () => setGame((current) => boardLoaded(current)),
         hold,

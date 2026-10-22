@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { EVOLUTION_FAMILIES } from "./pokedex";
+import { formatPokemonLabel } from "./pokemon";
 import { createRng } from "./random";
 import {
   boardLoaded,
   canFlip,
+  describeMatchStatus,
+  finishMatch,
+  matchedCryCard,
   elapsedMs,
   flipCard,
   formatMatchLevel,
@@ -205,6 +209,98 @@ describe("flipCard", () => {
     expect(game.phase).toBe("done");
     expect(game.flips).toBe(MATCH_LEVEL_RULES.easy.pairs * 2);
     expect(elapsedMs(game, 999_999)).toBe(5_500);
+  });
+});
+
+describe("describeMatchStatus", () => {
+  it("guides the player and names each match", () => {
+    const game = playing();
+    const first = flipCard(game, 0, 1);
+    const matched = flipCard(first, pairOf(game, 0), 2);
+
+    expect(describeMatchStatus(startMatch("easy", createRng(3), 0)).text).toBe(
+      "Getting the cards ready…",
+    );
+    expect(describeMatchStatus(game).text).toBe("Find the pairs");
+    expect(describeMatchStatus(first).text).toBe("Now find its pair");
+    expect(describeMatchStatus(matched).text).toBe(
+      `Match! ${formatPokemonLabel(game.cards[0].pokemon)}`,
+    );
+  });
+
+  it("says when two cards don't match", () => {
+    const game = playing();
+    const miss = flipCard(flipCard(game, 0, 1), notPairOf(game, 0), 2);
+
+    expect(describeMatchStatus(miss).text).toBe("Not a match");
+    expect(describeMatchStatus(miss).tone).toBe("bad");
+  });
+
+  it("names an evolution pair in evolution order, whichever is flipped first", () => {
+    const game = boardLoaded(startMatch("evolution", createRng(3), 0));
+    const evolved = game.cards.findIndex((card) => card.evolved);
+    const matched = flipCard(
+      flipCard(game, evolved, 1),
+      pairOf(game, evolved),
+      2,
+    );
+    const [from, to] = [game.cards[pairOf(game, evolved)], game.cards[evolved]];
+
+    expect(describeMatchStatus(matched).text).toBe(
+      `Match! ${formatPokemonLabel(from.pokemon)} → ${formatPokemonLabel(to.pokemon)}`,
+    );
+  });
+
+  it("clears the match message on the next flip", () => {
+    const game = playing();
+    const matched = flipCard(flipCard(game, 0, 1), pairOf(game, 0), 2);
+    const next = game.cards.findIndex((_, index) => !matched.matched[index]);
+
+    expect(flipCard(matched, next, 3).lastMatch).toBeNull();
+  });
+});
+
+describe("matchedCryCard", () => {
+  it("picks the evolved Pokémon of an evolution pair, whichever is flipped last", () => {
+    const game = boardLoaded(startMatch("evolution", createRng(3), 0));
+    const evolved = game.cards.findIndex((card) => card.evolved);
+    const matched = flipCard(
+      flipCard(game, evolved, 1),
+      pairOf(game, evolved),
+      2,
+    );
+
+    expect(matchedCryCard(matched)).toBe(evolved);
+    expect(matchedCryCard(game)).toBeNull();
+  });
+});
+
+describe("finishMatch", () => {
+  it("waits while the player holds Quit", () => {
+    let game = playing();
+    for (let index = 0; index < game.cards.length; index++) {
+      if (!game.matched[index]) {
+        game = flipCard(flipCard(game, index, 1), pairOf(game, index), 2);
+      }
+    }
+    const held = holdMatch(game, 3);
+
+    expect(finishMatch(held)).toBe(held);
+  });
+
+  it("finishes only a game whose pairs are all found", () => {
+    let game = playing();
+
+    expect(finishMatch(game).finished).toBe(false);
+
+    for (let index = 0; index < game.cards.length; index++) {
+      if (!game.matched[index]) {
+        game = flipCard(flipCard(game, index, 1), pairOf(game, index), 2);
+      }
+    }
+
+    expect(describeMatchStatus(game).text).toBe("All pairs found!");
+    expect(finishMatch(game).finished).toBe(true);
   });
 });
 

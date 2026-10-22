@@ -11,6 +11,7 @@ import {
   SIMON_REVEAL_MS,
   SIMON_TAP_FLASH_MS,
 } from "../../lib/simon";
+import { installFakeAudio, type FakeAudio } from "../../test/fakeAudio";
 import { renderApp } from "../../test/renderApp";
 
 async function loadBoard() {
@@ -268,61 +269,10 @@ describe("simon", () => {
   });
 
   describe("with sound", () => {
-    let played: string[];
-
-    let stopped: number;
-    let contextState: string;
-
-    class FakeAudioContext {
-      destination = {};
-
-      get state() {
-        return contextState;
-      }
-
-      createGain() {
-        return { gain: { value: 1 }, connect: () => undefined };
-      }
-
-      createBufferSource() {
-        const source = {
-          buffer: null as string | null,
-          connect: () => undefined,
-          start: () => played.push(source.buffer!),
-          stop: () => {
-            stopped += 1;
-          },
-        };
-
-        return source;
-      }
-
-      decodeAudioData(data: string) {
-        return Promise.resolve(data);
-      }
-
-      resume() {
-        contextState = "running";
-
-        return Promise.resolve();
-      }
-
-      close() {
-        return Promise.resolve();
-      }
-    }
+    let audio: FakeAudio;
 
     beforeEach(() => {
-      played = [];
-      stopped = 0;
-      contextState = "running";
-      vi.spyOn(HTMLMediaElement.prototype, "canPlayType").mockReturnValue(
-        "probably",
-      );
-      vi.stubGlobal("AudioContext", FakeAudioContext);
-      vi.stubGlobal("fetch", (url: string) =>
-        Promise.resolve({ arrayBuffer: () => Promise.resolve(url) }),
-      );
+      audio = installFakeAudio();
     });
 
     afterEach(() => {
@@ -330,7 +280,7 @@ describe("simon", () => {
     });
 
     function playedNames() {
-      return played.map((src) => {
+      return audio.played.map((src) => {
         const id = Number(src.match(/(\d+)\.ogg$/)![1]);
 
         return formatPokemonLabel(findPokemon(id)!);
@@ -352,24 +302,24 @@ describe("simon", () => {
     });
 
     it("unlocks sound when the player picks a level", async () => {
-      contextState = "suspended";
+      audio.state = "suspended";
       const user = userEvent.setup();
       renderApp("/simon");
 
       const easy = await screen.findByRole("link", { name: /^Easy/ });
       await user.click(easy);
 
-      expect(contextState).toBe("running");
+      expect(audio.state).toBe("running");
     });
 
     it("unlocks sound again on a tap during the game", async () => {
       renderApp("/simon/play?level=easy");
       await loadBoard();
-      contextState = "interrupted";
+      audio.state = "interrupted";
 
       fireEvent.click(screen.getByRole("button", { name: "Mute" }));
 
-      expect(contextState).toBe("running");
+      expect(audio.state).toBe("running");
     });
 
     it("starts muted when the player muted before", async () => {
@@ -384,7 +334,7 @@ describe("simon", () => {
         "aria-pressed",
         "true",
       );
-      expect(played).toEqual([]);
+      expect(audio.played).toEqual([]);
     });
 
     it("stops the playing cry when muted or paused", async () => {
@@ -392,18 +342,18 @@ describe("simon", () => {
       renderApp("/simon/play?level=easy");
       await loadBoard();
       const [first] = watchSequence();
-      stopped = 0;
+      audio.stopped = 0;
 
       fireEvent.click(screen.getByRole("button", { name: "Mute" }));
 
-      expect(stopped).toBe(1);
+      expect(audio.stopped).toBe(1);
 
       fireEvent.click(screen.getByRole("button", { name: "Mute" }));
       tap(first);
-      stopped = 0;
+      audio.stopped = 0;
       fireEvent.click(screen.getByRole("button", { name: "Quit" }));
 
-      expect(stopped).toBe(1);
+      expect(audio.stopped).toBe(1);
     });
 
     it("stays quiet when muted, and remembers it", async () => {
@@ -417,7 +367,7 @@ describe("simon", () => {
       tap(first);
 
       expect(mute).toHaveAttribute("aria-pressed", "true");
-      expect(played).toEqual([]);
+      expect(audio.played).toEqual([]);
       expect(localStorage.getItem("pokeparty:muted")).toBe("true");
     });
   });
