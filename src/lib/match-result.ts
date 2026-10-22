@@ -1,5 +1,5 @@
 import {
-  MATCH_PAIRS,
+  MATCH_LEVEL_RULES,
   parseMatchLevel,
   type MatchGame,
   type MatchLevel,
@@ -34,7 +34,7 @@ export function parseMatchResult(
     level === null ||
     flips === null ||
     timeMs === null ||
-    flips < MATCH_PAIRS[level] * 2 ||
+    flips < MATCH_LEVEL_RULES[level].pairs * 2 ||
     flips % 2 !== 0
   ) {
     return null;

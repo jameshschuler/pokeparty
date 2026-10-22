@@ -16,7 +16,8 @@ describe("matchResult", () => {
     let game = boardLoaded(startMatch("easy", createRng(2), 0));
     for (let index = 0; index < game.cards.length; index++) {
       const pair = game.cards.findIndex(
-        (card, other) => other !== index && card.id === game.cards[index].id,
+        (card, other) =>
+          other !== index && card.pair === game.cards[index].pair,
       );
 
       if (!game.matched[index]) {

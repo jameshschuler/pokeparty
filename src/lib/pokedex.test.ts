@@ -1,11 +1,88 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildEvolutionFamilies,
   buildPokedex,
+  EVOLUTION_FAMILIES,
   findPokemon,
   POKEDEX,
   quizPool,
   SPECIES,
+  type EvolutionLink,
 } from "./pokedex";
+
+describe("buildEvolutionFamilies", () => {
+  function entry(id: number, evolvesFrom: number | null) {
+    return {
+      id,
+      name: `pokemon-${id}`,
+      displayName: `Pokemon ${id}`,
+      region: "kanto" as const,
+      legendary: false,
+      evolvesFrom,
+    };
+  }
+
+  const data = {
+    species: [
+      entry(1, null),
+      entry(2, 1),
+      entry(3, 2),
+      entry(4, null),
+      entry(5, 4),
+      entry(7, 6),
+    ],
+    forms: [],
+  };
+  const families = buildEvolutionFamilies(data, buildPokedex(data));
+
+  function ids(link: EvolutionLink) {
+    return [link.from.id, link.to.id];
+  }
+
+  it("groups each evolution under its family", () => {
+    expect(families.map((family) => family.map(ids))).toEqual([
+      [
+        [1, 2],
+        [2, 3],
+      ],
+      [[4, 5]],
+    ]);
+  });
+
+  it("skips a link to a Pokémon that isn't in the Pokédex", () => {
+    expect(families.flat().some((link) => link.to.id === 7)).toBe(false);
+  });
+
+  function linkTo(id: number) {
+    return EVOLUTION_FAMILIES.flat().find((link) => link.to.id === id)!;
+  }
+
+  it.each([
+    [863, "Galarian Meowth"],
+    [980, "Paldean Wooper"],
+    [904, "Hisuian Qwilfish"],
+    [862, "Galarian Linoone"],
+  ])("uses the regional form that evolves into #%s (%s)", (toId, fromName) => {
+    expect(linkTo(toId).from.displayName).toBe(fromName);
+  });
+
+  it.each([
+    [53, "Meowth"],
+    [195, "Wooper"],
+    [26, "Pikachu"],
+  ])("keeps the regular form for #%s (%s)", (toId, fromName) => {
+    expect(linkTo(toId).from.displayName).toBe(fromName);
+  });
+
+  it("keeps a branched line like Eevee's in one family", () => {
+    const eevee = EVOLUTION_FAMILIES.find((family) =>
+      family.some((link) => link.from.id === 133),
+    )!;
+
+    expect(eevee).toHaveLength(8);
+    expect(eevee.every((link) => link.from.id === 133)).toBe(true);
+  });
+});
 
 describe("buildPokedex", () => {
   const pokedex = buildPokedex({
@@ -16,6 +93,7 @@ describe("buildPokedex", () => {
         displayName: "Giratina",
         region: "sinnoh",
         legendary: true,
+        evolvesFrom: null,
       },
       {
         id: 554,
@@ -23,6 +101,7 @@ describe("buildPokedex", () => {
         displayName: "Darumaka",
         region: "unova",
         legendary: false,
+        evolvesFrom: null,
       },
     ],
     forms: [

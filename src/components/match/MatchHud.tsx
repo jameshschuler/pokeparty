@@ -3,7 +3,7 @@ import { useNow } from "../../hooks/useNow";
 import {
   elapsedMs,
   formatMatchTime,
-  MATCH_PAIRS,
+  MATCH_LEVEL_RULES,
   pairsFound,
 } from "../../lib/match";
 import { CLOCK_TICK_MS } from "../../lib/quiz";
@@ -17,7 +17,7 @@ export function MatchHud() {
       <div className="bg-surface rounded-2xl p-2">
         <dt className="text-ink/70 text-sm">Pairs</dt>
         <dd className="text-xl font-bold tabular-nums">
-          {pairsFound(game)}/{MATCH_PAIRS[game.level]}
+          {pairsFound(game)}/{MATCH_LEVEL_RULES[game.level].pairs}
         </dd>
       </div>
       <div className="bg-surface rounded-2xl p-2">

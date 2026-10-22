@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EVOLUTION_FAMILIES } from "./pokedex";
 import { createRng } from "./random";
 import {
   boardLoaded,
@@ -11,13 +12,14 @@ import {
   holdMatch,
   isFaceUp,
   isMiss,
-  MATCH_PAIRS,
+  MATCH_LEVEL_RULES,
   pairsFound,
   parseMatchLevel,
   releaseMatch,
   resumeClock,
   startMatch,
   stopClock,
+  type MatchCard,
   type MatchGame,
 } from "./match";
 
@@ -25,15 +27,23 @@ function playing(): MatchGame {
   return boardLoaded(startMatch("easy", createRng(3), 0));
 }
 
+function pairsOf(game: MatchGame): MatchCard[][] {
+  return game.cards.reduce<MatchCard[][]>((pairs, card) => {
+    pairs[card.pair] = [...(pairs[card.pair] ?? []), card];
+
+    return pairs;
+  }, []);
+}
+
 function pairOf(game: MatchGame, index: number): number {
   return game.cards.findIndex(
-    (card, other) => other !== index && card.id === game.cards[index].id,
+    (card, other) => other !== index && card.pair === game.cards[index].pair,
   );
 }
 
 function notPairOf(game: MatchGame, index: number): number {
   return game.cards.findIndex(
-    (card, other) => other !== index && card.id !== game.cards[index].id,
+    (card, other) => other !== index && card.pair !== game.cards[index].pair,
   );
 }
 
@@ -50,20 +60,64 @@ describe("parseMatchLevel", () => {
 });
 
 describe("startMatch", () => {
-  it.each(["easy", "medium", "hard"] as const)(
-    "deals every Pokémon in a %s board exactly twice",
+  it.each(["easy", "medium", "hard", "silhouette", "evolution"] as const)(
+    "deals a %s board where every card has exactly one partner",
     (level) => {
       const game = startMatch(level, createRng(5), 0);
       const counts = new Map<number, number>();
       for (const card of game.cards) {
-        counts.set(card.id, (counts.get(card.id) ?? 0) + 1);
+        counts.set(card.pair, (counts.get(card.pair) ?? 0) + 1);
       }
 
-      expect(game.cards).toHaveLength(MATCH_PAIRS[level] * 2);
-      expect(counts.size).toBe(MATCH_PAIRS[level]);
+      expect(game.cards).toHaveLength(MATCH_LEVEL_RULES[level].pairs * 2);
+      expect(counts.size).toBe(MATCH_LEVEL_RULES[level].pairs);
       expect([...counts.values()].every((count) => count === 2)).toBe(true);
     },
   );
+
+  it("pairs the same Pokémon on the plain levels", () => {
+    const game = startMatch("medium", createRng(5), 0);
+
+    expect(
+      game.cards.every(
+        (card) =>
+          !card.silhouette &&
+          game.cards.some(
+            (other) => other !== card && other.pokemon === card.pokemon,
+          ),
+      ),
+    ).toBe(true);
+  });
+
+  it("pairs a Pokémon with its silhouette", () => {
+    const game = startMatch("silhouette", createRng(5), 0);
+    const pairs = pairsOf(game);
+
+    expect(
+      pairs.every(
+        (pair) =>
+          pair[0].pokemon === pair[1].pokemon &&
+          pair.filter((card) => card.silhouette).length === 1,
+      ),
+    ).toBe(true);
+  });
+
+  it("pairs a Pokémon with its evolution, one family each", () => {
+    const game = startMatch("evolution", createRng(5), 0);
+    const pairs = pairsOf(game);
+    const families = pairs.map((pair) => {
+      const ids = pair.map((card) => card.pokemon.id);
+
+      return EVOLUTION_FAMILIES.findIndex((family) =>
+        family.some(
+          (link) => ids.includes(link.from.id) && ids.includes(link.to.id),
+        ),
+      );
+    });
+
+    expect(families.every((family) => family >= 0)).toBe(true);
+    expect(new Set(families).size).toBe(pairs.length);
+  });
 
   it("waits for the sprites before cards can be flipped", () => {
     const game = startMatch("easy", createRng(5), 0);
@@ -149,7 +203,7 @@ describe("flipCard", () => {
     }
 
     expect(game.phase).toBe("done");
-    expect(game.flips).toBe(MATCH_PAIRS.easy * 2);
+    expect(game.flips).toBe(MATCH_LEVEL_RULES.easy.pairs * 2);
     expect(elapsedMs(game, 999_999)).toBe(5_500);
   });
 });
@@ -207,7 +261,11 @@ describe("formatting", () => {
     expect(formatMatchTime(ms)).toBe(text);
   });
 
-  it("names each level with its pairs", () => {
-    expect(formatMatchLevel("medium")).toBe("Medium · 8 pairs");
+  it.each([
+    ["medium", "Medium · 8 pairs"],
+    ["silhouette", "Silhouette · 8 pairs"],
+    ["evolution", "Evolution · 8 pairs"],
+  ] as const)("names %s with its pairs", (level, label) => {
+    expect(formatMatchLevel(level)).toBe(label);
   });
 });

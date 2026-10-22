@@ -19,6 +19,7 @@ type SpeciesDetail = {
   name: string;
   is_legendary: boolean;
   is_mythical: boolean;
+  evolves_from_species: NamedResource | null;
   names: { name: string; language: NamedResource }[];
   varieties: { is_default: boolean; pokemon: NamedResource }[];
 };
@@ -136,6 +137,9 @@ const species = speciesDetails.map((detail, index) => ({
   displayName: speciesNames.get(detail.id),
   region: regionOf(speciesDebuts[index]),
   legendary: detail.is_legendary || detail.is_mythical,
+  evolvesFrom: detail.evolves_from_species
+    ? idFromUrl(detail.evolves_from_species.url)
+    : null,
 }));
 
 const forms = formDebuts.map((debut) => {

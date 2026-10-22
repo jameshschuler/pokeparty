@@ -17,11 +17,13 @@ export function MatchCard({
   onSpriteError,
 }: MatchCardProps) {
   const { game, flip } = useMatchContext();
-  const pokemon = game.cards[index];
+  const { pokemon, silhouette } = game.cards[index];
   const faceUp = isFaceUp(game, index);
   const matched = game.matched[index];
   const missed = isMiss(game) && game.faceUp.includes(index);
-  const name = formatPokemonLabel(pokemon);
+  const name = silhouette
+    ? `${formatPokemonLabel(pokemon)}'s silhouette`
+    : formatPokemonLabel(pokemon);
 
   return (
     <button
@@ -46,7 +48,7 @@ export function MatchCard({
             id={pokemon.id}
             shiny={false}
             alt=""
-            className="w-full"
+            className={`w-full transition-[filter] duration-300 ${silhouette && !matched ? "brightness-0" : ""}`}
             eager
             onLoad={onSpriteLoad}
             onError={onSpriteError}
