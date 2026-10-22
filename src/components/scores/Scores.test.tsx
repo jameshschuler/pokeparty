@@ -136,6 +136,28 @@ describe("your scores", () => {
     expect(rows[0]).toHaveTextContent("Reached #0045 · 3 missed");
   });
 
+  it("has a Simon tab with a board per level", async () => {
+    saveRuns([
+      { game: "simon", level: "hard", score: 9, playedAt: 1 },
+      { game: "simon", level: "easy", score: 4, playedAt: 2 },
+    ]);
+    const user = userEvent.setup();
+    renderApp("/scores/quiz?mode=sprite&clock=60");
+
+    const tab = await screen.findByRole("link", { name: "Simon" });
+    await user.click(tab);
+    const hard = await screen.findByRole("button", {
+      name: "Hard · 9 Pokémon",
+    });
+    await user.click(hard);
+
+    const rows = within(
+      screen.getByRole("list", { name: "Top runs" }),
+    ).getAllByRole("listitem");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toHaveTextContent(/^#19in a row/);
+  });
+
   it("links an empty Dex Run board to that dex", async () => {
     renderApp("/scores/dex-run?range=4");
 

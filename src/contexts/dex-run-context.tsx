@@ -22,7 +22,8 @@ import {
 } from "../lib/dex-run";
 import { dexRunScore } from "../lib/leaderboard";
 import { spriteUrl } from "../lib/pokemon";
-import { createRng, questionSpriteIds, remainingMs } from "../lib/quiz";
+import { questionSpriteIds, remainingMs } from "../lib/quiz";
+import { createRng } from "../lib/random";
 import { useLeaderboardContext } from "./leaderboard-context";
 import { RoundProvider } from "./round-context";
 

@@ -7,7 +7,6 @@ import {
   answerRound,
   buildQuestion,
   CHOICE_COUNT,
-  createRng,
   describeAnswer,
   drawAnswer,
   clockCapacityMs,
@@ -36,6 +35,7 @@ import {
   WRONG_ANSWER_PENALTY_MS,
   type QuizChoice,
 } from "./quiz";
+import { createRng } from "./random";
 
 function pokemon(id: number, region: Region): PokemonSummary {
   return {
@@ -55,22 +55,6 @@ const kanto = [1, 2, 3, 4, 5, 6].map((id) => pokemon(id, "kanto"));
 const johto = [152, 153, 154, 155, 156].map((id) => pokemon(id, "johto"));
 const hisui = [899].map((id) => pokemon(id, "hisui"));
 const pool = [...kanto, ...johto, ...hisui];
-
-describe("createRng", () => {
-  it("repeats the same sequence for the same seed", () => {
-    const first = createRng(42);
-    const second = createRng(42);
-
-    expect([first(), first(), first()]).toEqual([second(), second(), second()]);
-  });
-
-  it("returns numbers in [0, 1)", () => {
-    const rng = createRng(7);
-    const values = Array.from({ length: 1000 }, rng);
-
-    expect(values.every((value) => value >= 0 && value < 1)).toBe(true);
-  });
-});
 
 describe("parseQuizSettings", () => {
   it.each([

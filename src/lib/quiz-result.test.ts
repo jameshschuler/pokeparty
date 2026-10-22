@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createRng, startRound } from "./quiz";
+import { startRound } from "./quiz";
+import { createRng } from "./random";
 import {
   MAX_RESULT_COUNT,
   parseQuizResult,

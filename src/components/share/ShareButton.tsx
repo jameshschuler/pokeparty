@@ -1,5 +1,6 @@
 import { Share2 } from "lucide-react";
 import { useToastContext } from "../../contexts/toast-context";
+import { ICON_BUTTON } from "../shared/button-styles";
 
 type ShareButtonProps = {
   url: string;
@@ -31,7 +32,7 @@ export function ShareButton({ url, title, disabled }: ShareButtonProps) {
       onClick={handleShare}
       disabled={disabled}
       aria-label="Share"
-      className="border-ink shadow-sticker-sm flex size-11 shrink-0 items-center justify-center rounded-full border-[3px] bg-white transition active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:bg-white/60 disabled:shadow-none"
+      className={ICON_BUTTON}
     >
       <Share2 className="size-5" aria-hidden />
     </button>

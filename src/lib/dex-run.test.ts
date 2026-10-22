@@ -23,7 +23,8 @@ import {
   type DexRun,
 } from "./dex-run";
 import { clearedResult, dexRunResult } from "./dex-run-result";
-import { createRng, FEEDBACK_MS, remainingMs } from "./quiz";
+import { FEEDBACK_MS, remainingMs } from "./quiz";
+import { createRng } from "./random";
 
 const started = startDexRun(1, createRng(4), 1_000);
 const shown = showDexQuestion(started, 2_000);

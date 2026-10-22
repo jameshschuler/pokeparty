@@ -1,10 +1,14 @@
 import { Play, X } from "lucide-react";
 import { useRef, type ReactNode } from "react";
-import { useRoundContext } from "../../contexts/round-context";
 import { PILL_BUTTON, PRIMARY_BUTTON } from "../shared/button-styles";
 
-export function QuitRound({ exit }: { exit: ReactNode }) {
-  const { hold, release } = useRoundContext();
+type QuitRoundProps = {
+  exit: ReactNode;
+  hold: () => void;
+  release: () => void;
+};
+
+export function QuitRound({ exit, hold, release }: QuitRoundProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   function openWarning() {
@@ -29,7 +33,7 @@ export function QuitRound({ exit }: { exit: ReactNode }) {
           Quit this round?
         </h2>
         <p id="quit-description" className="text-ink/70 mt-2">
-          Your score will be lost. The clock is paused until you choose.
+          Your score will be lost. The game is paused until you choose.
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-3">
           <button

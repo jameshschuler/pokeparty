@@ -1,5 +1,6 @@
 import { REGIONS, type PokemonSummary } from "../types/pokemon";
 import { formatPokemonLabel, formatPokemonNumber } from "./pokemon";
+import { sample, shuffle, type Rng } from "./random";
 import { confusableRegion, REGION_LABELS } from "./regions";
 
 export const ROUND_SECONDS = [30, 60, 90] as const;
@@ -70,8 +71,6 @@ export const FEEDBACK_MS = 300;
 export const WRONG_ANSWER_PENALTY_MS = 2000;
 
 export const CLOCK_TICK_MS = 100;
-
-export type Rng = () => number;
 
 export const NEARBY_DEX_RANGE = 20;
 
@@ -148,39 +147,6 @@ export function parseQuizSettings(
     mode: parseQuizMode(search.mode),
     clock: parseClockSetting(search.clock) ?? DEFAULT_CLOCK_SETTING,
   };
-}
-
-// mulberry32: a small seeded PRNG, so a seed always gives the same sequence.
-export function createRng(seed: number): Rng {
-  let state = seed >>> 0;
-
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function sample<T>(items: T[], count: number, rng: Rng): T[] {
-  const picked = new Set<number>();
-  while (picked.size < Math.min(count, items.length)) {
-    picked.add(Math.floor(rng() * items.length));
-  }
-
-  return [...picked].map((index) => items[index]);
-}
-
-function shuffle<T>(items: T[], rng: Rng): T[] {
-  const shuffled = [...items];
-  for (let index = shuffled.length - 1; index > 0; index--) {
-    const swap = Math.floor(rng() * (index + 1));
-    [shuffled[index], shuffled[swap]] = [shuffled[swap], shuffled[index]];
-  }
-
-  return shuffled;
 }
 
 type Draw = {

@@ -5,6 +5,12 @@ import {
   type DexRunResult,
 } from "./dex-run-result";
 import type { QuizRound } from "./quiz";
+import type { SimonGame } from "./simon";
+import {
+  parseSimonResult,
+  simonResult,
+  type SimonResult,
+} from "./simon-result";
 import { parseQuizResult, roundResult, type QuizResult } from "./quiz-result";
 import { loadStoredList } from "./storage";
 
@@ -14,11 +20,16 @@ export type DexRunScore = { game: "dex-run" } & DexRunResult & {
     playedAt: number;
   };
 
-export type GameRun = QuizRun | DexRunScore;
+export type SimonScore = { game: "simon" } & SimonResult & {
+    playedAt: number;
+  };
+
+export type GameRun = QuizRun | DexRunScore | SimonScore;
 
 export type Board =
   | Pick<QuizRun, "game" | "mode" | "clock">
-  | Pick<DexRunScore, "game" | "range">;
+  | Pick<DexRunScore, "game" | "range">
+  | Pick<SimonScore, "game" | "level">;
 
 export const BOARD_SIZE = 10;
 
@@ -40,10 +51,29 @@ export function isDexRunScore(run: GameRun): run is DexRunScore {
   return run.game === "dex-run";
 }
 
+export function isSimonScore(run: GameRun): run is SimonScore {
+  return run.game === "simon";
+}
+
+export function simonScore(game: SimonGame): SimonScore {
+  return { game: "simon", ...simonResult(game), playedAt: game.startedAt };
+}
+
 function boardKey(board: Board): string {
-  return board.game === "quiz"
-    ? `quiz:${board.mode}:${board.clock}`
-    : `dex-run:${board.range}`;
+  switch (board.game) {
+    case "quiz":
+      return `quiz:${board.mode}:${board.clock}`;
+    case "dex-run":
+      return `dex-run:${board.range}`;
+    case "simon":
+      return `simon:${board.level}`;
+    default:
+      return board satisfies never;
+  }
+}
+
+function mistakes(run: GameRun): number {
+  return run.game === "simon" ? 0 : run.wrong;
 }
 
 function isOnBoard(run: GameRun, board: Board): boolean {
@@ -55,7 +85,9 @@ function isSameRun(a: GameRun, b: GameRun): boolean {
 }
 
 function compareRuns(a: GameRun, b: GameRun): number {
-  return b.score - a.score || a.wrong - b.wrong || a.playedAt - b.playedAt;
+  return (
+    b.score - a.score || mistakes(a) - mistakes(b) || a.playedAt - b.playedAt
+  );
 }
 
 export function boardRuns<T extends GameRun>(runs: T[], board: Board): T[] {
@@ -109,6 +141,19 @@ function parseDexRunScore(
   return { game: "dex-run", ...result, playedAt };
 }
 
+function parseSimonScore(
+  run: Record<string, unknown>,
+  playedAt: number,
+): SimonScore | null {
+  const result = parseSimonResult(run);
+
+  if (!result) {
+    return null;
+  }
+
+  return { game: "simon", ...result, playedAt };
+}
+
 function parseStoredRun(value: unknown): GameRun | null {
   if (typeof value !== "object" || value === null) {
     return null;
@@ -121,6 +166,10 @@ function parseStoredRun(value: unknown): GameRun | null {
 
   if (run.game === "dex-run") {
     return parseDexRunScore(run, run.playedAt);
+  }
+
+  if (run.game === "simon") {
+    return parseSimonScore(run, run.playedAt);
   }
 
   const result =

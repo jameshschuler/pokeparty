@@ -22,6 +22,10 @@ import { Route as QuizResultRouteImport } from './routes/quiz.result'
 import { Route as ScoresIndexRouteImport } from './routes/scores.index'
 import { Route as ScoresDexRunRouteImport } from './routes/scores.dex-run'
 import { Route as ScoresQuizRouteImport } from './routes/scores.quiz'
+import { Route as ScoresSimonRouteImport } from './routes/scores.simon'
+import { Route as SimonIndexRouteImport } from './routes/simon.index'
+import { Route as SimonPlayRouteImport } from './routes/simon.play'
+import { Route as SimonResultRouteImport } from './routes/simon.result'
 import { Route as TeamTeamIdRouteImport } from './routes/team.$teamId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -89,6 +93,26 @@ const ScoresQuizRoute = ScoresQuizRouteImport.update({
   path: '/quiz',
   getParentRoute: () => ScoresRoute,
 } as any)
+const ScoresSimonRoute = ScoresSimonRouteImport.update({
+  id: '/simon',
+  path: '/simon',
+  getParentRoute: () => ScoresRoute,
+} as any)
+const SimonIndexRoute = SimonIndexRouteImport.update({
+  id: '/simon/',
+  path: '/simon/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimonPlayRoute = SimonPlayRouteImport.update({
+  id: '/simon/play',
+  path: '/simon/play',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimonResultRoute = SimonResultRouteImport.update({
+  id: '/simon/result',
+  path: '/simon/result',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeamTeamIdRoute = TeamTeamIdRouteImport.update({
   id: '/team/$teamId',
   path: '/team/$teamId',
@@ -106,10 +130,14 @@ export interface FileRoutesByFullPath {
   '/quiz/result': typeof QuizResultRoute
   '/scores/dex-run': typeof ScoresDexRunRoute
   '/scores/quiz': typeof ScoresQuizRoute
+  '/scores/simon': typeof ScoresSimonRoute
+  '/simon/play': typeof SimonPlayRoute
+  '/simon/result': typeof SimonResultRoute
   '/team/$teamId': typeof TeamTeamIdRoute
   '/dex-run/': typeof DexRunIndexRoute
   '/quiz/': typeof QuizIndexRoute
   '/scores/': typeof ScoresIndexRoute
+  '/simon/': typeof SimonIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -121,10 +149,14 @@ export interface FileRoutesByTo {
   '/quiz/result': typeof QuizResultRoute
   '/scores/dex-run': typeof ScoresDexRunRoute
   '/scores/quiz': typeof ScoresQuizRoute
+  '/scores/simon': typeof ScoresSimonRoute
+  '/simon/play': typeof SimonPlayRoute
+  '/simon/result': typeof SimonResultRoute
   '/team/$teamId': typeof TeamTeamIdRoute
   '/dex-run': typeof DexRunIndexRoute
   '/quiz': typeof QuizIndexRoute
   '/scores': typeof ScoresIndexRoute
+  '/simon': typeof SimonIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -138,10 +170,14 @@ export interface FileRoutesById {
   '/quiz/result': typeof QuizResultRoute
   '/scores/dex-run': typeof ScoresDexRunRoute
   '/scores/quiz': typeof ScoresQuizRoute
+  '/scores/simon': typeof ScoresSimonRoute
+  '/simon/play': typeof SimonPlayRoute
+  '/simon/result': typeof SimonResultRoute
   '/team/$teamId': typeof TeamTeamIdRoute
   '/dex-run/': typeof DexRunIndexRoute
   '/quiz/': typeof QuizIndexRoute
   '/scores/': typeof ScoresIndexRoute
+  '/simon/': typeof SimonIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -156,10 +192,14 @@ export interface FileRouteTypes {
     | '/quiz/result'
     | '/scores/dex-run'
     | '/scores/quiz'
+    | '/scores/simon'
+    | '/simon/play'
+    | '/simon/result'
     | '/team/$teamId'
     | '/dex-run/'
     | '/quiz/'
     | '/scores/'
+    | '/simon/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -171,10 +211,14 @@ export interface FileRouteTypes {
     | '/quiz/result'
     | '/scores/dex-run'
     | '/scores/quiz'
+    | '/scores/simon'
+    | '/simon/play'
+    | '/simon/result'
     | '/team/$teamId'
     | '/dex-run'
     | '/quiz'
     | '/scores'
+    | '/simon'
   id:
     | '__root__'
     | '/'
@@ -187,10 +231,14 @@ export interface FileRouteTypes {
     | '/quiz/result'
     | '/scores/dex-run'
     | '/scores/quiz'
+    | '/scores/simon'
+    | '/simon/play'
+    | '/simon/result'
     | '/team/$teamId'
     | '/dex-run/'
     | '/quiz/'
     | '/scores/'
+    | '/simon/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -202,9 +250,12 @@ export interface RootRouteChildren {
   DexRunResultRoute: typeof DexRunResultRoute
   QuizPlayRoute: typeof QuizPlayRoute
   QuizResultRoute: typeof QuizResultRoute
+  SimonPlayRoute: typeof SimonPlayRoute
+  SimonResultRoute: typeof SimonResultRoute
   TeamTeamIdRoute: typeof TeamTeamIdRoute
   DexRunIndexRoute: typeof DexRunIndexRoute
   QuizIndexRoute: typeof QuizIndexRoute
+  SimonIndexRoute: typeof SimonIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -300,6 +351,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScoresQuizRouteImport
       parentRoute: typeof ScoresRoute
     }
+    '/scores/simon': {
+      id: '/scores/simon'
+      path: '/simon'
+      fullPath: '/scores/simon'
+      preLoaderRoute: typeof ScoresSimonRouteImport
+      parentRoute: typeof ScoresRoute
+    }
+    '/simon/': {
+      id: '/simon/'
+      path: '/simon'
+      fullPath: '/simon/'
+      preLoaderRoute: typeof SimonIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simon/play': {
+      id: '/simon/play'
+      path: '/simon/play'
+      fullPath: '/simon/play'
+      preLoaderRoute: typeof SimonPlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simon/result': {
+      id: '/simon/result'
+      path: '/simon/result'
+      fullPath: '/simon/result'
+      preLoaderRoute: typeof SimonResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/team/$teamId': {
       id: '/team/$teamId'
       path: '/team/$teamId'
@@ -313,12 +392,14 @@ declare module '@tanstack/react-router' {
 interface ScoresRouteChildren {
   ScoresDexRunRoute: typeof ScoresDexRunRoute
   ScoresQuizRoute: typeof ScoresQuizRoute
+  ScoresSimonRoute: typeof ScoresSimonRoute
   ScoresIndexRoute: typeof ScoresIndexRoute
 }
 
 const ScoresRouteChildren: ScoresRouteChildren = {
   ScoresDexRunRoute: ScoresDexRunRoute,
   ScoresQuizRoute: ScoresQuizRoute,
+  ScoresSimonRoute: ScoresSimonRoute,
   ScoresIndexRoute: ScoresIndexRoute,
 }
 
@@ -334,9 +415,12 @@ const rootRouteChildren: RootRouteChildren = {
   DexRunResultRoute: DexRunResultRoute,
   QuizPlayRoute: QuizPlayRoute,
   QuizResultRoute: QuizResultRoute,
+  SimonPlayRoute: SimonPlayRoute,
+  SimonResultRoute: SimonResultRoute,
   TeamTeamIdRoute: TeamTeamIdRoute,
   DexRunIndexRoute: DexRunIndexRoute,
   QuizIndexRoute: QuizIndexRoute,
+  SimonIndexRoute: SimonIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

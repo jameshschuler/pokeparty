@@ -1,4 +1,4 @@
-import { CircleHelp, ListOrdered, Trophy, Users } from "lucide-react";
+import { CircleHelp, Grid3x3, ListOrdered, Trophy, Users } from "lucide-react";
 import { AppTile } from "./AppTile";
 
 export function Hub() {
@@ -28,6 +28,14 @@ export function Hub() {
             icon={<ListOrdered className="size-7" aria-hidden />}
             title="Dex Run"
             description="Name every Pokémon in dex order before you run out of lives."
+          />
+        </li>
+        <li>
+          <AppTile
+            to="/simon"
+            icon={<Grid3x3 className="size-7" aria-hidden />}
+            title="Simon"
+            description="Watch the Pokémon light up, then tap them back in order."
           />
         </li>
         <li>
