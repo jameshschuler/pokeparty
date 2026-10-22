@@ -2,7 +2,7 @@
 
 What's left to build. Done so far: Party Builder, Who's That Pokémon?, Dex Run and Simon (each game has a shareable result page), and the personal scores page (`/scores`).
 
-Suggested order: Pokémon Match, typing mode, offline play, then the server (Ranked rounds and the global boards), then multiplayer on the same server.
+Suggested order: Pokémon Match, typing mode, then the server (Ranked rounds and the global boards), then multiplayer on the same server. Offline play comes later.
 
 ## Pokémon Match
 
@@ -22,18 +22,6 @@ Type the name instead of picking it. Harder, and it's what multiplayer will use.
 - **Input:** a text field with autocomplete, autocorrect and spellcheck off. Enter submits. A wrong guess costs the same 2 s as a wrong tap. A Pass button reveals the answer and costs the same.
 - **Phones:** the keyboard covers half the screen, so the sprite and the input field have to fit above it.
 
-## Offline play
-
-Make the site an installable PWA so every game works without a connection. Offline games count on your personal board only (see Leaderboards).
-
-- **What's cached:** the app itself and the Pokédex data ahead of time. Sprites and cries are cached as you see them, cache-first with a size limit.
-- **Cross-origin images:** sprites come from raw.githubusercontent.com. A plain `<img>` gets an opaque response, which Workbox won't cache by default and Chrome counts as about 7 MB of storage each. Add `crossOrigin="anonymous"` to `PokemonSprite` (GitHub's raw host allows it) so they're normal, cacheable responses. Cries already use `fetch`, which is fine.
-- **Type filter:** the Party Builder's type filter calls pokeapi.co live (`src/lib/pokeapi.ts`). Add each Pokémon's types to `src/data/pokedex.json` in the generator, so the filter needs no network at all.
-- **The catch:** the official artwork is about 100 KB per image, and there are 1,143 Pokémon and forms, each with a shiny version: around 230 MB in all, so it can't be stored ahead. Offline, a Pokémon you've never seen shows a placeholder.
-- **Open decision:** cache artwork as you see it (simpler, recommended), or switch to the small pixel sprites when offline (a few MB for all of them, so everything works offline, but it looks different).
-- **Show the state:** an "Offline" badge in the header, and Ranked greyed out while offline. Share and Copy link keep working, since results live in the URL.
-- **Tooling:** `vite-plugin-pwa` (Workbox) rather than a hand-written service worker.
-
 ## Leaderboards
 
 The personal boards on this device are done. Each board is one game setting (Sprite 60s, Dex Run Gen 1, and so on).
@@ -42,7 +30,7 @@ Each game defines its own ranking. Today they all share one rule in `src/lib/lea
 
 Every game gets two ways to play:
 
-- **Play:** works offline, and scores go on your personal board. Anyone can edit their own board or type a better score into a result link, and that's fine.
+- **Play:** in the browser (and offline, once that exists), and scores go on your personal board. Anyone can edit their own board or type a better score into a result link, and that's fine.
 - **Ranked:** opt-in and online only. You pick a nickname, the server runs the round, and the score goes on the global board.
 
 A score from a round played in the browser can't go on the global board, online or offline. The browser can claim any score it likes, so only rounds the server ran count.
@@ -122,8 +110,28 @@ What needs it:
 - Accounts, or at least a device ID, so teams and bests sync across devices.
 - Link previews that show the actual team or score. Preview apps don't run JavaScript, so the server has to rewrite the preview tags for `/share` and every result page (`/quiz/result`, `/dex-run/result`, `/simon/result`, and Match's once it exists) and draw the image.
 
-Open decisions:
+Decided:
 
-- **Server language.** TypeScript (recommended): the server, the rooms package and the site share one language, so they can share the protocol types and the question-building code in `src/lib/quiz.ts`. Go would work for the leaderboard alone, but the rooms package and the site would then need two copies of every message type.
-- **CLAUDE.md layout.** The repo's CLAUDE.md describes a Go API in `v2/api` with sqlc, a web app in `v2/web`, `packages/data-client` and a `v2-ci.yml` workflow. None of those exist here. Once the server language is picked, update CLAUDE.md to match the real layout (`apps/web`, `apps/server`, `packages/rooms`) and CI.
-- **Hosting.** Stay on Render with one paid web service (free ones sleep for 30–50 s, and WebSockets need it awake), plus managed Postgres.
+- **Language: TypeScript.** The server, the rooms package and the site share one language, so they can share the protocol types and the question-building code in `src/lib/quiz.ts`.
+- **Hosting: Render.** One paid web service (free ones sleep for 30–50 s, and WebSockets need it awake), plus managed Postgres.
+
+Before the server work starts:
+
+- **Update CLAUDE.md.** It describes a Go API in `v2/api` with sqlc, a web app in `v2/web`, `packages/data-client` and a `v2-ci.yml` workflow. None of those exist here. Change it now to today's layout (`src/`, `scripts/`) and the real CI (`ci.yml`), then again when the npm-workspaces restructure adds `apps/web`, `apps/server` and `packages/rooms`.
+
+## Later: offline play
+
+Make the site an installable PWA so every game works without a connection. Offline games count on your personal board only (see Leaderboards). Offline only works if every image and cry is already on the device, so caching them as you see them isn't enough: a Pokémon you haven't met yet would be blank or silent.
+
+- **Self-hosted images, two sizes:** a `scripts/generate-sprites.ts` script, like the Pokédex generator, downloads each official artwork image and saves it as WebP in `public/sprites/` (using `sharp`): a small size (about 192px) for grids, cards and choices, and a large size (about 384px) for places that show one big Pokémon (the quiz prompt is up to 240 CSS px, so 2–3x screens need more than 192px). Same art, so nothing looks different. Generated output is never edited by hand.
+- **Sizes:** the current artwork is 118–203 KB per image (measured), about 230 MB for all 1,143 Pokémon and forms with shiny versions. A 192px PNG is 30–48 KB (measured), and WebP should be well under that. Measure both sizes when the script exists before settling the numbers below.
+- **Saving for offline:** a "Save for offline" button downloads the small images and every cry (an estimated 10–20 MB). It also runs automatically when the app is installed. Ordinary visitors don't download anything extra. Large images and shiny versions are cached as you see them. Offline, a missing large image falls back to the small one, and a missing shiny falls back to the regular art.
+- **Fallbacks need code:** today a failed image goes to `onError`, which skips the question, and the team slots show nothing. Add the large→small and shiny→regular fallbacks to `PokemonSprite`.
+- **Code that changes:** `spriteUrl` in `src/lib/pokemon.ts` and its tests, the hardcoded `width={475}`/`height={475}` in `PokemonSprite`, and the tests that read Pokémon IDs from `/(\d+)\.png$/` (QuizGame, DexRun, Scores).
+- **Faster online too:** each image drops from about 150 KB to a small fraction of that, which helps phones even with a connection.
+- **Cries stay cross-site:** they come from raw.githubusercontent.com with `fetch` (CORS is allowed there). The Workbox rule for them must only cache status 200 responses.
+- **Type filter:** the Party Builder's type filter calls pokeapi.co live (`src/lib/pokeapi.ts`). Add each Pokémon's types to `src/data/pokedex.json` in the generator, so the filter needs no network at all.
+- **Repo size:** committing the images adds 10–20 MB to git, and each regeneration adds that again. The Pokédex changes rarely, so committing is fine to start. Move them to Git LFS if regenerating becomes common.
+- **Alternative:** PokeAPI's small pixel sprites are 0.5–1.7 KB each (about 2.5 MB). That's far smaller, but the look changes to pixel art, and many alternate forms and recent Pokémon have no pixel sprite.
+- **Show the state:** an "Offline" badge in the header, and Ranked greyed out while offline. Share and Copy link keep working, since results live in the URL.
+- **Tooling:** `vite-plugin-pwa` (Workbox) rather than a hand-written service worker.
