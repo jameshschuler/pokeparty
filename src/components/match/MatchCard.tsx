@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { useMatchContext } from "../../contexts/match-context";
 import { formatPokemonLabel } from "../../lib/pokemon";
 import { canFlip, isFaceUp, isMiss } from "../../lib/match";
@@ -33,7 +34,7 @@ export function MatchCard({
       aria-label={
         faceUp ? `${name}${matched ? ", matched" : ""}` : `Card ${index + 1}`
       }
-      className="aspect-square w-full touch-manipulation perspective-midrange"
+      className={`aspect-square w-full touch-manipulation perspective-midrange ${matched ? "motion-safe:animate-pop" : ""}`}
     >
       <span
         className={`relative block size-full transition-transform duration-300 transform-3d motion-reduce:transition-none ${faceUp ? "rotate-y-180" : ""}`}
@@ -53,6 +54,11 @@ export function MatchCard({
             onLoad={onSpriteLoad}
             onError={onSpriteError}
           />
+          {matched && (
+            <span className="border-ink bg-correct absolute -top-2 -right-2 flex size-6 items-center justify-center rounded-full border-2 text-white">
+              <Check className="size-4" strokeWidth={3} aria-hidden />
+            </span>
+          )}
         </span>
       </span>
     </button>

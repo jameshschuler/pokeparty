@@ -2,8 +2,10 @@ import { act, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadRuns, saveRuns } from "../../lib/leaderboard";
-import { MATCH_MISS_MS } from "../../lib/match";
+import { cryUrl } from "../../lib/cries";
+import { MATCH_FINISH_MS, MATCH_MISS_MS } from "../../lib/match";
 import { EVOLUTION_FAMILIES } from "../../lib/pokedex";
+import { installFakeAudio } from "../../test/fakeAudio";
 import { renderApp } from "../../test/renderApp";
 
 function cards(): HTMLElement[] {
@@ -64,6 +66,8 @@ describe("pokémon match", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("is on the hub", async () => {
@@ -135,6 +139,7 @@ describe("pokémon match", () => {
   });
 
   it("pairs each Pokémon with its evolution on the Evolution level", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     renderApp("/match/play?level=evolution");
     await loadBoard();
     const ids = cards().map((card) => idFromSrc(spriteId(card)));
@@ -151,6 +156,7 @@ describe("pokémon match", () => {
       flip(from);
       flip(to);
     }
+    act(() => vi.advanceTimersByTime(MATCH_FINISH_MS));
 
     expect(
       screen.getByRole("heading", { name: "All pairs found!" }),
@@ -178,6 +184,94 @@ describe("pokémon match", () => {
     expect(screen.getByText("1/6")).toBeInTheDocument();
   });
 
+  it("celebrates a match by name and says when it's a miss", async () => {
+    renderApp("/match/play?level=easy");
+    await loadBoard();
+    const [[a, aTwin], [b]] = pairIndexes();
+    expect(screen.getByText("Find the pairs")).toBeInTheDocument();
+
+    flip(a);
+    const name = cards()[a].getAttribute("aria-label");
+
+    expect(screen.getByText("Now find its pair")).toBeInTheDocument();
+
+    flip(aTwin);
+
+    expect(screen.getByText(`Match! ${name}`)).toBeInTheDocument();
+
+    const [[c]] = pairIndexes().filter(([first]) => first !== a && first !== b);
+    flip(b);
+    flip(c);
+
+    expect(screen.getByText("Not a match")).toBeInTheDocument();
+  });
+
+  it("plays the Pokémon's cry when a pair is found", async () => {
+    const audio = installFakeAudio();
+    renderApp("/match/play?level=easy");
+    await loadBoard();
+    const [[first, second]] = pairIndexes();
+    const id = idFromSrc(spriteId(cards()[first]));
+
+    flip(first);
+
+    expect(audio.played).toEqual([]);
+
+    flip(second);
+
+    expect(audio.played).toEqual([cryUrl(id)]);
+  });
+
+  it("downloads each Pokémon's cry once, not once per card", async () => {
+    const audio = installFakeAudio();
+    renderApp("/match/play?level=easy");
+    await loadBoard();
+
+    expect(audio.fetched).toHaveLength(6);
+    expect(new Set(audio.fetched).size).toBe(6);
+  });
+
+  it("stays quiet when muted", async () => {
+    const audio = installFakeAudio();
+    renderApp("/match/play?level=easy");
+    await loadBoard();
+    const [[first, second]] = pairIndexes();
+
+    fireEvent.click(screen.getByRole("button", { name: "Mute" }));
+    flip(first);
+    flip(second);
+
+    expect(audio.played).toEqual([]);
+  });
+
+  it("stops a playing cry when Quit is opened", async () => {
+    const audio = installFakeAudio();
+    renderApp("/match/play?level=easy");
+    await loadBoard();
+    const [[first, second]] = pairIndexes();
+    flip(first);
+    flip(second);
+    audio.stopped = 0;
+
+    fireEvent.click(screen.getByRole("button", { name: "Quit" }));
+
+    expect(audio.stopped).toBe(1);
+  });
+
+  it("stays on the finished board while Quit is open", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderApp("/match/play?level=easy");
+    await loadBoard();
+    playPerfectGame();
+
+    fireEvent.click(screen.getByRole("button", { name: "Quit" }));
+    act(() => vi.advanceTimersByTime(MATCH_FINISH_MS * 3));
+
+    expect(
+      screen.queryByRole("heading", { name: "All pairs found!" }),
+    ).toBeNull();
+  });
+
   it("turns a miss back over after a moment", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     renderApp("/match/play?level=easy");
@@ -196,10 +290,18 @@ describe("pokémon match", () => {
   });
 
   it("finishes a perfect game, saves it and links to share it", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     renderApp("/match/play?level=easy");
     await loadBoard();
 
     playPerfectGame();
+
+    expect(screen.getByText("All pairs found!")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "All pairs found!" }),
+    ).toBeNull();
+
+    act(() => vi.advanceTimersByTime(MATCH_FINISH_MS));
 
     expect(
       screen.getByRole("heading", { name: "All pairs found!" }),

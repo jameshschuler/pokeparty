@@ -1,5 +1,6 @@
 import type { PokemonSummary } from "../types/pokemon";
 import { EVOLUTION_FAMILIES, SPECIES } from "./pokedex";
+import { formatPokemonLabel } from "./pokemon";
 import { sample, shuffle, type Rng } from "./random";
 
 export const MATCH_LEVELS = [
@@ -45,9 +46,12 @@ export type MatchCard = {
   pokemon: PokemonSummary;
   pair: number;
   silhouette: boolean;
+  evolved: boolean;
 };
 
 export const MATCH_MISS_MS = 1_000;
+
+export const MATCH_FINISH_MS = 1_000;
 
 export type MatchPhase = "loading" | "playing" | "done";
 
@@ -56,8 +60,10 @@ export type MatchGame = {
   cards: MatchCard[];
   matched: boolean[];
   faceUp: number[];
+  lastMatch: number[] | null;
   flips: number;
   phase: MatchPhase;
+  finished: boolean;
   elapsedMs: number;
   runningSince: number | null;
   onHold: boolean;
@@ -89,14 +95,14 @@ function dealPairs(
 ): MatchCard[][] {
   if (pairing === "evolution") {
     return evolutionPairs(count, rng).map(([from, to], pair) => [
-      { pokemon: from, pair, silhouette: false },
-      { pokemon: to, pair, silhouette: false },
+      { pokemon: from, pair, silhouette: false, evolved: false },
+      { pokemon: to, pair, silhouette: false, evolved: true },
     ]);
   }
 
   return sample(SPECIES, count, rng).map((pokemon, pair) => [
-    { pokemon, pair, silhouette: false },
-    { pokemon, pair, silhouette: pairing === "silhouette" },
+    { pokemon, pair, silhouette: false, evolved: false },
+    { pokemon, pair, silhouette: pairing === "silhouette", evolved: false },
   ]);
 }
 
@@ -113,8 +119,10 @@ export function startMatch(
     cards,
     matched: cards.map(() => false),
     faceUp: [],
+    lastMatch: null,
     flips: 0,
     phase: "loading",
+    finished: false,
     elapsedMs: 0,
     runningSince: null,
     onHold: false,
@@ -169,6 +177,7 @@ export function flipCard(
   const flipped: MatchGame = {
     ...game,
     faceUp: [...open, index],
+    lastMatch: null,
     flips: game.flips + 1,
     runningSince: game.runningSince ?? now,
   };
@@ -186,11 +195,70 @@ export function flipCard(
   const matched = flipped.matched.map(
     (isMatched, card) => isMatched || card === first || card === second,
   );
-  const paired = { ...flipped, matched, faceUp: [] };
+  const paired = {
+    ...flipped,
+    matched,
+    faceUp: [],
+    lastMatch: [first, second],
+  };
 
   return matched.every(Boolean)
     ? { ...stopClock(paired, now), phase: "done" }
     : paired;
+}
+
+export function finishMatch(game: MatchGame): MatchGame {
+  return game.phase === "done" && !game.onHold
+    ? { ...game, finished: true }
+    : game;
+}
+
+export type MatchStatus = {
+  text: string;
+  tone: "neutral" | "good" | "bad";
+};
+
+export function describeMatchStatus(game: MatchGame): MatchStatus {
+  if (game.phase === "loading") {
+    return { text: "Getting the cards ready…", tone: "neutral" };
+  }
+
+  if (game.phase === "done") {
+    return { text: "All pairs found!", tone: "good" };
+  }
+
+  if (isMiss(game)) {
+    return { text: "Not a match", tone: "bad" };
+  }
+
+  if (game.lastMatch) {
+    const names = [
+      ...new Set(
+        game.lastMatch
+          .map((index) => game.cards[index])
+          .sort((a, b) => Number(a.evolved) - Number(b.evolved))
+          .map((card) => formatPokemonLabel(card.pokemon)),
+      ),
+    ];
+
+    return { text: `Match! ${names.join(" → ")}`, tone: "good" };
+  }
+
+  return {
+    text: game.faceUp.length === 1 ? "Now find its pair" : "Find the pairs",
+    tone: "neutral",
+  };
+}
+
+export function matchedCryCard(game: MatchGame): number | null {
+  if (!game.lastMatch) {
+    return null;
+  }
+
+  return (
+    game.lastMatch.find((index) => game.cards[index].evolved) ??
+    game.lastMatch[0]
+  );
 }
 
 export function hideMiss(game: MatchGame): MatchGame {

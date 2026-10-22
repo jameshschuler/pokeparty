@@ -26,7 +26,8 @@ export function useCries(speciesIds: number[]): Cries {
   const [supported] = useState(canPlayCries);
   const [muted, setMuted] = useState(loadMuted);
   const mutedRef = useRef(muted);
-  const buffersRef = useRef<(AudioBuffer | null)[]>([]);
+  const buffersRef = useRef(new Map<number, AudioBuffer>());
+  const idsRef = useRef<number[]>([]);
   const playingRef = useRef<AudioBufferSourceNode | null>(null);
   const idsKey = speciesIds.join(",");
 
@@ -38,16 +39,17 @@ export function useCries(speciesIds: number[]): Cries {
     const { context } = getCryAudio();
     const ids = idsKey.split(",").map(Number);
     const abort = new AbortController();
-    const buffers: (AudioBuffer | null)[] = ids.map(() => null);
+    const buffers = new Map<number, AudioBuffer>();
+    idsRef.current = ids;
     buffersRef.current = buffers;
 
-    ids.forEach((id, index) => {
+    for (const id of new Set(ids)) {
       loadCry(context, id, abort.signal)
         .then((buffer) => {
-          buffers[index] = buffer;
+          buffers.set(id, buffer);
         })
         .catch(() => undefined);
-    });
+    }
 
     return () => abort.abort();
   }, [supported, idsKey]);
@@ -59,7 +61,7 @@ export function useCries(speciesIds: number[]): Cries {
 
   const play = useCallback(
     (index: number) => {
-      const buffer = buffersRef.current[index];
+      const buffer = buffersRef.current.get(idsRef.current[index]);
 
       if (mutedRef.current || !buffer) {
         return;
