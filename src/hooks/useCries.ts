@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  CRY_TYPE,
-  CRY_VOLUME,
-  cryUrl,
-  loadMuted,
-  saveMuted,
-} from "../lib/cries";
+import { canPlayCries, getCryAudio, unlockCries } from "../lib/audio";
+import { cryUrl, loadMuted, saveMuted } from "../lib/cries";
 
 export type Cries = {
   supported: boolean;
@@ -13,19 +8,26 @@ export type Cries = {
   toggleMuted: () => void;
   play: (index: number) => void;
   stop: () => void;
+  unlock: () => void;
 };
 
-function stopAll(audios: HTMLAudioElement[]) {
-  for (const audio of audios) {
-    audio.pause();
-  }
+async function loadCry(
+  context: AudioContext,
+  speciesId: number,
+  signal: AbortSignal,
+): Promise<AudioBuffer> {
+  const response = await fetch(cryUrl(speciesId), { signal });
+  const data = await response.arrayBuffer();
+
+  return context.decodeAudioData(data);
 }
 
 export function useCries(speciesIds: number[]): Cries {
-  const [supported] = useState(() => new Audio().canPlayType(CRY_TYPE) !== "");
+  const [supported] = useState(canPlayCries);
   const [muted, setMuted] = useState(loadMuted);
   const mutedRef = useRef(muted);
-  const audiosRef = useRef<HTMLAudioElement[]>([]);
+  const buffersRef = useRef<(AudioBuffer | null)[]>([]);
+  const playingRef = useRef<AudioBufferSourceNode | null>(null);
   const idsKey = speciesIds.join(",");
 
   useEffect(() => {
@@ -33,38 +35,46 @@ export function useCries(speciesIds: number[]): Cries {
       return;
     }
 
-    const audios = idsKey.split(",").map((id) => {
-      const audio = new Audio(cryUrl(Number(id)));
-      audio.preload = "auto";
-      audio.volume = CRY_VOLUME;
+    const { context } = getCryAudio();
+    const ids = idsKey.split(",").map(Number);
+    const abort = new AbortController();
+    const buffers: (AudioBuffer | null)[] = ids.map(() => null);
+    buffersRef.current = buffers;
 
-      return audio;
+    ids.forEach((id, index) => {
+      loadCry(context, id, abort.signal)
+        .then((buffer) => {
+          buffers[index] = buffer;
+        })
+        .catch(() => undefined);
     });
-    audiosRef.current = audios;
 
-    return () => {
-      for (const audio of audios) {
-        audio.pause();
-        audio.removeAttribute("src");
-        audio.load();
-      }
-      audiosRef.current = [];
-    };
+    return () => abort.abort();
   }, [supported, idsKey]);
 
-  const play = useCallback((index: number) => {
-    const audio = audiosRef.current[index];
-
-    if (mutedRef.current || !audio) {
-      return;
-    }
-
-    stopAll(audiosRef.current);
-    audio.currentTime = 0;
-    audio.play().catch(() => undefined);
+  const stop = useCallback(() => {
+    playingRef.current?.stop();
+    playingRef.current = null;
   }, []);
 
-  const stop = useCallback(() => stopAll(audiosRef.current), []);
+  const play = useCallback(
+    (index: number) => {
+      const buffer = buffersRef.current[index];
+
+      if (mutedRef.current || !buffer) {
+        return;
+      }
+
+      stop();
+      const { context, output } = getCryAudio();
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(output);
+      source.start();
+      playingRef.current = source;
+    },
+    [stop],
+  );
 
   function toggleMuted() {
     const next = !muted;
@@ -77,5 +87,5 @@ export function useCries(speciesIds: number[]): Cries {
     }
   }
 
-  return { supported, muted, toggleMuted, play, stop };
+  return { supported, muted, toggleMuted, play, stop, unlock: unlockCries };
 }

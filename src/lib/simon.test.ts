@@ -5,7 +5,7 @@ import {
   advancePlayback,
   boardLoaded,
   completedLength,
-  describeSimonStatus,
+  describeSimonBanner,
   expectedIndex,
   finishSimon,
   flashMs,
@@ -18,8 +18,10 @@ import {
   releaseSimon,
   SIMON_BOARD_SIZES,
   SIMON_GAP_MS,
-  SIMON_ROUND_PAUSE_MS,
+  SIMON_HANDOVER_MS,
+  SIMON_LEAD_IN_MS,
   startSimon,
+  startWatching,
   tapSimon,
   timeOutSimon,
   type SimonGame,
@@ -27,7 +29,7 @@ import {
 
 function watching(sequence: number[]): SimonGame {
   return {
-    ...boardLoaded(startSimon("easy", createRng(1), 0)),
+    ...startWatching(boardLoaded(startSimon("easy", createRng(1), 0))),
     sequence,
   };
 }
@@ -37,7 +39,7 @@ function repeating(sequence: number[], step = 0): SimonGame {
 }
 
 function playThrough(game: SimonGame): SimonGame {
-  let current = game;
+  let current = startWatching(game);
   while (current.phase === "watch") {
     current = advancePlayback(current);
   }
@@ -77,7 +79,8 @@ describe("startSimon", () => {
     expect(game.sequence[0]).toBeLessThan(4);
     expect(game.phase).toBe("loading");
     expect(completedLength(game)).toBe(0);
-    expect(boardLoaded(game).phase).toBe("watch");
+    expect(boardLoaded(game).phase).toBe("ready");
+    expect(startWatching(boardLoaded(game)).phase).toBe("watch");
   });
 });
 
@@ -91,19 +94,26 @@ describe("playback", () => {
       lit.push(litIndex(current));
     }
 
-    expect(lit).toEqual([2, null, 0, null, 2, null]);
+    expect(lit).toEqual([2, null, 0, null, 2, null, null]);
     expect(current.phase).toBe("repeat");
     expect(current.step).toBe(0);
   });
 
-  it("pauses before a round, then shows each flash and gap", () => {
-    const game = watching([1, 3]);
+  it("leads in, shows each flash and gap, then pauses before handing over", () => {
+    const delays: number[] = [];
+    let game = watching([1, 3]);
+    while (game.phase === "watch") {
+      delays.push(playbackDelayMs(game));
+      game = advancePlayback(game);
+    }
 
-    expect(playbackDelayMs(game)).toBe(SIMON_ROUND_PAUSE_MS);
-    expect(playbackDelayMs(advancePlayback(game))).toBe(flashMs(game));
-    expect(playbackDelayMs(advancePlayback(advancePlayback(game)))).toBe(
+    expect(delays).toEqual([
+      SIMON_LEAD_IN_MS,
+      flashMs(game),
       SIMON_GAP_MS,
-    );
+      flashMs(game),
+      SIMON_HANDOVER_MS,
+    ]);
   });
 
   it("speeds up as the sequence grows, down to a floor", () => {
@@ -134,10 +144,10 @@ describe("tapSimon", () => {
     expect(tapSimon(game, 1, 0).step).toBe(1);
   });
 
-  it("adds a step and plays it back after a full sequence", () => {
+  it("adds a step and gets ready to play it after a full sequence", () => {
     const done = tapSimon(repeating([1, 3], 1), 3, 2);
 
-    expect(done.phase).toBe("watch");
+    expect(done.phase).toBe("ready");
     expect(done.sequence).toEqual([1, 3, 2]);
     expect(done.step).toBe(0);
     expect(completedLength(done)).toBe(2);
@@ -218,19 +228,54 @@ describe("randomIndex", () => {
   });
 });
 
-describe("describeSimonStatus", () => {
+describe("startWatching", () => {
+  it("starts playback once the player has had time to get ready", () => {
+    const ready = boardLoaded(startSimon("easy", createRng(1), 0));
+
+    expect(startWatching(ready)).toMatchObject({ phase: "watch", step: 0 });
+  });
+
+  it.each([
+    [
+      "while on hold",
+      holdSimon(boardLoaded(startSimon("easy", createRng(1), 0))),
+    ],
+    ["while repeating", repeating([1])],
+  ])("does nothing %s", (_, game) => {
+    expect(startWatching(game)).toBe(game);
+  });
+});
+
+describe("describeSimonBanner", () => {
   it.each([
     [
       "loading",
       startSimon("easy", createRng(1), 0),
-      "Getting the Pokémon ready…",
+      { title: "Getting the Pokémon ready…", detail: null },
     ],
-    ["watching", watching([1, 2]), "Watch closely…"],
-    ["repeating", repeating([1, 2, 3], 1), "Your turn: 2 of 3"],
-    ["missed", tapSimon(repeating([1]), 0, 0), "Not that one!"],
-    ["too slow", timeOutSimon(repeating([1])), "Too slow!"],
-  ])("%s -> %s", (_, game, text) => {
-    expect(describeSimonStatus(game)).toBe(text);
+    [
+      "ready",
+      tapSimon(repeating([1, 2], 1), 2, 0),
+      { title: "Get ready!", detail: "Round 3" },
+    ],
+    ["watching", watching([1, 2]), { title: "Watch closely…", detail: null }],
+    [
+      "repeating",
+      repeating([1, 2, 3], 1),
+      { title: "Your turn!", detail: "Tap 2 of 3" },
+    ],
+    [
+      "missed",
+      tapSimon(repeating([1]), 0, 0),
+      { title: "Not that one!", detail: null },
+    ],
+    [
+      "too slow",
+      timeOutSimon(repeating([1])),
+      { title: "Too slow!", detail: null },
+    ],
+  ])("%s", (_, game, banner) => {
+    expect(describeSimonBanner(game)).toEqual(banner);
   });
 });
 
