@@ -2,21 +2,29 @@
 
 What's left to build. Done so far: Party Builder, Who's That Pokémon?, Dex Run, Simon and Pokémon Match with its Silhouette and Evolution levels (each game has a shareable result page), and the personal scores page (`/scores`).
 
-Suggested order: typing mode, then the server (Ranked rounds and the global boards), then multiplayer on the same server. Offline play comes later.
+Suggested order: Name Drop, then the server (Ranked rounds and the global boards), then multiplayer on the same server (starting with a Name Drop race). Offline play comes later.
 
-## Typing mode
+## Name Drop
 
-Type the name instead of picking it. Harder, and it's what multiplayer will use. It's an option on the Sprite and Silhouette modes (the ones that answer with a name), with its own boards, so typed runs don't mix with tapped ones. The board key gains the input (`quiz:sprite:60:typed`).
+A typing game (working title). Pokémon fall from the top of the screen with their names, and you type each name before it reaches the bottom. Single player first. It's built so the same logic can run on the server for multiplayer later (see Multiplayer).
 
-- **Matching:** compare normalized names: lowercase, no accents, spaces or punctuation, and ♀/♂ become "f"/"m", so "Mr. Mime" matches "mrmime" and Nidoran♀ is "nidoranf". Allow one typo for names of 5 letters or more, unless the guess is as close or closer to another Pokémon's name (so "Nidorino" is wrong for Nidorina).
-- **Input:** a text field with autocomplete, autocorrect and spellcheck off. Enter submits. A wrong guess costs the same 2 s as a wrong tap. A Pass button reveals the answer and costs the same.
-- **Phones:** the keyboard covers half the screen, so the sprite and the input field have to fit above it.
+- **Levels:** **Names** (default): each Pokémon falls with its sprite and name, so it's about typing fast. **Sprites** (hard): only the sprite falls, so you have to know who it is. Each level has its own board on `/scores` (board key `name-drop:names` or `name-drop:sprites`) and a shareable result page like the other games.
+- **Which Pokémon:** species only, all generations. Forms like Deoxys's share their species' name, so they'd only add duplicates. If Sprites turns out too hard across 1,025 Pokémon, add a generation picker later.
+- **Typing:** as you type, the game locks onto the falling Pokémon whose name matches your letters so far, the lowest one if several match, and highlights those letters. Finishing the name clears the locked Pokémon, with no Enter key. A letter that matches nothing is ignored, flashes red and breaks your combo. Backspace undoes a letter.
+- **Names you can type:** letters and digits only, lowercase, no accents. ♀/♂ become "f"/"m". So "Mr. Mime" is `mrmime`, "Farfetch'd" `farfetchd`, Nidoran♀ `nidoranf` and Flabébé `flabebe`. The screen still shows the real name, and the punctuation fills in as you type. Two Pokémon are never on screen at once if one typed name starts the other (mew and mewtwo, porygon and porygon2, kabuto and kabutops, pidgeot and pidgeotto, and so on), so every falling name can always be typed.
+- **Scoring:** points per letter, times a combo multiplier that grows while you clear names without a wrong letter (up to x4). A Pokémon that reaches the bottom costs a life, and 3 lives ends the game. Boards rank by score, then whoever got there first.
+- **Getting harder:** Pokémon arrive more often and fall faster over time. Early on, use names of 6 letters or fewer, then bring in longer ones.
+- **Logic:** keep it free of the screen and the clock, like the other games, in `src/lib/`. The game keeps its own play clock, which stops while paused. Each falling Pokémon stores the play time it appeared and how long it takes to fall, so its position is worked out from play time, and a pause never makes everything land at once. Arrivals come from a seeded random number generator. That's what lets the server run the same logic later.
+- **Smooth on phones:** move the falling Pokémon with one `requestAnimationFrame` loop that sets CSS transforms directly. React state changes only on events (a Pokémon appears, is cleared or lands), not every frame.
+- **Phone keyboard:** a text input with autocomplete, autocorrect, autocapitalize and spellcheck off keeps the on-screen keyboard open. Make it invisible with opacity 0, not `display: none`, which can't take focus. Read typing from the input's value on each `input` event and clear it after each letter, because Android keyboards don't send normal key presses. The game starts on a "Tap to start" button that also focuses the input, since iOS only opens the keyboard from a tap. The play area fits in the space above the keyboard (`visualViewport`), and tapping it brings the keyboard back. It'll feel best with a real keyboard, so design for desktop first and make sure phones work.
+- **Pausing:** the game pauses during Quit and while the tab is hidden, like Match.
+- **Accessibility:** it's a fast visual game, so a screen reader can't really play it. On the Names level, announce each new Pokémon's name and each clear in a live region. On the Sprites level, names would give the answer away, so announce only "New Pokémon" and use "Mystery Pokémon" as the image text, like the quiz. A slower speed setting can come later if people ask.
 
 ## Leaderboards
 
 The personal boards on this device are done. Each board is one game setting (Sprite 60s, Dex Run Gen 1, and so on).
 
-Each game defines its own ranking in `scoring()` in `src/lib/leaderboard.ts`: the quiz and Dex Run rank by score then fewer mistakes, Simon by score, and Match by fewer flips then the faster time. Ties go to whoever got there first.
+Each game defines its own ranking in `scoring()` in `src/lib/leaderboard.ts`: the quiz and Dex Run rank by score then fewer mistakes, Simon by score, Match by fewer flips then the faster time, and Name Drop (once built) by score. Ties go to whoever got there first.
 
 Every game gets two ways to play:
 
@@ -87,9 +95,21 @@ A reusable WebSocket rooms library in `packages/rooms`. It knows nothing about P
 - **Docs and tests:** TSDoc on the public API. Test it with fake sockets and a fake clock, and include a tiny example game (tic-tac-toe) to prove nothing is Pokémon-specific.
 - **Repo:** turn this repo into npm workspaces (`apps/web`, `apps/server`, `packages/rooms`). Publishing the package to npm or moving it to its own repo can come later.
 
-### First multiplayer game: Who's That Pokémon? race
+### First multiplayer game: Name Drop race
 
-2–8 players in a room. Everyone sees the same Pokémon, and the first right answer, typed or tapped, scores. A wrong answer locks you out of that question. 10 questions per game. The server builds the questions with the same code as `src/lib/quiz.ts`.
+2–8 players in a room see the same Pokémon fall. The first player to finish typing a name claims its points, and it disappears for everyone. A game lasts 90 seconds, with no lives: a Pokémon that lands is simply gone. Highest score wins.
+
+- **The server runs the game:** it spawns the Pokémon from its own seed and runs the clock, using the same logic as single player. The seed never leaves the server: each new Pokémon is pushed to the browsers over the live connection as it appears.
+- **Same picture for everyone:** the server sends its clock time, and each browser keeps the offset, so every player sees the same Pokémon at the same height.
+- **Claiming a name:** the browser sends the finished name. The server checks it against what's still falling, stamps the time itself, and gives the points to the first valid claim.
+- **Losing a race:** when someone else claims the Pokémon you were typing, your letters on it clear and your lock moves to the next match. It doesn't count as a wrong letter or break your combo.
+- **Others' progress:** each player's typed letters on a name can show as a thin bar, sent at most a few times a second.
+
+Ranked single-player Name Drop works the same way: the server pushes each Pokémon as it appears, so the browser can't work them out ahead of time. On the Sprites level, images go through the server under hidden names, as in the Ranked plan above.
+
+### Later multiplayer game: Who's That Pokémon? race
+
+Everyone sees the same Pokémon, and the first right answer, typed or tapped, scores. A typed answer must match the name exactly after the same normalizing as Name Drop (letters and digits only, ♀/♂ as f/m), with no typos allowed. A wrong answer locks you out of that question. 10 questions per game. The server builds the questions with the same code as `src/lib/quiz.ts`.
 
 ## Server (v2)
 
@@ -98,7 +118,7 @@ What needs it:
 - Ranked rounds and the global leaderboard.
 - Multiplayer rooms.
 - Accounts, or at least a device ID, so teams and bests sync across devices.
-- Link previews that show the actual team or score. Preview apps don't run JavaScript, so the server has to rewrite the preview tags for `/share` and every result page (`/quiz/result`, `/dex-run/result`, `/simon/result` and `/match/result`) and draw the image.
+- Link previews that show the actual team or score. Preview apps don't run JavaScript, so the server has to rewrite the preview tags for `/share` and every result page (`/quiz/result`, `/dex-run/result`, `/simon/result`, `/match/result`, and Name Drop's once it exists) and draw the image.
 
 Decided:
 
