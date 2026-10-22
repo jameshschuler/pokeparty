@@ -1,10 +1,12 @@
 import { Volume2, VolumeX } from "lucide-react";
-import { useSimonContext } from "../../contexts/simon-context";
+import type { Cries } from "../../hooks/useCries";
 import { ICON_BUTTON } from "../shared/button-styles";
 
-export function SimonMuteButton() {
-  const { sound } = useSimonContext();
+type MuteButtonProps = {
+  sound: Pick<Cries, "supported" | "muted" | "toggleMuted">;
+};
 
+export function MuteButton({ sound }: MuteButtonProps) {
   if (!sound.supported) {
     return null;
   }

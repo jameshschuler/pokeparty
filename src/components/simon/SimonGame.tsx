@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useSimonContext } from "../../contexts/simon-context";
 import { completedLength } from "../../lib/simon";
+import { MuteButton } from "../game/MuteButton";
 import { QuitRound } from "../game/QuitRound";
 import { SECONDARY_BUTTON } from "../shared/button-styles";
 import { SimonBanner } from "./SimonBanner";
 import { SimonBoard } from "./SimonBoard";
-import { SimonMuteButton } from "./SimonMuteButton";
 import { SimonSummary } from "./SimonSummary";
 
 export function SimonGame() {
@@ -38,7 +38,7 @@ export function SimonGame() {
             {completedLength(game)}
           </span>
         </p>
-        <SimonMuteButton />
+        <MuteButton sound={sound} />
       </div>
       <SimonBanner />
       <SimonBoard key={game.startedAt} />
