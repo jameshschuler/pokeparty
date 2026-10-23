@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { MainMenuLink } from "../shared/MainMenuLink";
+import { EndScreen } from "../shared/EndScreen";
 import { CopyLinkButton } from "./CopyLinkButton";
 import { ShareButton } from "./ShareButton";
 
@@ -19,15 +19,16 @@ export function ResultCard({
   children,
 }: ResultCardProps) {
   return (
-    <section className="border-ink shadow-sticker flex flex-col items-center gap-4 rounded-3xl border-[3px] bg-white p-6 text-center">
-      <h1 className="text-3xl font-bold">{title}</h1>
-      {children}
-      <div className="flex items-center gap-3">
-        <CopyLinkButton url={url} />
-        <ShareButton url={url} title={shareTitle} />
-      </div>
-      {playLink}
-      <MainMenuLink />
-    </section>
+    <EndScreen>
+      <section className="border-ink shadow-sticker flex flex-col items-center gap-4 rounded-3xl border-[3px] bg-white p-6 text-center">
+        <h1 className="text-3xl font-bold">{title}</h1>
+        {children}
+        <div className="flex items-center gap-3">
+          <CopyLinkButton url={url} />
+          <ShareButton url={url} title={shareTitle} />
+        </div>
+        {playLink}
+      </section>
+    </EndScreen>
   );
 }

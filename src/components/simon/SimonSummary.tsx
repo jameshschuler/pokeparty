@@ -11,7 +11,7 @@ import {
   PRIMARY_BUTTON,
   SECONDARY_BUTTON,
 } from "../shared/button-styles";
-import { MainMenuLink } from "../shared/MainMenuLink";
+import { EndScreen } from "../shared/EndScreen";
 import { SimonScoreCard } from "./SimonScoreCard";
 
 export function SimonSummary() {
@@ -21,42 +21,43 @@ export function SimonSummary() {
   const rank = runRank(runs, simonScore(game));
 
   return (
-    <section className="border-ink shadow-sticker flex flex-col items-center gap-4 rounded-3xl border-[3px] bg-white p-6 text-center">
-      <h1 className="text-3xl font-bold">Game over!</h1>
-      <RankBadge rank={rank} />
-      <SimonScoreCard result={result} />
-      <div className="flex flex-wrap justify-center gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            unlockCries();
-            playAgain();
-          }}
-          className={PRIMARY_BUTTON}
-        >
-          <RotateCcw className="size-5" aria-hidden />
-          Play again
-        </button>
-        <Link to="/simon" className={SECONDARY_BUTTON}>
-          <Grid3x3 className="size-5" aria-hidden />
-          Change level
-        </Link>
-      </div>
-      <div className="flex flex-wrap justify-center gap-3">
-        <Link to="/simon/result" search={result} className={PILL_BUTTON}>
-          <Share2 className="size-5" aria-hidden />
-          Share result
-        </Link>
-        <Link
-          to="/scores/simon"
-          search={{ level: game.level }}
-          className={PILL_BUTTON}
-        >
-          <Trophy className="size-5" aria-hidden />
-          Your scores
-        </Link>
-        <MainMenuLink />
-      </div>
-    </section>
+    <EndScreen>
+      <section className="border-ink shadow-sticker flex flex-col items-center gap-4 rounded-3xl border-[3px] bg-white p-6 text-center">
+        <h1 className="text-3xl font-bold">Game over!</h1>
+        <RankBadge rank={rank} />
+        <SimonScoreCard result={result} />
+        <div className="flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              unlockCries();
+              playAgain();
+            }}
+            className={PRIMARY_BUTTON}
+          >
+            <RotateCcw className="size-5" aria-hidden />
+            Play again
+          </button>
+          <Link to="/simon" className={SECONDARY_BUTTON}>
+            <Grid3x3 className="size-5" aria-hidden />
+            Change level
+          </Link>
+        </div>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link to="/simon/result" search={result} className={PILL_BUTTON}>
+            <Share2 className="size-5" aria-hidden />
+            Share result
+          </Link>
+          <Link
+            to="/scores/simon"
+            search={{ level: game.level }}
+            className={PILL_BUTTON}
+          >
+            <Trophy className="size-5" aria-hidden />
+            Your scores
+          </Link>
+        </div>
+      </section>
+    </EndScreen>
   );
 }
