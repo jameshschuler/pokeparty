@@ -10,6 +10,8 @@ import {
   isValidPokemonId,
   matchesSearch,
   spriteUrl,
+  typedDisplayLength,
+  typedName,
 } from "./pokemon";
 
 function summary(
@@ -211,5 +213,34 @@ describe("filterPokemon", () => {
 
   it("returns nothing for an empty type set", () => {
     expect(ids({ typeIds: new Set() })).toEqual([]);
+  });
+});
+
+describe("typedName", () => {
+  it.each([
+    ["Pikachu", "pikachu"],
+    ["Mr. Mime", "mrmime"],
+    ["Farfetch’d", "farfetchd"],
+    ["Nidoran♀", "nidoranf"],
+    ["Nidoran♂", "nidoranm"],
+    ["Flabébé", "flabebe"],
+    ["Porygon-Z", "porygonz"],
+    ["Type: Null", "typenull"],
+    ["", ""],
+  ])("%s -> %s", (name, typed) => {
+    expect(typedName(name)).toBe(typed);
+  });
+});
+
+describe("typedDisplayLength", () => {
+  it.each([
+    ["Pikachu", 0, 0],
+    ["Pikachu", 3, 3],
+    ["Mr. Mime", 2, 4],
+    ["Mr. Mime", 3, 5],
+    ["Nidoran♀", 8, 8],
+    ["Porygon-Z", 7, 8],
+  ])("%s with %s typed shows %s characters", (name, typed, shown) => {
+    expect(typedDisplayLength(name, typed)).toBe(shown);
   });
 });

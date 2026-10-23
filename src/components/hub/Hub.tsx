@@ -2,6 +2,7 @@ import {
   CircleHelp,
   Grid2x2,
   Grid3x3,
+  Keyboard,
   ListOrdered,
   Trophy,
   Users,
@@ -51,6 +52,14 @@ export function Hub() {
             icon={<Grid2x2 className="size-7" aria-hidden />}
             title="Pokémon Match"
             description="Flip two cards at a time to find every pair."
+          />
+        </li>
+        <li>
+          <AppTile
+            to="/name-drop"
+            icon={<Keyboard className="size-7" aria-hidden />}
+            title="Name Drop"
+            description="Type each Pokémon's name before it lands."
           />
         </li>
         <li>
