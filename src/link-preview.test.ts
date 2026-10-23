@@ -25,6 +25,7 @@ describe("link preview tags", () => {
     "Dex Run",
     "Simon",
     "Pokémon Match",
+    "Name Drop",
   ])("names %s in the image text", (game) => {
     expect(metaContent("property", "og:image:alt")).toContain(game);
   });
@@ -35,9 +36,9 @@ describe("link preview tags", () => {
     );
   });
 
-  it("builds og:image from the site URL", () => {
-    expect(metaContent("property", "og:image")).toBe(
-      "%VITE_SITE_URL%/og-games.png?v=2",
+  it("builds og:image from the site URL, with a version to refresh caches", () => {
+    expect(metaContent("property", "og:image")).toMatch(
+      /^%VITE_SITE_URL%\/og-games\.png\?v=\d+$/,
     );
   });
 
