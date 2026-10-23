@@ -114,7 +114,7 @@ I know the domain. The problem is answers buried under qualifiers, shorthand, an
 
 ### Checks before committing
 
-Before creating a commit or opening a pull request, run format, lint and tests (`npm run format:check`, `npm run lint`, `npm test`) and fix any failures. Don't run the /code-review skill unless I ask for it.
+Before creating a commit or opening a pull request, run format, lint and tests (`npm run format:check`, `npm run lint`, `npm test`) and fix any failures. Then run the /code-review skill on the pending changes. Fix any confirmed findings (or tell me about the ones you're leaving), and run the checks again if you changed anything, before committing or opening the pull request.
 
 ### Commit messages
 
