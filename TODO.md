@@ -2,7 +2,7 @@
 
 What's left to build. What's already built is in the [README](README.md).
 
-Suggested order: the server (Ranked rounds and the global boards), then multiplayer on the same server (starting with a Name Drop race). Offline play comes later.
+Suggested order: the server (Ranked rounds and the global boards), then multiplayer on the same server (starting with a Who's That Pokémon? race). Offline play comes later.
 
 ## Leaderboards
 
@@ -31,6 +31,8 @@ Identity starts as a nickname plus an anonymous device token, with no accounts. 
 
 Boards: today, this week, and all time, per game setting. Days are UTC dates, so everyone shares the same "today". The daily challenge gets its own board, with that day's seed picked by the server.
 
+Ranked Name Drop can't use the question-and-answer steps above, because Pokémon fall in real time. The server runs the game and pushes each Pokémon over a live connection as it appears, so the browser can't work them out ahead of time. The server sends its clock time and each browser keeps the offset, so the browser draws each Pokémon where the server thinks it is. The browser sends each finished name, and the server checks it against what's still falling, using its own timestamp.
+
 Storage:
 
 - `rounds`: id, seed, game, setting, daily_date (null outside the daily challenge), started_at, finished_at, flagged.
@@ -44,7 +46,9 @@ Storage:
 
 A reusable WebSocket rooms library in `packages/rooms`. It knows nothing about Pokémon, so other games and apps can use it too. It's a library the server imports, not a service of its own, so it runs on the same Render server as the leaderboard.
 
-- **What it does:** create a room, join it with a short code, track who's connected, rejoin after a dropped connection, and hand the host role to someone else when the host leaves. It also clears out rooms nobody is in.
+- **What it does:** create a room, join it with a short code, track who's connected, and hand the host role to someone else when the host leaves. It also clears out rooms nobody is in.
+- **Dropped connections:** a player who drops keeps their seat for a 30-second grace period, owned by the package. Rejoining inside it restores the seat; after it, the package calls the game's `leave`.
+- **Room size:** each room has a capacity. People who join while a game is running wait in the room and are in the next game, so a game never has more players than the room holds.
 - **Server-run games:** each game plugs in as a definition, and the package runs it on the server:
 
   ```ts
@@ -52,16 +56,22 @@ A reusable WebSocket rooms library in `packages/rooms`. It knows nothing about P
   type Rng = () => number;
   type Move<State> = { state: State } | { error: string };
 
-  type GameDefinition<State, Action, View, Result> = {
+  type GameDefinition<State, Options, Action, View, Result> = {
     minPlayers: number;
     maxPlayers: number;
-    setup: (players: PlayerId[], rng: Rng) => State;
+    setup: (players: PlayerId[], options: Options, rng: Rng) => State;
     act: (
       state: State,
       player: PlayerId,
       action: Action,
       now: number,
     ) => Move<State>;
+    connection: (
+      state: State,
+      player: PlayerId,
+      connected: boolean,
+      now: number,
+    ) => State;
     leave: (state: State, player: PlayerId, now: number) => State;
     tick?: (state: State, now: number) => State;
     view: (state: State, player: PlayerId) => View;
@@ -69,7 +79,7 @@ A reusable WebSocket rooms library in `packages/rooms`. It knows nothing about P
   };
   ```
 
-  `act` validates a move and either applies it or rejects it with an error for that player. `leave` decides what happens when someone drops for good, so a turn-based game doesn't wait forever. `view` decides what each player sees, so answers and other players' hidden cards never reach the browser. The server stamps every move with its own time.
+  `options` are what the host picked in the lobby (the quiz mode, for the race), validated by the game. `act` validates a move and either applies it or rejects it with an error for that player. `connection` tells the game when someone drops or comes back inside the grace period, so it can stop waiting on them. `leave` decides what happens when someone is gone for good, so a turn-based game doesn't wait forever. `view` decides what each player sees, so answers and other players' hidden cards never reach the browser. The server stamps every move with its own time.
 
 - **Client:** a framework-free connection with automatic reconnect, plus a separate React hook entry (`rooms/react`), so non-React apps can use it.
 - **Protocol:** versioned JSON messages, with the types defined once in the package and validated on the server.
@@ -77,21 +87,51 @@ A reusable WebSocket rooms library in `packages/rooms`. It knows nothing about P
 - **Docs and tests:** TSDoc on the public API. Test it with fake sockets and a fake clock, and include a tiny example game (tic-tac-toe) to prove nothing is Pokémon-specific.
 - **Repo:** turn this repo into npm workspaces (`apps/web`, `apps/server`, `packages/rooms`). Publishing the package to npm or moving it to its own repo can come later.
 
-### First multiplayer game: Name Drop race
+### First multiplayer game: Who's That Pokémon? race
 
-2–8 players in a room see the same Pokémon fall. The first player to finish typing a name claims its points, and it disappears for everyone. A game lasts 90 seconds, with no lives: a Pokémon that lands is simply gone. Highest score wins.
+2–8 players join a room with a short code. Everyone gets the same question and taps one of four answers. The fastest right answer scores a point, and a wrong tap locks you out of that question. 10 questions, most points wins, and a tie is shared. It's tap-only, so it plays well on phones, and it needs no database.
 
-- **The server runs the game:** it spawns the Pokémon from its own seed and runs the clock, using the same logic as single player. The seed never leaves the server: each new Pokémon is pushed to the browsers over the live connection as it appears.
-- **Same picture for everyone:** the server sends its clock time, and each browser keeps the offset, so every player sees the same Pokémon at the same height.
-- **Claiming a name:** the browser sends the finished name. The server checks it against what's still falling, stamps the time itself, and gives the points to the first valid claim.
-- **Losing a race:** when someone else claims the Pokémon you were typing, your letters on it clear and your lock moves to the next match. It doesn't count as a wrong letter or break your combo.
-- **Others' progress:** each player's typed letters on a name can show as a thin bar, sent at most a few times a second.
+#### How a game runs
 
-Ranked single-player Name Drop works the same way: the server pushes each Pokémon as it appears, so the browser can't work them out ahead of time.
+1. **Lobby:** someone creates a room at `/race` and gets a code and a link (`/race/K7PX`) to send. Others open the link or type the code and pick a nickname. The host picks the quiz mode (Sprite, Silhouette, Region or Dex number) and taps Start once at least 2 players are in.
+2. **Question:** the server builds each question from its own seed with `drawAnswer` and `buildQuestion` from the quiz code, and sends it only when it starts, so answers never reach the browser early. Players see a 3-2-1 before the first question.
+3. **Images:** the question's images (from `questionSpriteIds`: the prompt sprite, or the four answer sprites in Dex number mode) go through the server under links made for each player that mean nothing (`/race/K7PX/images/f3a9…`). The real artwork files are named by Pokémon ID, so a direct link would give the answer away. Each phone shows the question as soon as its images arrive. Nobody waits for anyone else.
+4. **Your clock:** the server notes when it finished sending each player their images. Your time on a question runs from then to when your tap arrives, measured on the server, so a slow download doesn't cost you, and holding the images back gains nothing. You get 10 seconds.
+5. **Who wins the question:** the fastest right answer by that time, not the first to arrive. The question ends once nobody still in it could beat the best right answer so far, everyone is locked out, or every player's 10 seconds are up.
+6. **Reveal:** for 2 seconds everyone sees the right answer, who got it, and the scores. Then the next question.
+7. **Results:** final scores and the winner, then Play again (same room, the host can change the mode) or Leave.
 
-### Later multiplayer game: Who's That Pokémon? race
+#### Rules for the edges
 
-Everyone sees the same Pokémon, and the first right answer, typed or tapped, scores. A typed answer must match the name exactly after the same normalizing as Name Drop (letters and digits only, ♀/♂ as f/m), with no typos allowed. A wrong answer locks you out of that question. 10 questions per game. The server builds the questions with the same code as `src/lib/quiz.ts`.
+- **Network lag:** the time it takes your tap to reach the server still counts against you. The server logs each player's ping and how close every question was, so we can tell whether far-away players lose close races before building anything for it.
+- **Dropping out:** a player in the grace period keeps their score, and the question doesn't wait on them. Someone who leaves for good stays on the final scores with what they had.
+- **Joining mid-game:** you wait in the room and play the next game. The race's rooms hold 8 people.
+- **Host leaves:** the rooms package hands the host role to the next player, and the game keeps going.
+- **Silhouette mode:** the browser gets the full image and blacks it out with CSS, the same as single player. Since the link means nothing, that's fine.
+
+#### Build steps
+
+Each step is its own pull request.
+
+1. **Workspaces:** move to npm workspaces with `apps/web` (today's site), `apps/server` and `packages/rooms`. Move the pure Pokémon code the server needs (`quiz.ts`, `random.ts`, `pokedex.ts`, `pokemon.ts`, `regions.ts`, `src/types/pokemon.ts` and `pokedex.json`) into `packages/pokemon`, which both apps import. Update CI and CLAUDE.md to the new layout. No behavior changes.
+2. **Server:** a TypeScript server in `apps/server` with a health check and WebSocket upgrade, deployed to Render as a paid web service. The site keeps its own static hosting.
+3. **Rooms package:** as planned above, with the tic-tac-toe example and tests on fake sockets and a fake clock.
+4. **Race game:** the race as a `GameDefinition` in `apps/server`. It's pure logic, so it gets table-driven tests with a fake clock: the fastest right answer wins even when it arrives second, wrong taps lock you out, the early end, a player's 10 seconds running from their own images, dropped players not holding up a question, and game over after 10 questions.
+5. **Image proxy:** the server route that serves each player's images under their own links and notes when it finished sending them. It fetches the artwork from GitHub once and keeps it in memory.
+6. **Race screens:** in `apps/web`, under `/race` and `/race/$code`: create or join, the lobby, the question (reusing the quiz's answer buttons), the reveal and the results. A context in `src/contexts/` holds the connection and the latest view from the server, like the other games.
+7. **Hub and preview:** a hub tile for the race, and a seventh card on the link-preview image.
+
+Testing on real phones is part of step 6: two phones and a laptop in one room, including locking a phone mid-question and switching from Wi-Fi to mobile data.
+
+#### Decided for now, easy to change
+
+- 1 point per question, no speed bonus.
+- 10 questions, 10 seconds each, a 2-second reveal, and a 30-second grace period for dropped players.
+- No race result page or leaderboard. Each game is a one-off, so there's nothing to rank across rooms.
+
+### Later, maybe: Name Drop race
+
+Name Drop still doesn't play well on phones, so this waits until it does. The idea: everyone sees the same Pokémon fall, the first player to finish a name claims its points, and a game lasts 90 seconds with no lives. The server spawns the Pokémon from its own seed and pushes each one as it appears.
 
 ## Server (v2)
 
@@ -104,7 +144,7 @@ What needs it:
 
 Decided:
 
-- **Language: TypeScript.** The server, the rooms package and the site share one language, so they can share the protocol types and the question-building code in `src/lib/quiz.ts`.
+- **Language: TypeScript.** The server, the rooms package and the site share one language, so they can share the protocol types and the question-building code (`quiz.ts`, in `packages/pokemon` once the race's first build step lands).
 - **Hosting: Render.** One paid web service (free ones sleep for 30–50 s, and WebSockets need it awake), plus managed Postgres.
 
 Before the server work starts:
