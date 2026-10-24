@@ -1,22 +1,25 @@
 import { Link } from "@tanstack/react-router";
-import { Keyboard } from "lucide-react";
+import { Play } from "lucide-react";
 import { useRef } from "react";
 import { useNameDropContext } from "../../contexts/name-drop-context";
+import { useSpaceBelow } from "../../hooks/useSpaceBelow";
+import { useTypingKeys } from "../../hooks/useTypingKeys";
 import { QuitRound } from "../game/QuitRound";
 import { PRIMARY_BUTTON, SECONDARY_BUTTON } from "../shared/button-styles";
 import { NameDropAnnouncer } from "./NameDropAnnouncer";
 import { NameDropField } from "./NameDropField";
 import { NameDropHud } from "./NameDropHud";
-import { NameDropInput } from "./NameDropInput";
+import { NameDropKeypad } from "./NameDropKeypad";
 import { NameDropSummary } from "./NameDropSummary";
+import { NameDropTyped } from "./NameDropTyped";
+
+const BOTTOM_MARGIN_PX = 16;
 
 export function NameDropGame() {
-  const { game, start, hold, release } = useNameDropContext();
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  function focusInput() {
-    inputRef.current?.focus();
-  }
+  const { game, start, type, erase, hold, release } = useNameDropContext();
+  const playAreaRef = useRef<HTMLDivElement>(null);
+  const height = useSpaceBelow(playAreaRef, BOTTOM_MARGIN_PX);
+  useTypingKeys({ onLetter: type, onBackspace: erase });
 
   if (game.finished) {
     return <NameDropSummary />;
@@ -35,24 +38,24 @@ export function NameDropGame() {
         }
       />
       <NameDropHud />
-      <NameDropInput inputRef={inputRef} />
-      <NameDropField onTap={focusInput}>
-        {game.phase === "ready" && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <button
-              type="button"
-              onClick={() => {
-                focusInput();
-                start();
-              }}
-              className={PRIMARY_BUTTON}
-            >
-              <Keyboard className="size-5" aria-hidden />
-              Tap to start
-            </button>
-          </div>
-        )}
-      </NameDropField>
+      <div
+        ref={playAreaRef}
+        className="flex flex-col gap-3"
+        style={{ minHeight: height }}
+      >
+        <NameDropField>
+          {game.phase === "ready" && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <button type="button" onClick={start} className={PRIMARY_BUTTON}>
+                <Play className="size-5" aria-hidden />
+                Start
+              </button>
+            </div>
+          )}
+        </NameDropField>
+        <NameDropTyped />
+        <NameDropKeypad />
+      </div>
       <NameDropAnnouncer />
     </section>
   );

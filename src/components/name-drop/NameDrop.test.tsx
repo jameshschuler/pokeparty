@@ -3,39 +3,17 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadRuns, saveRuns } from "../../lib/leaderboard";
 import { NAME_DROP_FINISH_MS } from "../../lib/name-drop";
+import { typedName } from "../../lib/pokemon";
 import { renderApp } from "../../test/renderApp";
 
-function input(): HTMLInputElement {
-  return screen.getByLabelText("Type the Pokémon's name");
+function tapKey(name: string) {
+  fireEvent.pointerDown(screen.getByRole("button", { name }));
 }
 
-function typeInto(text: string) {
-  const field = input();
-  field.value = ` ${text}`;
-  fireEvent.input(field);
-}
-
-function pressBackspace() {
-  const field = input();
-  field.value = "";
-  act(() => {
-    field.dispatchEvent(
-      new InputEvent("input", {
-        inputType: "deleteContentBackward",
-        bubbles: true,
-      }),
-    );
-  });
-}
-
-function compose(text: string) {
-  const field = input();
-  field.value = ` ${text}`;
-  act(() => {
-    field.dispatchEvent(
-      new InputEvent("input", { isComposing: true, bubbles: true }),
-    );
-  });
+function typeOnPad(text: string) {
+  for (const letter of typedName(text)) {
+    tapKey(letter.toUpperCase());
+  }
 }
 
 function fallingNames(): string[] {
@@ -55,7 +33,7 @@ function runFor(ms: number) {
 async function startGame() {
   vi.useFakeTimers({ shouldAdvanceTime: true });
   renderApp("/name-drop/play");
-  const start = await screen.findByRole("button", { name: "Tap to start" });
+  const start = await screen.findByRole("button", { name: "Start" });
   fireEvent.click(start);
   act(() => vi.advanceTimersByTime(900));
 }
@@ -90,18 +68,15 @@ describe("name drop", () => {
     );
   });
 
-  it("waits for a tap to start, then drops a Pokémon with its name", async () => {
+  it("waits for Start, then drops a Pokémon with its name", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     renderApp("/name-drop/play");
-    await screen.findByRole("button", { name: "Tap to start" });
+    await screen.findByRole("button", { name: "Start" });
     act(() => vi.advanceTimersByTime(5_000));
 
     expect(fallingNames()).toEqual([]);
 
-    fireEvent.click(screen.getByRole("button", { name: "Tap to start" }));
-
-    expect(input()).toHaveFocus();
-
+    fireEvent.click(screen.getByRole("button", { name: "Start" }));
     act(() => vi.advanceTimersByTime(900));
 
     expect(fallingNames()).toHaveLength(1);
@@ -111,53 +86,106 @@ describe("name drop", () => {
     await startGame();
     const [name] = fallingNames();
 
-    typeInto(name);
+    typeOnPad(name);
 
     expect(fallingNames()).toEqual([]);
     expect(screen.getByLabelText("Score")).not.toHaveTextContent(/^0$/);
-    expect(input().value).toBe(" ");
+  });
+
+  it("takes letters from a physical keyboard too", async () => {
+    await startGame();
+    const [name] = fallingNames();
+
+    for (const letter of typedName(name)) {
+      fireEvent.keyDown(window, { key: letter });
+    }
+
+    expect(fallingNames()).toEqual([]);
+  });
+
+  it("erases with a physical Backspace, and keeps erasing while it's held", async () => {
+    await startGame();
+    const [name] = fallingNames();
+    const firstThree = typedName(name).slice(0, 3);
+
+    for (const letter of firstThree) {
+      fireEvent.keyDown(window, { key: letter });
+    }
+    fireEvent.keyDown(window, { key: "Backspace" });
+    fireEvent.keyDown(window, { key: "Backspace", repeat: true });
+
+    expect(screen.getByText(firstThree[0])).toBeInTheDocument();
+  });
+
+  it("ignores a held-down letter repeating", async () => {
+    await startGame();
+    const [name] = fallingNames();
+    const first = typedName(name)[0];
+
+    fireEvent.keyDown(window, { key: first });
+    fireEvent.keyDown(window, { key: first, repeat: true });
+
+    expect(screen.getByText(first)).not.toHaveClass("animate-wrong");
+  });
+
+  it("ignores a right-click on the letter pad", async () => {
+    await startGame();
+    const [name] = fallingNames();
+
+    fireEvent.pointerDown(
+      screen.getByRole("button", { name: typedName(name)[0].toUpperCase() }),
+      { button: 2 },
+    );
+
+    expect(screen.getByText("Start typing…")).toBeInTheDocument();
+  });
+
+  it("ignores keyboard shortcuts", async () => {
+    await startGame();
+    const [name] = fallingNames();
+
+    fireEvent.keyDown(window, { key: typedName(name)[0], metaKey: true });
+
+    expect(screen.getByText("Start typing…")).toBeInTheDocument();
+  });
+
+  it("types one letter per tap", async () => {
+    await startGame();
+    const [name] = fallingNames();
+    const key = screen.getByRole("button", {
+      name: typedName(name)[0].toUpperCase(),
+    });
+
+    fireEvent.pointerDown(key);
+    fireEvent.click(key, { detail: 1 });
+
+    expect(screen.getByText(typedName(name)[0])).toBeInTheDocument();
+  });
+
+  it("lets a screen reader press a key", async () => {
+    await startGame();
+    const [name] = fallingNames();
+    const first = typedName(name)[0];
+
+    fireEvent.click(screen.getByRole("button", { name: first.toUpperCase() }), {
+      detail: 0,
+    });
+
+    expect(screen.getByText(first)).toBeInTheDocument();
   });
 
   it("shows letters as they're typed and undoes them with backspace", async () => {
     await startGame();
     const [name] = fallingNames();
-    const firstTwo = name.toLowerCase().slice(0, 2);
+    const firstTwo = typedName(name).slice(0, 2);
 
-    typeInto(firstTwo);
+    typeOnPad(firstTwo);
 
     expect(screen.getByText(firstTwo)).toBeInTheDocument();
 
-    pressBackspace();
+    tapKey("Backspace");
 
     expect(screen.getByText(firstTwo[0])).toBeInTheDocument();
-  });
-
-  it("reads letters from an Android-style composing keyboard without doubling them", async () => {
-    await startGame();
-    const [name] = fallingNames();
-    const word = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-    compose(word.slice(0, 1));
-    compose(word.slice(0, 2));
-    compose(word.slice(0, 1));
-
-    expect(screen.getByText(word.slice(0, 1))).toBeInTheDocument();
-
-    compose(word);
-    fireEvent.compositionEnd(input());
-
-    expect(fallingNames()).toEqual([]);
-    expect(input().value).toBe(" ");
-  });
-
-  it("keeps the text cursor at the end so the next letter isn't misread", async () => {
-    await startGame();
-    const field = input();
-    field.setSelectionRange(0, 0);
-
-    fireEvent.select(field);
-
-    expect(field.selectionStart).toBe(field.value.length);
   });
 
   it("loses a life when a Pokémon lands", async () => {
@@ -173,7 +201,7 @@ describe("name drop", () => {
   it("ends after three landings, saves the score and links to share it", async () => {
     await startGame();
     const [name] = fallingNames();
-    typeInto(name);
+    typeOnPad(name);
 
     runFor(30_000);
     runFor(NAME_DROP_FINISH_MS);
