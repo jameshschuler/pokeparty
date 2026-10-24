@@ -17,6 +17,8 @@ const FIRST_SPAWN_MS = 800;
 
 export const NAME_DROP_LANES = 3;
 
+export const NAME_DROP_KEYPAD_ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm2"];
+
 const CROWDED_PROGRESS = 0.5;
 
 const SLOWEST_SPAWN_MS = 2_200;
@@ -351,7 +353,7 @@ export function typeText(
 }
 
 export function backspace(game: NameDropGame, now: number): NameDropGame {
-  if (!isRunning(game) || game.typed === "") {
+  if (!isRunning(game) || game.onHold || game.typed === "") {
     return game;
   }
 
@@ -395,25 +397,4 @@ export function finishNameDrop(game: NameDropGame): NameDropGame {
   return game.phase === "over" && !game.onHold
     ? { ...game, finished: true }
     : game;
-}
-
-export type TypingChange = {
-  erased: number;
-  added: string;
-};
-
-export function diffTyping(previous: string, next: string): TypingChange {
-  let same = 0;
-  while (
-    same < previous.length &&
-    same < next.length &&
-    previous[same] === next[same]
-  ) {
-    same++;
-  }
-
-  return {
-    erased: typedName(previous.slice(same)).length,
-    added: next.slice(same),
-  };
 }

@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { SPECIES } from "./pokedex";
+import { typedName } from "./pokemon";
 import {
   advance,
   backspace,
   createNameDrop,
-  diffTyping,
   fallMs,
   finishNameDrop,
   holdNameDrop,
   longestNameAt,
   multiplier,
+  NAME_DROP_KEYPAD_ROWS,
   NAME_DROP_LANES,
   NAME_DROP_LIVES,
   nextEventInMs,
@@ -197,6 +199,14 @@ describe("typing", () => {
     expect(undone.lockedId).toBeNull();
   });
 
+  it("ignores backspace while the game is on hold", () => {
+    const [game, now] = untilDrops(started(), 1);
+    const typed = typeText(game, game.drops[0].typed.slice(0, 2), now);
+    const held = holdNameDrop(typed, now);
+
+    expect(backspace(held, now).typed).toBe(held.typed);
+  });
+
   it("keeps your letters when the locked Pokémon lands but another still matches", () => {
     const [game, now] = untilDrops(started(), 2);
     const [older, newer] = game.drops;
@@ -262,18 +272,14 @@ describe("play clock", () => {
   });
 });
 
-describe("diffTyping", () => {
-  it.each([
-    [" ", " p", 0, "p"],
-    [" p", " pi", 0, "i"],
-    [" pi", " p", 1, ""],
-    [" ", "", 0, ""],
-    [" pi", " po", 1, "o"],
-    [" ", " ", 0, ""],
-    [" mr.", " mr", 0, ""],
-    [" mr. m", " mr", 1, ""],
-  ])("%j -> %j erases %s and adds %j", (previous, next, erased, added) => {
-    expect(diffTyping(previous, next)).toEqual({ erased, added });
+describe("keypad", () => {
+  it("has a key for every letter in every name", () => {
+    const keys = new Set(NAME_DROP_KEYPAD_ROWS.join(""));
+    const missing = SPECIES.flatMap((pokemon) =>
+      [...typedName(pokemon.displayName)].filter((key) => !keys.has(key)),
+    );
+
+    expect(missing).toEqual([]);
   });
 });
 
