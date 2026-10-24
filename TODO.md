@@ -1,14 +1,12 @@
 # TODO
 
-What's left to build. Done so far: Party Builder, Who's That Pokémon?, Dex Run, Simon, Pokémon Match with its Silhouette and Evolution levels, and single-player Name Drop (each game has a shareable result page), and the personal scores page (`/scores`).
+What's left to build. What's already built is in the [README](README.md).
 
 Suggested order: the server (Ranked rounds and the global boards), then multiplayer on the same server (starting with a Name Drop race). Offline play comes later.
 
 ## Leaderboards
 
-The personal boards on this device are done. Each board is one game setting (Sprite 60s, Dex Run Gen 1, and so on).
-
-Each game defines its own ranking in `scoring()` in `src/lib/leaderboard.ts`: the quiz and Dex Run rank by score then fewer mistakes, Simon by score, Match by fewer flips then the faster time, and Name Drop by score. Ties go to whoever got there first.
+The personal boards on this device are done (`/scores`). Each board is one game setting (Sprite 60s, Dex Run Gen 1, and so on), and each game's ranking is in `scoring()` in `src/lib/leaderboard.ts`: the quiz and Dex Run rank by score then fewer mistakes, Simon by score, Match by fewer flips then the faster time, and Name Drop by score. Ties go to whoever got there first.
 
 Every game gets two ways to play:
 

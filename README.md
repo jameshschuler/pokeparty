@@ -1,6 +1,6 @@
 # PokeParty
 
-Pokémon games and a party builder, made for phones first. Every game has a result page you can share. Your scores and saved teams stay in your browser.
+Pokémon games and a party builder, made for phones first. Every game has a result page you can share. Your saved teams and your best scores (on the Scores page) stay in your browser.
 
 **Play it:** https://pokeparty-sd5l.onrender.com
 
@@ -12,11 +12,11 @@ Pick up to six Pokémon and share the team as a link.
 
 ## Games
 
-- **Who's That Pokémon?:** a quiz with four modes: name the Pokémon from its sprite or its silhouette, pick its region, or match a Pokédex number to its sprite. There's also a time attack.
+- **Who's That Pokémon?:** a quiz with four modes: name the Pokémon from its sprite or its silhouette, pick its region, or match a Pokédex number to its sprite. Play a 30, 60 or 90 second round, or time attack.
 - **Dex Run:** name Pokémon in Pokédex order, for the National Dex or a single generation.
 - **Simon:** watch a sequence of Pokémon, listen to their cries, then tap it back. Easy, medium and hard boards.
-- **Pokémon Match:** a memory card game with Easy, Medium and Hard boards. The Silhouette and Evolution levels pair each Pokémon with its shadow or its evolution.
-- **Name Drop:** Pokémon fall from the top of the screen. Type each name before it lands. On phones the game has its own letter pad, so the phone keyboard doesn't cover the screen.
+- **Pokémon Match:** a memory card game with Easy, Medium and Hard boards. The Silhouette and Evolution levels pair each Pokémon with its silhouette or its evolution.
+- **Name Drop:** Pokémon fall from the top of the screen. Type each name before it lands. On touch screens the game has its own letter pad, so the phone keyboard doesn't cover the screen.
 
 ## Running it locally
 
@@ -35,6 +35,8 @@ The app runs at http://localhost:5173.
 | `npm run build`            | Typecheck and build to `dist/`               |
 | `npm test`                 | Run the tests with Vitest                    |
 | `npm run lint`             | Lint with ESLint                             |
+| `npm run typecheck`        | Typecheck with `tsc`                         |
+| `npm run format`           | Format with Prettier                         |
 | `npm run format:check`     | Check formatting with Prettier               |
 | `npm run generate:pokedex` | Rebuild `src/data/pokedex.json` from PokeAPI |
 
