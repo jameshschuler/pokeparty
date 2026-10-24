@@ -6,6 +6,12 @@ import {
 } from "./dex-run-result";
 import type { QuizRound } from "./quiz";
 import type { MatchGame } from "./match";
+import type { NameDropGame } from "./name-drop";
+import {
+  nameDropResult,
+  parseNameDropResult,
+  type NameDropResult,
+} from "./name-drop-result";
 import {
   matchResult,
   parseMatchResult,
@@ -34,13 +40,19 @@ export type MatchScore = { game: "match" } & MatchResult & {
     playedAt: number;
   };
 
-export type GameRun = QuizRun | DexRunScore | SimonScore | MatchScore;
+export type NameDropScore = { game: "name-drop" } & NameDropResult & {
+    playedAt: number;
+  };
+
+export type GameRun =
+  QuizRun | DexRunScore | SimonScore | MatchScore | NameDropScore;
 
 export type Board =
   | Pick<QuizRun, "game" | "mode" | "clock">
   | Pick<DexRunScore, "game" | "range">
   | Pick<SimonScore, "game" | "level">
-  | Pick<MatchScore, "game" | "level">;
+  | Pick<MatchScore, "game" | "level">
+  | Pick<NameDropScore, "game">;
 
 export const BOARD_SIZE = 10;
 
@@ -74,6 +86,18 @@ export function isMatchScore(run: GameRun): run is MatchScore {
   return run.game === "match";
 }
 
+export function isNameDropScore(run: GameRun): run is NameDropScore {
+  return run.game === "name-drop";
+}
+
+export function nameDropScore(game: NameDropGame): NameDropScore {
+  return {
+    game: "name-drop",
+    ...nameDropResult(game),
+    playedAt: game.startedAt,
+  };
+}
+
 export function matchScore(game: MatchGame): MatchScore {
   return { game: "match", ...matchResult(game), playedAt: game.startedAt };
 }
@@ -88,6 +112,8 @@ function boardKey(board: Board): string {
       return `simon:${board.level}`;
     case "match":
       return `match:${board.level}`;
+    case "name-drop":
+      return "name-drop";
     default:
       return board satisfies never;
   }
@@ -109,6 +135,7 @@ function scoring(run: GameRun): Scoring {
         worthSaving: run.score > 0,
       };
     case "simon":
+    case "name-drop":
       return {
         display: run.score,
         rankKeys: [run.score],
@@ -206,6 +233,19 @@ function parseDexRunScore(
   return { game: "dex-run", ...result, playedAt };
 }
 
+function parseNameDropScore(
+  run: Record<string, unknown>,
+  playedAt: number,
+): NameDropScore | null {
+  const result = parseNameDropResult(run);
+
+  if (!result) {
+    return null;
+  }
+
+  return { game: "name-drop", ...result, playedAt };
+}
+
 function parseMatchScore(
   run: Record<string, unknown>,
   playedAt: number,
@@ -252,6 +292,10 @@ function parseStoredRun(value: unknown): GameRun | null {
 
   if (run.game === "match") {
     return parseMatchScore(run, run.playedAt);
+  }
+
+  if (run.game === "name-drop") {
+    return parseNameDropScore(run, run.playedAt);
   }
 
   const result =

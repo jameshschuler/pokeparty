@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRng, sample, shuffle } from "./random";
+import { createRng, sample, shuffle, stepRng } from "./random";
 
 describe("createRng", () => {
   it("repeats the same sequence for the same seed", () => {
@@ -14,6 +14,16 @@ describe("createRng", () => {
     const values = Array.from({ length: 1000 }, rng);
 
     expect(values.every((value) => value >= 0 && value < 1)).toBe(true);
+  });
+});
+
+describe("stepRng", () => {
+  it("matches createRng step for step, so state can be stored", () => {
+    const rng = createRng(42);
+    const first = stepRng(42);
+    const second = stepRng(first.state);
+
+    expect([first.value, second.value]).toEqual([rng(), rng()]);
   });
 });
 

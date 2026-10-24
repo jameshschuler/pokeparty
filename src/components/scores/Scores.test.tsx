@@ -177,6 +177,38 @@ describe("your scores", () => {
     ]);
   });
 
+  it("has a Name Drop tab ranked by score", async () => {
+    saveRuns([
+      {
+        game: "name-drop",
+        score: 300,
+        cleared: 6,
+        playedAt: 1,
+      },
+      {
+        game: "name-drop",
+        score: 900,
+        cleared: 15,
+        playedAt: 2,
+      },
+    ]);
+    const user = userEvent.setup();
+    renderApp("/scores/quiz?mode=sprite&clock=60");
+
+    const tab = await screen.findByRole("link", { name: "Name Drop" });
+    await user.click(tab);
+
+    const list = await screen.findByRole("list", { name: "Top runs" });
+    expect(
+      within(list)
+        .getAllByRole("listitem")
+        .map((row) => row.textContent),
+    ).toEqual([
+      expect.stringMatching(/^#1900 ?15 named/),
+      expect.stringMatching(/^#2300 ?6 named/),
+    ]);
+  });
+
   it("links an empty Dex Run board to that dex", async () => {
     renderApp("/scores/dex-run?range=4");
 

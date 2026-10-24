@@ -45,6 +45,7 @@
   --animate-pop: pop 300ms ease-out;
   --animate-toast: toast 200ms ease-out;
   --animate-countdown: countdown linear forwards;
+  --animate-wrong: wrong 300ms ease-out;
 
   @keyframes pop {
     0% {
@@ -62,6 +63,13 @@
     from {
       opacity: 0;
       transform: translateY(8px);
+    }
+  }
+
+  @keyframes wrong {
+    from {
+      background-color: var(--color-wrong);
+      color: white;
     }
   }
 

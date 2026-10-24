@@ -46,6 +46,9 @@ export function ScoresLayout() {
         >
           Match
         </Link>
+        <Link to="/scores/name-drop" {...SCORES_TAB}>
+          Name Drop
+        </Link>
       </nav>
       <Outlet />
     </section>

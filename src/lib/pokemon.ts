@@ -67,3 +67,31 @@ export function filterPokemon(
       (!filter.legendaryOnly || entry.legendary),
   );
 }
+
+export function typedName(name: string): string {
+  return name
+    .replaceAll("♀", "f")
+    .replaceAll("♂", "m")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+export function typedDisplayLength(name: string, typedCount: number): number {
+  if (typedCount === 0) {
+    return 0;
+  }
+
+  let count = 0;
+  let index = 0;
+  while (index < name.length && count < typedCount) {
+    count += typedName(name[index]).length;
+    index++;
+  }
+  while (index < name.length && typedName(name[index]) === "") {
+    index++;
+  }
+
+  return index;
+}

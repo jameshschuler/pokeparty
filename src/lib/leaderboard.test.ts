@@ -9,6 +9,7 @@ import {
   formatPlayedAt,
   isDexRunScore,
   isMatchScore,
+  isNameDropScore,
   isQuizRun,
   isSimonScore,
   loadRuns,
@@ -179,6 +180,31 @@ describe("Match scores", () => {
     );
 
     expect(loadRuns()).toEqual([]);
+  });
+});
+
+describe("Name Drop scores", () => {
+  const drop = (score: number, cleared: number, playedAt: number) => ({
+    game: "name-drop" as const,
+    score,
+    cleared,
+    playedAt,
+  });
+
+  it("ranks by score", () => {
+    const runs = [drop(300, 6, 1), drop(900, 15, 2)];
+
+    expect(
+      boardRuns(runs, { game: "name-drop" }).map((run) => run.score),
+    ).toEqual([900, 300]);
+    expect(isNameDropScore(runs[0])).toBe(true);
+  });
+
+  it("saves and loads a score, and skips a game with no points", () => {
+    saveRuns(addRun([], drop(300, 6, 1)));
+
+    expect(loadRuns()).toEqual([drop(300, 6, 1)]);
+    expect(addRun([], drop(0, 0, 2))).toEqual([]);
   });
 });
 
