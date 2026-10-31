@@ -2,7 +2,61 @@
 
 What's left to build. What's already built is in the [README](README.md).
 
-Suggested order: the server (Ranked rounds and the global boards), then multiplayer on the same server (starting with a Who's That Pokémon? race). Offline play comes later.
+Suggested order: the server (Ranked rounds and the global boards), then multiplayer on the same server (starting with a Who's That Pokémon? race). Offline play comes later. Sprite Slide runs in the browser only, so it can be built at any point.
+
+## New game: Sprite Slide
+
+A sliding puzzle. A Pokémon's artwork is cut into a grid of tiles with one gap, and the tiles are shuffled. Slide them back until the picture is whole. Fewer moves wins, then the faster time. The Pokémon's name stays hidden until you solve it.
+
+### How a game runs
+
+1. **Setup (`/slide`):** pick a size: Easy (3×3, 8 tiles), Medium (4×4, 15 tiles) or Hard (5×5, 24 tiles).
+2. **Loading:** the game picks a random species and waits for its artwork to load before showing the board, like Match. A failed or slow image shows the existing "couldn't load" screen.
+3. **Playing:** tap a tile in the same row or column as the gap and it slides toward it, pushing any tiles in between. Arrow keys work too. A small picture of the finished sprite sits above the board.
+4. **Clock:** starts on your first move, stops when the board is solved, and pauses while the tab is hidden, the same as Match.
+5. **Solved:** the gap fills in, the Pokémon's cry plays and its name shows. Then the summary: moves, time, and Play again or See result.
+6. **Result (`/slide/result`):** a shareable card with size, moves, time and the Pokémon, like the other games.
+
+### Rules for the edges
+
+- **What a move is:** each tile that moves counts as one. Sliding three tiles in one tap is three moves. Counting taps would let a player shift a whole row for the price of one move.
+- **Always solvable:** half of all random shuffles of a sliding puzzle can't be solved. Shuffle the tiles at random, then check the parity (whether the tile order plus the gap's row can still reach the solved state) and swap two tiles if it can't. Never hand out a board that's already solved. The shuffle uses the seeded `createRng`, so tests are deterministic.
+- **Blank tiles:** the artwork has a lot of transparent space, so corner tiles are often empty and look the same. Two identical tiles in the wrong places would look solved but not count. Draw a background behind the whole picture and slice it with the sprite: the hue changes from left to right and the lightness from top to bottom. Every tile then has its own mix. A single diagonal gradient isn't enough, because tiles on the same diagonal would match. Coloring it by the Pokémon's type would need types in `pokedex.json`, which the offline plan adds.
+- **Cutting the image:** each tile is a `div` with the sprite as its CSS background, sized to the whole board and offset to that tile's spot. No canvas, so the cross-site artwork needs no CORS.
+
+### Later: Shiny and Silhouette
+
+Add these once the basic game is in. Each is a style picked next to the size.
+
+- **Shiny:** the shiny artwork (`spriteUrl(id, true)`). Same difficulty, it just looks different.
+- **Silhouette:** the sprite layer is blacked out with CSS, the same as the quiz and Match. The background stays, and it's the only thing that tells the tiles apart. The preview picture is a silhouette too, and the name and colors show when it's solved. This is the hard mode.
+
+The sprite and the background have to be separate layers in each tile, so the silhouette filter only hits the sprite. Build the tile that way from the start so these styles are a small change.
+
+### Code
+
+- **`src/lib/slide.ts`:** the pure game: sizes, shuffle with the parity fix, which tiles can move, sliding a row or column, the move count, solved check and the clock (start, pause, resume, stop). Table-driven tests: every shuffle is solvable and not already solved, a tap off the gap's row and column does nothing, a multi-tile slide counts each tile, the clock starts on the first move and stops on solve, no moves after solved.
+- **`src/lib/slide-result.ts`:** the result and its URL (`size`, `moves`, `timeMs`, `id`), with parsing that rejects bad sizes, unknown Pokémon, zero moves and times over a day. Tests for each.
+- **Leaderboard:** a `slide` entry in `src/lib/leaderboard.ts`, one board per size, ranked by `[-moves, -timeMs]` like Match. A Slide tab on `/scores`.
+- **Screens:** `src/components/slide/` (setup, board, tile, HUD, summary, result card), a `slide-context.tsx` in `src/contexts/`, and routes `slide.index.tsx`, `slide.play.tsx` and `slide.result.tsx`.
+- **Hub and preview:** a hub tile, and a card on the link-preview image: update `scripts/og-games.html`, regenerate `public/og-games.png`, bump its `?v=` in `index.html` so sites drop the cached image, and update the `og:image:alt` text and its test.
+
+### Build steps
+
+Each step is its own pull request.
+
+1. **Game logic:** `slide.ts` and `slide-result.ts` with their tests.
+2. **Screens:** setup, play and result routes, the hub tile, and the scores board. Check it on a phone: tiles should be big enough to tap on a 5×5 board.
+3. **Preview image:** the link-preview card.
+4. **Shiny and Silhouette:** the style option, a board per size and style, and the result URL gains `style`.
+
+### Decided for now, easy to change
+
+- Three sizes: 3×3, 4×4 and 5×5.
+- The gap is the bottom-right tile.
+- Any species, base forms only (`SPECIES`), like Match.
+- A preview picture is always shown. A "no preview" option could come later as an extra-hard setting.
+- No move limit and no time limit.
 
 ## Leaderboards
 
@@ -119,7 +173,7 @@ Each step is its own pull request.
 4. **Race game:** the race as a `GameDefinition` in `apps/server`. It's pure logic, so it gets table-driven tests with a fake clock: the fastest right answer wins even when it arrives second, wrong taps lock you out, the early end, a player's 10 seconds running from their own images, dropped players not holding up a question, and game over after 10 questions.
 5. **Image proxy:** the server route that serves each player's images under their own links and notes when it finished sending them. It fetches the artwork from GitHub once and keeps it in memory.
 6. **Race screens:** in `apps/web`, under `/race` and `/race/$code`: create or join, the lobby, the question (reusing the quiz's answer buttons), the reveal and the results. A context in `src/contexts/` holds the connection and the latest view from the server, like the other games.
-7. **Hub and preview:** a hub tile for the race, and a seventh card on the link-preview image.
+7. **Hub and preview:** a hub tile for the race, and a card on the link-preview image (regenerated, with its `?v=` bumped).
 
 Testing on real phones is part of step 6: two phones and a laptop in one room, including locking a phone mid-question and switching from Wi-Fi to mobile data.
 
