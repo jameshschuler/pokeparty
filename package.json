@@ -13,7 +13,8 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "generate:pokedex": "node scripts/generate-pokedex.ts"
+    "generate:pokedex": "node scripts/generate-pokedex.ts",
+    "generate:nature-dex": "sh scripts/nature-dex/fetch.sh"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.4",

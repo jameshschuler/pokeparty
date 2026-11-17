@@ -12,7 +12,7 @@ export function AppTile({ to, icon, title, description }: AppTileProps) {
   return (
     <Link
       to={to}
-      className="border-ink shadow-sticker flex items-center gap-4 rounded-2xl border-[3px] bg-white p-4 transition active:translate-x-1 active:translate-y-1 active:shadow-none"
+      className="border-ink shadow-sticker flex h-full min-h-36 items-center gap-4 rounded-2xl border-[3px] bg-white p-4 transition active:translate-x-1 active:translate-y-1 active:shadow-none"
     >
       <span className="border-ink bg-accent flex size-14 shrink-0 items-center justify-center rounded-2xl border-[3px]">
         {icon}
