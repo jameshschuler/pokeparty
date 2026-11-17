@@ -127,3 +127,12 @@ Make the site an installable PWA so every game works without a connection. Offli
 - **Alternative:** PokeAPI's small pixel sprites are 0.5–1.7 KB each (about 2.5 MB). That's far smaller, but the look changes to pixel art, and many alternate forms and recent Pokémon have no pixel sprite.
 - **Show the state:** an "Offline" badge in the header, and Ranked greyed out while offline. Share and Copy link keep working, since results live in the URL.
 - **Tooling:** `vite-plugin-pwa` (Workbox) rather than a hand-written service worker.
+
+## Nature Dex follow-ups
+
+The Nature Dex is built (see the README). Left over from moving it in from [nature-dex](https://github.com/jameshschuler/nature-dex):
+
+- **Retire the old site.** Point the old Render deploy at `/nature-dex` with a redirect in its `render.yaml`, then archive the old repo.
+- **Port the data script to TypeScript.** `scripts/nature-dex/extract_hns.py` is the only Python in the repo. It moved over as-is to keep the port small. Rewrite it like `generate-pokedex.ts` the next time it needs a real change.
+- **Header nav.** The home page groups Games and Tools. Add a header nav (or separate `/games` and `/tools` pages) once there are three or more tools besides Party Builder.
+- **Paging.** The list renders all 386 rows at once. Add paging (`usePagedItems`) only if it's slow on a phone.
