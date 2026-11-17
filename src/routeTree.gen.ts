@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as NatureDexRouteImport } from './routes/nature-dex'
 import { Route as PartyRouteImport } from './routes/party'
 import { Route as ScoresRouteImport } from './routes/scores'
 import { Route as ShareRouteImport } from './routes/share'
@@ -39,6 +40,11 @@ import { Route as TeamTeamIdRouteImport } from './routes/team.$teamId'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NatureDexRoute = NatureDexRouteImport.update({
+  id: '/nature-dex',
+  path: '/nature-dex',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PartyRoute = PartyRouteImport.update({
@@ -169,6 +175,7 @@ const TeamTeamIdRoute = TeamTeamIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/nature-dex': typeof NatureDexRoute
   '/party': typeof PartyRoute
   '/scores': typeof ScoresRouteWithChildren
   '/share': typeof ShareRoute
@@ -197,6 +204,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/nature-dex': typeof NatureDexRoute
   '/party': typeof PartyRoute
   '/share': typeof ShareRoute
   '/dex-run/play': typeof DexRunPlayRoute
@@ -225,6 +233,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/nature-dex': typeof NatureDexRoute
   '/party': typeof PartyRoute
   '/scores': typeof ScoresRouteWithChildren
   '/share': typeof ShareRoute
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/nature-dex'
     | '/party'
     | '/scores'
     | '/share'
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/nature-dex'
     | '/party'
     | '/share'
     | '/dex-run/play'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/nature-dex'
     | '/party'
     | '/scores'
     | '/share'
@@ -339,6 +351,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  NatureDexRoute: typeof NatureDexRoute
   PartyRoute: typeof PartyRoute
   ScoresRoute: typeof ScoresRouteWithChildren
   ShareRoute: typeof ShareRoute
@@ -367,6 +380,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nature-dex': {
+      id: '/nature-dex'
+      path: '/nature-dex'
+      fullPath: '/nature-dex'
+      preLoaderRoute: typeof NatureDexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/party': {
@@ -570,6 +590,7 @@ const ScoresRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  NatureDexRoute: NatureDexRoute,
   PartyRoute: PartyRoute,
   ScoresRoute: ScoresRouteWithChildren,
   ShareRoute: ShareRoute,
