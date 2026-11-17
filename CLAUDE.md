@@ -56,6 +56,14 @@
 - **Type the domain at the source.** Give DB columns and enums precise types in the schema or generated code so server results match client types without casts.
 - **Keep checks green.** Formatting, lint, typecheck, tests and build must all pass locally before pushing (CI runs them).
 
+## UI States & Layout
+
+- **This app has its own look.** The global UI rules about shadcn, `cn()`, a dense dev-tool look, and banning gradients and large corner radii don't apply here. PokeParty is a game; match the existing components' styling.
+- **Every state is designed.** Interactive elements handle `hover:`, `focus-visible:`, `disabled:` and loading states, with the same focus ring everywhere.
+- **Layouts survive real data.** Use `truncate`, `min-w-0` and wrapping so long Pokémon names, big scores and narrow phones don't break the layout.
+- **Realistic content.** No "Lorem Ipsum" or "Title Goes Here". Use real Pokémon names, scores and times in examples and tests.
+- **Empty, loading and error states are features.** Design them on purpose (no team yet, sprites loading, a sprite failed) instead of leaving a screen blank.
+
 ## Go
 
 - **Write idiomatic Go.** Follow [Effective Go](https://go.dev/doc/effective_go) and the [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments). Code must pass `gofmt`, `go vet` and `golangci-lint`.
