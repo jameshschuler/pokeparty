@@ -8,8 +8,8 @@ import {
   removePokemon,
   toggleShiny,
 } from "../lib/team";
-import type { PokemonType, Region } from "../types/pokemon";
 import type { TeamMember } from "../types/team";
+import { usePokemonPickerContext } from "./pokemon-picker-context";
 import { useTeamsContext } from "./teams-context";
 import { useToastContext } from "./toast-context";
 
@@ -17,16 +17,6 @@ export type TeamBuilderContextValue = {
   members: TeamMember[];
   togglePokemon: (pokemonId: number) => void;
   toggleShinyPokemon: (pokemonId: number) => void;
-  query: string;
-  setQuery: (query: string) => void;
-  type: PokemonType | null;
-  setType: (type: PokemonType | null) => void;
-  region: Region | null;
-  setRegion: (region: Region | null) => void;
-  legendaryOnly: boolean;
-  setLegendaryOnly: (legendaryOnly: boolean) => void;
-  shinyMode: boolean;
-  setShinyMode: (shinyMode: boolean) => void;
 };
 
 const TeamBuilderContext = createContext<TeamBuilderContextValue | null>(null);
@@ -43,11 +33,7 @@ export function TeamBuilderProvider({
   const { teams, createTeam, updateTeam } = useTeamsContext();
   const { showToast } = useToastContext();
   const navigate = useNavigate();
-  const [query, setQuery] = useState("");
-  const [type, setType] = useState<PokemonType | null>(null);
-  const [region, setRegion] = useState<Region | null>(null);
-  const [legendaryOnly, setLegendaryOnly] = useState(false);
-  const [shinyMode, setShinyMode] = useState(false);
+  const { shinyMode } = usePokemonPickerContext();
   const [createdTeamId, setCreatedTeamId] = useState<string | null>(null);
   const activeTeamId = teamId === NEW_TEAM_ID ? createdTeamId : teamId;
   const team = teams.find((entry) => entry.id === activeTeamId);
@@ -93,16 +79,6 @@ export function TeamBuilderProvider({
         members,
         togglePokemon,
         toggleShinyPokemon,
-        query,
-        setQuery,
-        type,
-        setType,
-        region,
-        setRegion,
-        legendaryOnly,
-        setLegendaryOnly,
-        shinyMode,
-        setShinyMode,
       }}
     >
       {children}

@@ -1,8 +1,8 @@
 import { Search, X } from "lucide-react";
-import { useTeamBuilderContext } from "../../contexts/team-builder-context";
+import { usePokemonPickerContext } from "../../contexts/pokemon-picker-context";
 
 export function SearchBar() {
-  const { query, setQuery } = useTeamBuilderContext();
+  const { query, setQuery } = usePokemonPickerContext();
 
   return (
     <label className="border-ink shadow-sticker-sm focus-within:ring-accent flex min-h-12 items-center gap-2 rounded-2xl border-[3px] bg-white px-3 focus-within:ring-4">

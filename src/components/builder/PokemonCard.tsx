@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { usePokemonPickerContext } from "../../contexts/pokemon-picker-context";
 import { useTeamBuilderContext } from "../../contexts/team-builder-context";
 import {
   formatMemberName,
@@ -11,7 +12,8 @@ import { PokemonSprite } from "../pokemon/PokemonSprite";
 import { ShinyToggle } from "./ShinyToggle";
 
 export function PokemonCard({ pokemon }: { pokemon: PokemonSummary }) {
-  const { members, togglePokemon, shinyMode } = useTeamBuilderContext();
+  const { members, togglePokemon } = useTeamBuilderContext();
+  const { shinyMode } = usePokemonPickerContext();
   const member = members.find((entry) => entry.pokemonId === pokemon.id);
   const shiny = member?.shiny ?? shinyMode;
 

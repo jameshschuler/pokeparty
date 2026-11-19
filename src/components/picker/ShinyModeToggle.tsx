@@ -1,8 +1,8 @@
 import { Sparkles } from "lucide-react";
-import { useTeamBuilderContext } from "../../contexts/team-builder-context";
+import { usePokemonPickerContext } from "../../contexts/pokemon-picker-context";
 
 export function ShinyModeToggle() {
-  const { shinyMode, setShinyMode } = useTeamBuilderContext();
+  const { shinyMode, setShinyMode } = usePokemonPickerContext();
 
   return (
     <button
