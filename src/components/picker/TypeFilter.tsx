@@ -1,4 +1,4 @@
-import { useTeamBuilderContext } from "../../contexts/team-builder-context";
+import { usePokemonPickerContext } from "../../contexts/pokemon-picker-context";
 import { POKEMON_TYPES } from "../../types/pokemon";
 import { TYPE_STYLES } from "../pokemon/pokemon-type-styles";
 import { ChipList } from "../shared/ChipList";
@@ -6,7 +6,7 @@ import { ChipRow } from "../shared/ChipRow";
 import { FilterChip } from "../shared/FilterChip";
 
 export function TypeFilter() {
-  const { type, setType } = useTeamBuilderContext();
+  const { type, setType } = usePokemonPickerContext();
 
   return (
     <ChipRow>

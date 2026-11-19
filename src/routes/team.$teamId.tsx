@@ -1,5 +1,6 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { TeamBuilder } from "../components/builder/TeamBuilder";
+import { PokemonPickerProvider } from "../contexts/pokemon-picker-context";
 import { TeamBuilderProvider } from "../contexts/team-builder-context";
 import { useTeamsContext } from "../contexts/teams-context";
 import { NEW_TEAM_ID } from "../lib/team";
@@ -18,8 +19,10 @@ function TeamRoute() {
   }
 
   return (
-    <TeamBuilderProvider teamId={teamId}>
-      <TeamBuilder />
-    </TeamBuilderProvider>
+    <PokemonPickerProvider>
+      <TeamBuilderProvider teamId={teamId}>
+        <TeamBuilder />
+      </TeamBuilderProvider>
+    </PokemonPickerProvider>
   );
 }

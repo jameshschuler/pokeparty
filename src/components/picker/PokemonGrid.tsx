@@ -1,13 +1,18 @@
-import { useMemo } from "react";
-import { useTeamBuilderContext } from "../../contexts/team-builder-context";
+import { useMemo, type ReactNode } from "react";
+import { usePokemonPickerContext } from "../../contexts/pokemon-picker-context";
 import { usePokemonIdsByType } from "../../hooks/usePokemonIdsByType";
 import { POKEDEX } from "../../lib/pokedex";
 import { filterPokemon } from "../../lib/pokemon";
+import type { PokemonSummary } from "../../types/pokemon";
 import { GridMessage } from "./GridMessage";
 import { PagedPokemonGrid } from "./PagedPokemonGrid";
 
-export function PokemonGrid() {
-  const { query, type, region, legendaryOnly } = useTeamBuilderContext();
+type PokemonGridProps = {
+  renderPokemon: (pokemon: PokemonSummary) => ReactNode;
+};
+
+export function PokemonGrid({ renderPokemon }: PokemonGridProps) {
+  const { query, type, region, legendaryOnly } = usePokemonPickerContext();
   const typeIds = usePokemonIdsByType(type);
   const typeIdSet = type ? typeIds.data : undefined;
   const results = useMemo(
@@ -37,5 +42,5 @@ export function PokemonGrid() {
     return <GridMessage>No Pokémon match that search.</GridMessage>;
   }
 
-  return <PagedPokemonGrid results={results} />;
+  return <PagedPokemonGrid results={results} renderPokemon={renderPokemon} />;
 }

@@ -1,5 +1,5 @@
 import { Crown } from "lucide-react";
-import { useTeamBuilderContext } from "../../contexts/team-builder-context";
+import { usePokemonPickerContext } from "../../contexts/pokemon-picker-context";
 import { REGION_LABELS } from "../../lib/regions";
 import { REGIONS } from "../../types/pokemon";
 import { ChipList } from "../shared/ChipList";
@@ -8,7 +8,7 @@ import { FilterChip } from "../shared/FilterChip";
 
 export function RegionFilter() {
   const { region, setRegion, legendaryOnly, setLegendaryOnly } =
-    useTeamBuilderContext();
+    usePokemonPickerContext();
 
   return (
     <ChipRow>
