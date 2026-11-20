@@ -140,45 +140,6 @@ describe("team builder", () => {
     expect(cards).toEqual(["Add Darumaka", "Add Galarian Darumaka"]);
   });
 
-  function gridLabels() {
-    return within(screen.getByRole("list", { name: "Pokémon" }))
-      .getAllByRole("button", { pressed: false })
-      .map((button) => button.getAttribute("aria-label"));
-  }
-
-  it("shows only legendaries with the Legendary chip", async () => {
-    const user = userEvent.setup();
-    renderApp("/team/new");
-
-    const legendary = await screen.findByRole("button", { name: "Legendary" });
-    await user.click(legendary);
-
-    expect(gridLabels().slice(0, 4)).toEqual([
-      "Add Articuno",
-      "Add Galarian Articuno",
-      "Add Zapdos",
-      "Add Galarian Zapdos",
-    ]);
-    expect(
-      screen.queryByRole("button", { name: "Add Bulbasaur" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("filters by region, counting regional forms in their region", async () => {
-    const user = userEvent.setup();
-    renderApp("/team/new");
-
-    const searchInput = await screen.findByLabelText("Search Pokémon");
-    await user.type(searchInput, "darumaka");
-    await user.click(screen.getByRole("button", { name: "Galar" }));
-
-    expect(gridLabels()).toEqual(["Add Galarian Darumaka"]);
-
-    await user.click(screen.getByRole("button", { name: "Unova" }));
-
-    expect(gridLabels()).toEqual(["Add Darumaka"]);
-  });
-
   it("picks alternate forms like Origin Giratina", async () => {
     const user = userEvent.setup();
     renderApp("/team/new");

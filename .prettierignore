@@ -4,3 +4,4 @@ src/routeTree.gen.ts
 src/data/pokedex.json
 .tanstack
 src/data/hns.json
+src/data/game-dex.json

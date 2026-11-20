@@ -1,4 +1,4 @@
-import { formatPlayedAt } from "../../lib/leaderboard";
+import { formatDate } from "../../lib/dates";
 
 type ScoreRowProps = {
   rank: number;
@@ -14,7 +14,7 @@ export function ScoreRow({ rank, score, detail, playedAt }: ScoreRowProps) {
       <span className="text-primary w-14 text-3xl font-bold">{score}</span>
       <span className="flex min-w-0 flex-1 flex-col text-sm">
         <span>{detail}</span>
-        <span className="text-ink/70">{formatPlayedAt(playedAt)}</span>
+        <span className="text-ink/70">{formatDate(playedAt)}</span>
       </span>
     </li>
   );

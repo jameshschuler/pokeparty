@@ -13,6 +13,23 @@ export const REGION_LABELS: Record<Region, string> = {
   paldea: "Paldea",
 };
 
+const REGION_GENERATIONS: Record<Region, number> = {
+  kanto: 1,
+  johto: 2,
+  hoenn: 3,
+  sinnoh: 4,
+  unova: 5,
+  kalos: 6,
+  alola: 7,
+  galar: 8,
+  hisui: 8,
+  paldea: 9,
+};
+
+export function regionGeneration(region: Region): number {
+  return REGION_GENERATIONS[region];
+}
+
 const CONFUSABLE_REGIONS: Partial<Record<Region, Region>> = {
   sinnoh: "hisui",
   hisui: "sinnoh",

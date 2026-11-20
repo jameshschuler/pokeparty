@@ -36,6 +36,20 @@ describe("hub", () => {
     );
   });
 
+  it("opens the Playthrough Timeline from its tile", async () => {
+    const user = userEvent.setup();
+    const router = renderApp("/");
+
+    const tile = await screen.findByRole("link", {
+      name: /Playthrough Timeline/,
+    });
+    await user.click(tile);
+
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe("/playthroughs"),
+    );
+  });
+
   it("opens Party Builder from its tile", async () => {
     const user = userEvent.setup();
     const router = renderApp("/");

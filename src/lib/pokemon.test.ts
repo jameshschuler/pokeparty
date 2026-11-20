@@ -7,6 +7,7 @@ import {
   formatMemberName,
   formatPokemonLabel,
   formatPokemonNumber,
+  formatPokemonType,
   isValidPokemonId,
   matchesSearch,
   spriteUrl,
@@ -121,6 +122,15 @@ describe("formatMemberName", () => {
   });
 });
 
+describe("formatPokemonType", () => {
+  it.each([
+    ["fire", "Fire"],
+    ["psychic", "Psychic"],
+  ] as const)("%s -> %s", (type, expected) => {
+    expect(formatPokemonType(type)).toBe(expected);
+  });
+});
+
 describe("formatPokemonNumber", () => {
   it.each([
     [1, "#0001"],
@@ -175,8 +185,6 @@ describe("filterPokemon", () => {
   const noFilter = {
     query: "",
     typeIds: undefined,
-    region: null,
-    legendaryOnly: false,
   };
 
   function ids(filter: Partial<Parameters<typeof filterPokemon>[1]>) {
@@ -195,20 +203,9 @@ describe("filterPokemon", () => {
     expect(ids({ typeIds: new Set([25, 10176]) })).toEqual([25, 10176]);
   });
 
-  it("filters by region, including regional forms", () => {
-    expect(ids({ region: "galar" })).toEqual([10176]);
-    expect(ids({ region: "unova" })).toEqual([554]);
-  });
-
-  it("filters to legendaries", () => {
-    expect(ids({ legendaryOnly: true })).toEqual([10007]);
-  });
-
   it("combines every filter", () => {
-    expect(
-      ids({ query: "dar", region: "galar", typeIds: new Set([10176]) }),
-    ).toEqual([10176]);
-    expect(ids({ region: "kanto", legendaryOnly: true })).toEqual([]);
+    expect(ids({ query: "dar", typeIds: new Set([10176]) })).toEqual([10176]);
+    expect(ids({ query: "pika", typeIds: new Set([10176]) })).toEqual([]);
   });
 
   it("returns nothing for an empty type set", () => {

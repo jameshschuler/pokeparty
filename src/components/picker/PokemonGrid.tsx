@@ -12,18 +12,13 @@ type PokemonGridProps = {
 };
 
 export function PokemonGrid({ renderPokemon }: PokemonGridProps) {
-  const { query, type, region, legendaryOnly } = usePokemonPickerContext();
+  const { query, type, gameLimit } = usePokemonPickerContext();
+  const pool = gameLimit ? gameLimit.pokemon : POKEDEX;
   const typeIds = usePokemonIdsByType(type);
   const typeIdSet = type ? typeIds.data : undefined;
   const results = useMemo(
-    () =>
-      filterPokemon(POKEDEX, {
-        query,
-        typeIds: typeIdSet,
-        region,
-        legendaryOnly,
-      }),
-    [query, typeIdSet, region, legendaryOnly],
+    () => filterPokemon(pool, { query, typeIds: typeIdSet }),
+    [pool, query, typeIdSet],
   );
 
   if (type && typeIds.isPending) {
@@ -39,7 +34,13 @@ export function PokemonGrid({ renderPokemon }: PokemonGridProps) {
   }
 
   if (results.length === 0) {
-    return <GridMessage>No Pokémon match that search.</GridMessage>;
+    return (
+      <GridMessage>
+        {gameLimit
+          ? `No Pokémon in ${gameLimit.gameName} match that search.`
+          : "No Pokémon match that search."}
+      </GridMessage>
+    );
   }
 
   return <PagedPokemonGrid results={results} renderPokemon={renderPokemon} />;

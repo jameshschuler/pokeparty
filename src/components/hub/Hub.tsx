@@ -2,6 +2,7 @@ import {
   CircleHelp,
   Grid2x2,
   Grid3x3,
+  History,
   Keyboard,
   Leaf,
   ListOrdered,
@@ -80,6 +81,14 @@ export function Hub() {
             icon={<Leaf className="size-7" aria-hidden />}
             title="Nature Dex"
             description="Best natures, moves and catch spots for Heart & Soul."
+          />
+        </li>
+        <li>
+          <AppTile
+            to="/playthroughs"
+            icon={<History className="size-7" aria-hidden />}
+            title="Playthrough Timeline"
+            description="Log who joins and leaves your team, and at what level."
           />
         </li>
       </HubSection>

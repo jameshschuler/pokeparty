@@ -1,4 +1,3 @@
-import { RegionFilter } from "./RegionFilter";
 import { SearchBar } from "./SearchBar";
 import { ShinyModeToggle } from "./ShinyModeToggle";
 import { TypeFilter } from "./TypeFilter";
@@ -13,7 +12,6 @@ export function PickerFilters() {
         <ShinyModeToggle />
       </div>
       <TypeFilter />
-      <RegionFilter />
     </div>
   );
 }

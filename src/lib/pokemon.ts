@@ -1,4 +1,8 @@
-import type { PokemonFilter, PokemonSummary } from "../types/pokemon";
+import type {
+  PokemonFilter,
+  PokemonSummary,
+  PokemonType,
+} from "../types/pokemon";
 
 const SPRITE_BASE_URL =
   "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork";
@@ -28,6 +32,10 @@ export function formatMemberName(
   shiny: boolean,
 ): string {
   return `${shiny ? "shiny " : ""}${formatPokemonLabel(pokemon)}`;
+}
+
+export function formatPokemonType(type: PokemonType): string {
+  return `${type[0].toUpperCase()}${type.slice(1)}`;
 }
 
 export function formatPokemonNumber(speciesId: number): string {
@@ -62,9 +70,7 @@ export function filterPokemon(
   return pokemon.filter(
     (entry) =>
       matchesSearch(entry, filter.query) &&
-      (!filter.typeIds || filter.typeIds.has(entry.id)) &&
-      (!filter.region || entry.region === filter.region) &&
-      (!filter.legendaryOnly || entry.legendary),
+      (!filter.typeIds || filter.typeIds.has(entry.id)),
   );
 }
 

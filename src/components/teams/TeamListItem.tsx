@@ -6,7 +6,7 @@ import { TEAM_SIZE } from "../../lib/team";
 import type { Team } from "../../types/team";
 import { TeamSlots } from "../pokemon/TeamSlots";
 import { ShareActions } from "../share/ShareActions";
-import { DeleteTeamConfirm } from "./DeleteTeamConfirm";
+import { DeleteConfirm } from "../shared/DeleteConfirm";
 
 export function TeamListItem({ team }: { team: Team }) {
   const { deleteTeam } = useTeamsContext();
@@ -24,7 +24,8 @@ export function TeamListItem({ team }: { team: Team }) {
       </Link>
       <div className="mt-3">
         {confirmingDelete ? (
-          <DeleteTeamConfirm
+          <DeleteConfirm
+            question="Delete this team?"
             onCancel={() => setConfirmingDelete(false)}
             onConfirm={() => deleteTeam(team.id)}
           />

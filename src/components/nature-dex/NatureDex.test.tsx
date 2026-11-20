@@ -65,26 +65,22 @@ describe("nature dex", () => {
     });
   });
 
-  it(
-    "shows an empty state that clears the filters",
-    { timeout: 15_000 },
-    async () => {
-      const user = userEvent.setup();
-      const router = renderApp("/nature-dex?q=agumon");
+  it("shows an empty state that clears the filters", async () => {
+    const user = userEvent.setup();
+    const router = renderApp("/nature-dex?q=agumon");
 
-      const clear = await screen.findByRole("button", {
-        name: "Clear filters",
-      });
-      expect(
-        screen.getByText("No Pokémon match these filters."),
-      ).toBeInTheDocument();
+    const clear = await screen.findByRole("button", {
+      name: "Clear filters",
+    });
+    expect(
+      screen.getByText("No Pokémon match these filters."),
+    ).toBeInTheDocument();
 
-      await user.click(clear);
+    await user.click(clear);
 
-      await waitFor(() => expect(router.state.location.search).toEqual({}));
-      expect(screen.getByText("386 of 386 shown")).toBeInTheDocument();
-    },
-  );
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    expect(screen.getByText("386 of 386 shown")).toBeInTheDocument();
+  });
 
   it("filters by a nature tapped in the chart", async () => {
     const user = userEvent.setup();

@@ -11,7 +11,7 @@ export function TeamSlots({ members }: { members: TeamMember[] }) {
 
         return (
           <li
-            key={member?.pokemonId ?? `empty-${index}`}
+            key={index}
             className="border-ink relative aspect-square rounded-full border-2 bg-white p-0.5"
           >
             {member && (
