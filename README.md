@@ -10,6 +10,7 @@ Pokémon games and tools, made for phones first. Every game has a result page yo
 
 - **Party Builder:** pick up to six Pokémon and share the team as a link.
 - **Nature Dex (Heart & Soul):** the best natures, move lists and catch locations for the 386 Gen 1–3 Pokémon in [Pokémon Heart & Soul](https://heartsoulgame.com/) v2.0.6, a GBA ROM hack. Filter by region, role or nature, and share a filtered list by its URL. More on where the data comes from below.
+- **Playthrough Timeline:** pick the game you're playing and log your team as it changes: who joined, who left, and at what level. Level-ups and evolutions (Elekid → Electabuzz) are steps too. A swap is one step. The picker shows only the Pokémon in your game's Pokédex, in that Pokédex's order. Saved in your browser.
 
 ## Games
 
@@ -30,23 +31,24 @@ npm run dev
 
 The app runs at http://localhost:5173.
 
-| Command                       | What it does                                                   |
-| ----------------------------- | -------------------------------------------------------------- |
-| `npm run dev`                 | Start the dev server                                           |
-| `npm run build`               | Typecheck and build to `dist/`                                 |
-| `npm test`                    | Run the tests with Vitest                                      |
-| `npm run lint`                | Lint with ESLint                                               |
-| `npm run typecheck`           | Typecheck with `tsc`                                           |
-| `npm run format`              | Format with Prettier                                           |
-| `npm run format:check`        | Check formatting with Prettier                                 |
-| `npm run generate:pokedex`    | Rebuild `src/data/pokedex.json` from PokeAPI                   |
-| `npm run generate:nature-dex` | Rebuild `src/data/hns.json` from the H&S docs (needs Python 3) |
+| Command                       | What it does                                                                 |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| `npm run dev`                 | Start the dev server                                                         |
+| `npm run build`               | Typecheck and build to `dist/`                                               |
+| `npm test`                    | Run the tests with Vitest                                                    |
+| `npm run lint`                | Lint with ESLint                                                             |
+| `npm run typecheck`           | Typecheck with `tsc`                                                         |
+| `npm run format`              | Format with Prettier                                                         |
+| `npm run format:check`        | Check formatting with Prettier                                               |
+| `npm run generate:pokedex`    | Rebuild `src/data/pokedex.json` from PokeAPI                                 |
+| `npm run generate:nature-dex` | Rebuild `src/data/hns.json` from the H&S docs (needs Python 3)               |
+| `npm run generate:game-dex`   | Rebuild `src/data/game-dex.json`, each game's Pokédex in order, from PokeAPI |
 
 CI runs format, lint, typecheck, tests and the build on every pull request.
 
 ## Built with
 
-React 19, TypeScript, Vite, Tailwind CSS v4 and TanStack Router. Pokémon data, artwork and cries come from [PokeAPI](https://pokeapi.co). It's hosted on Render.
+React 19, TypeScript, Vite, Tailwind CSS v4 and TanStack Router. Pokémon data, artwork and cries come from [PokeAPI](https://pokeapi.co). The type icons in `public/types/` are from [pokemon-type-icons](https://github.com/partywhale/pokemon-type-icons) by James Watkins (MIT). It's hosted on Render.
 
 What's planned next is in [TODO.md](TODO.md).
 

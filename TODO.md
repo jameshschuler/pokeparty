@@ -227,77 +227,11 @@ Make the site an installable PWA so every game works without a connection. Offli
 - **Show the state:** an "Offline" badge in the header, and Ranked greyed out while offline. Share and Copy link keep working, since results live in the URL.
 - **Tooling:** `vite-plugin-pwa` (Workbox) rather than a hand-written service worker.
 
-## New tool: Playthrough Timeline
+## Playthrough Timeline follow-ups
 
-Track your team through a playthrough. Pick the game you're playing, start a team, and log every change: who joined at what level, and who left at what level. The timeline shows how the team grew, from the starter to the final six. It needs no server, so it can be built at any point.
-
-### How it works
-
-1. **List (`/playthroughs`):** your playthroughs, newest first. Each shows the game, its name, the current team's sprites and when it last changed. A New playthrough button. Empty state: "No playthroughs yet" and the same button.
-2. **New playthrough:** pick the game, grouped by generation, and give it an optional name ("Nuzlocke #2"). It opens straight onto the new playthrough with an empty team.
-3. **Playthrough (`/playthroughs/$id`):** the current team on top, the timeline below.
-   - **Add** (fewer than six on the team): pick a Pokémon, the level it joined at, an optional nickname and shiny.
-   - **Swap out** (on a team member): the level it left at, then an optional replacement with its level. A swap is one step on the timeline: "Lv 32 Raticate out, Lv 30 Growlithe in". With no replacement, the member just leaves.
-   - **Undo:** removes the latest step. Earlier steps can't be deleted, so the history always adds up.
-   - **Fix a level:** tap a level on the timeline to change it. A Pokémon can't leave below the level it joined at.
-4. **Timeline:** one entry per step, oldest first, so it reads as the story of the run. Each entry shows the sprites, nicknames and levels. Above the entries, a stint chart: one bar per Pokémon, from its join level to its leave level (or to "now"), so you can see who carried the run.
-
-### Rules
-
-- At most six on the team at once. Add is disabled at six, with "Swap someone out first".
-- Levels are whole numbers from 1 to 100.
-- The same species can join twice (two Rattata are two team members).
-- The game is a label for now. It doesn't limit which Pokémon you can pick.
-
-### Data
-
-```ts
-type TeamStint = {
-  id: string;
-  pokemonId: number;
-  shiny: boolean;
-  nickname: string | null;
-  joinedLevel: number;
-  joinedStep: number;
-  leftLevel: number | null;
-  leftStep: number | null;
-};
-
-type Playthrough = {
-  id: string;
-  gameId: GameId;
-  name: string | null;
-  stints: TeamStint[];
-  createdAt: number;
-  updatedAt: number;
-};
-```
-
-Each change gets the next step number. A swap's leave and join share one. Timeline entries are worked out from the stints, never stored twice. Playthroughs are saved in `localStorage` under `pokeparty:playthroughs`, read with `loadStoredList` like teams. They sync across tabs with the storage event and show the "Couldn't save" toast when storage is full or blocked.
-
-### Code
-
-- **`src/lib/games.ts`:** every main-series game (Red/Blue/Green to Scarlet/Violet, remakes and Legends included) with its generation, plus Heart & Soul for the Nature Dex. Ids are short slugs (`red-blue`, `heart-soul`).
-- **`src/lib/playthrough.ts`:** pure rules: add, swap out, undo, fix a level, current team, timeline steps and stint lengths. Table-driven tests: add at six fails, leaving below the join level fails, a swap shares one step, undo removes a whole swap, levels outside 1–100 fail, an empty playthrough has no steps.
-- **`src/lib/playthrough-storage.ts`:** load and save, dropping broken entries. Tests for missing, broken and partly broken data.
-- **Picker:** Party Builder's search, type filter and region filter read `TeamBuilderContext`, so the timeline can't reuse them. Move their state into a `pokemon-picker-context.tsx` that both screens wrap. This is a refactor with no visible change, so it goes in its own pull request first.
-- **Screens:** `src/components/playthroughs/` (list, list item, new form, game picker, team, member, add and swap dialogs, timeline, step, stint chart), a `playthroughs-context.tsx` and a `playthrough-context.tsx`, and routes `playthroughs.index.tsx`, `playthroughs.new.tsx` and `playthroughs.$playthroughId.tsx`. A Tools tile on the home page.
-
-### Build steps
-
-Each step is its own pull request.
-
-1. **Picker refactor:** the shared picker context. Party Builder tests must pass unchanged.
-2. **Logic:** `games.ts`, `playthrough.ts`, `playthrough-storage.ts` and their tests.
-3. **Screens:** list, new, playthrough, timeline, and the hub tile. Check on a phone: six members, a 30-step timeline and long nicknames at 360px wide.
-
-### Later
-
-- Level-ups and evolutions as their own steps (Lv 16 Charmander → Charmeleon).
 - Badges and other milestones on the timeline.
-- Limit the picker to the Pokémon in the chosen game.
+- Post-game Pokémon: the playthrough picker shows only each game's regional Pokédex, so Pokémon you can only get after the credits (Johto Pokémon in FireRed, most of the National Dex in Diamond) can't be added. Regional forms aren't filtered by game either.
 - A shareable link or image of the finished timeline.
-- Color each stint bar with that Pokémon's palette, once palettes exist (below).
 
 ## New feature: Pokémon palettes
 
@@ -309,7 +243,7 @@ Theme the whole app with a Pokémon's colors. Pick Gengar and the header, button
 
 ### How it works
 
-- The theme switcher gets a "Pokémon" option that opens a picker (the same picker as the timeline). Pick a Pokémon, and shiny if you like.
+- The theme switcher gets a "Pokémon" option that opens a picker (the same picker the timeline uses). Pick a Pokémon, and shiny if you like.
 - The palette sets `--color-primary`, `--color-accent` and `--color-surface`, the same variables the ball themes set, so no component changes.
 - **Readability:** palettes aren't made for UI. Text on `primary` must reach 4.5:1 contrast with white or `ink`. Pick whichever passes, and darken the color until one does. The surface is the primary mixed heavily with white. Unit tests cover a pale Pokémon (Snom), a dark one (Umbreon) and a yellow one (Pikachu).
 - Saved in `localStorage` with the theme. A stored id that's no longer valid falls back to the default theme.

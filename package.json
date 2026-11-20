@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "generate:pokedex": "node scripts/generate-pokedex.ts",
+    "generate:game-dex": "node scripts/generate-game-dex.ts",
     "generate:nature-dex": "sh scripts/nature-dex/fetch.sh"
   },
   "dependencies": {

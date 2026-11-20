@@ -1,15 +1,17 @@
-type DeleteTeamConfirmProps = {
+type DeleteConfirmProps = {
+  question: string;
   onCancel: () => void;
   onConfirm: () => void;
 };
 
-export function DeleteTeamConfirm({
+export function DeleteConfirm({
+  question,
   onCancel,
   onConfirm,
-}: DeleteTeamConfirmProps) {
+}: DeleteConfirmProps) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="font-semibold">Delete this team?</span>
+      <span className="font-semibold">{question}</span>
       <div className="flex items-center gap-2">
         <button
           type="button"

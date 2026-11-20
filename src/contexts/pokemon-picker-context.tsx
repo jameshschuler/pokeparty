@@ -1,15 +1,17 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import type { PokemonType, Region } from "../types/pokemon";
+import type { PokemonSummary, PokemonType } from "../types/pokemon";
+
+export type GameLimit = {
+  gameName: string;
+  pokemon: PokemonSummary[];
+};
 
 export type PokemonPickerContextValue = {
+  gameLimit: GameLimit | null;
   query: string;
   setQuery: (query: string) => void;
   type: PokemonType | null;
   setType: (type: PokemonType | null) => void;
-  region: Region | null;
-  setRegion: (region: Region | null) => void;
-  legendaryOnly: boolean;
-  setLegendaryOnly: (legendaryOnly: boolean) => void;
   shinyMode: boolean;
   setShinyMode: (shinyMode: boolean) => void;
 };
@@ -18,24 +20,27 @@ const PokemonPickerContext = createContext<PokemonPickerContextValue | null>(
   null,
 );
 
-export function PokemonPickerProvider({ children }: { children: ReactNode }) {
+type PokemonPickerProviderProps = {
+  gameLimit?: GameLimit;
+  children: ReactNode;
+};
+
+export function PokemonPickerProvider({
+  gameLimit,
+  children,
+}: PokemonPickerProviderProps) {
   const [query, setQuery] = useState("");
   const [type, setType] = useState<PokemonType | null>(null);
-  const [region, setRegion] = useState<Region | null>(null);
-  const [legendaryOnly, setLegendaryOnly] = useState(false);
   const [shinyMode, setShinyMode] = useState(false);
 
   return (
     <PokemonPickerContext
       value={{
+        gameLimit: gameLimit ?? null,
         query,
         setQuery,
         type,
         setType,
-        region,
-        setRegion,
-        legendaryOnly,
-        setLegendaryOnly,
         shinyMode,
         setShinyMode,
       }}

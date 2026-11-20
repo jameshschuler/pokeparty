@@ -6,7 +6,6 @@ import {
   boardRuns,
   dexRunScore,
   displayScore,
-  formatPlayedAt,
   isDexRunScore,
   isMatchScore,
   isNameDropScore,
@@ -309,14 +308,6 @@ describe("runRank", () => {
     const full = Array.from({ length: BOARD_SIZE }, (_, i) => run(5, 0, i));
 
     expect(runRank(full, run(1, 0, 50))).toBeNull();
-  });
-});
-
-describe("formatPlayedAt", () => {
-  it("shows the day the run was played", () => {
-    const playedAt = new Date(2026, 9, 20, 15, 30).getTime();
-
-    expect(formatPlayedAt(playedAt)).toMatch(/Oct.*20.*2026/);
   });
 });
 

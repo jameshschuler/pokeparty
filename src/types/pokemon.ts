@@ -51,6 +51,4 @@ export type PokemonSummary = {
 export type PokemonFilter = {
   query: string;
   typeIds: Set<number> | undefined;
-  region: Region | null;
-  legendaryOnly: boolean;
 };

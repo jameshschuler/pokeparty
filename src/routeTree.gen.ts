@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NatureDexRouteImport } from './routes/nature-dex'
 import { Route as PartyRouteImport } from './routes/party'
+import { Route as PlaythroughsRouteImport } from './routes/playthroughs'
 import { Route as ScoresRouteImport } from './routes/scores'
 import { Route as ShareRouteImport } from './routes/share'
 import { Route as DexRunIndexRouteImport } from './routes/dex-run.index'
@@ -23,6 +24,9 @@ import { Route as MatchResultRouteImport } from './routes/match.result'
 import { Route as NameDropIndexRouteImport } from './routes/name-drop.index'
 import { Route as NameDropPlayRouteImport } from './routes/name-drop.play'
 import { Route as NameDropResultRouteImport } from './routes/name-drop.result'
+import { Route as PlaythroughsIndexRouteImport } from './routes/playthroughs.index'
+import { Route as PlaythroughsPlaythroughIdRouteImport } from './routes/playthroughs.$playthroughId'
+import { Route as PlaythroughsNewRouteImport } from './routes/playthroughs.new'
 import { Route as QuizIndexRouteImport } from './routes/quiz.index'
 import { Route as QuizPlayRouteImport } from './routes/quiz.play'
 import { Route as QuizResultRouteImport } from './routes/quiz.result'
@@ -36,6 +40,8 @@ import { Route as SimonIndexRouteImport } from './routes/simon.index'
 import { Route as SimonPlayRouteImport } from './routes/simon.play'
 import { Route as SimonResultRouteImport } from './routes/simon.result'
 import { Route as TeamTeamIdRouteImport } from './routes/team.$teamId'
+import { Route as PlaythroughsPlaythroughIdIndexRouteImport } from './routes/playthroughs.$playthroughId.index'
+import { Route as PlaythroughsPlaythroughIdPickRouteImport } from './routes/playthroughs.$playthroughId.pick'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -50,6 +56,11 @@ const NatureDexRoute = NatureDexRouteImport.update({
 const PartyRoute = PartyRouteImport.update({
   id: '/party',
   path: '/party',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaythroughsRoute = PlaythroughsRouteImport.update({
+  id: '/playthroughs',
+  path: '/playthroughs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScoresRoute = ScoresRouteImport.update({
@@ -106,6 +117,22 @@ const NameDropResultRoute = NameDropResultRouteImport.update({
   id: '/name-drop/result',
   path: '/name-drop/result',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PlaythroughsIndexRoute = PlaythroughsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PlaythroughsRoute,
+} as any)
+const PlaythroughsPlaythroughIdRoute =
+  PlaythroughsPlaythroughIdRouteImport.update({
+    id: '/$playthroughId',
+    path: '/$playthroughId',
+    getParentRoute: () => PlaythroughsRoute,
+  } as any)
+const PlaythroughsNewRoute = PlaythroughsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => PlaythroughsRoute,
 } as any)
 const QuizIndexRoute = QuizIndexRouteImport.update({
   id: '/quiz/',
@@ -172,11 +199,24 @@ const TeamTeamIdRoute = TeamTeamIdRouteImport.update({
   path: '/team/$teamId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlaythroughsPlaythroughIdIndexRoute =
+  PlaythroughsPlaythroughIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => PlaythroughsPlaythroughIdRoute,
+  } as any)
+const PlaythroughsPlaythroughIdPickRoute =
+  PlaythroughsPlaythroughIdPickRouteImport.update({
+    id: '/pick',
+    path: '/pick',
+    getParentRoute: () => PlaythroughsPlaythroughIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/nature-dex': typeof NatureDexRoute
   '/party': typeof PartyRoute
+  '/playthroughs': typeof PlaythroughsRouteWithChildren
   '/scores': typeof ScoresRouteWithChildren
   '/share': typeof ShareRoute
   '/dex-run/play': typeof DexRunPlayRoute
@@ -185,6 +225,8 @@ export interface FileRoutesByFullPath {
   '/match/result': typeof MatchResultRoute
   '/name-drop/play': typeof NameDropPlayRoute
   '/name-drop/result': typeof NameDropResultRoute
+  '/playthroughs/$playthroughId': typeof PlaythroughsPlaythroughIdRouteWithChildren
+  '/playthroughs/new': typeof PlaythroughsNewRoute
   '/quiz/play': typeof QuizPlayRoute
   '/quiz/result': typeof QuizResultRoute
   '/scores/dex-run': typeof ScoresDexRunRoute
@@ -198,9 +240,12 @@ export interface FileRoutesByFullPath {
   '/dex-run/': typeof DexRunIndexRoute
   '/match/': typeof MatchIndexRoute
   '/name-drop/': typeof NameDropIndexRoute
+  '/playthroughs/': typeof PlaythroughsIndexRoute
   '/quiz/': typeof QuizIndexRoute
   '/scores/': typeof ScoresIndexRoute
   '/simon/': typeof SimonIndexRoute
+  '/playthroughs/$playthroughId/pick': typeof PlaythroughsPlaythroughIdPickRoute
+  '/playthroughs/$playthroughId/': typeof PlaythroughsPlaythroughIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -213,6 +258,7 @@ export interface FileRoutesByTo {
   '/match/result': typeof MatchResultRoute
   '/name-drop/play': typeof NameDropPlayRoute
   '/name-drop/result': typeof NameDropResultRoute
+  '/playthroughs/new': typeof PlaythroughsNewRoute
   '/quiz/play': typeof QuizPlayRoute
   '/quiz/result': typeof QuizResultRoute
   '/scores/dex-run': typeof ScoresDexRunRoute
@@ -226,15 +272,19 @@ export interface FileRoutesByTo {
   '/dex-run': typeof DexRunIndexRoute
   '/match': typeof MatchIndexRoute
   '/name-drop': typeof NameDropIndexRoute
+  '/playthroughs': typeof PlaythroughsIndexRoute
   '/quiz': typeof QuizIndexRoute
   '/scores': typeof ScoresIndexRoute
   '/simon': typeof SimonIndexRoute
+  '/playthroughs/$playthroughId/pick': typeof PlaythroughsPlaythroughIdPickRoute
+  '/playthroughs/$playthroughId': typeof PlaythroughsPlaythroughIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/nature-dex': typeof NatureDexRoute
   '/party': typeof PartyRoute
+  '/playthroughs': typeof PlaythroughsRouteWithChildren
   '/scores': typeof ScoresRouteWithChildren
   '/share': typeof ShareRoute
   '/dex-run/play': typeof DexRunPlayRoute
@@ -243,6 +293,8 @@ export interface FileRoutesById {
   '/match/result': typeof MatchResultRoute
   '/name-drop/play': typeof NameDropPlayRoute
   '/name-drop/result': typeof NameDropResultRoute
+  '/playthroughs/$playthroughId': typeof PlaythroughsPlaythroughIdRouteWithChildren
+  '/playthroughs/new': typeof PlaythroughsNewRoute
   '/quiz/play': typeof QuizPlayRoute
   '/quiz/result': typeof QuizResultRoute
   '/scores/dex-run': typeof ScoresDexRunRoute
@@ -256,9 +308,12 @@ export interface FileRoutesById {
   '/dex-run/': typeof DexRunIndexRoute
   '/match/': typeof MatchIndexRoute
   '/name-drop/': typeof NameDropIndexRoute
+  '/playthroughs/': typeof PlaythroughsIndexRoute
   '/quiz/': typeof QuizIndexRoute
   '/scores/': typeof ScoresIndexRoute
   '/simon/': typeof SimonIndexRoute
+  '/playthroughs/$playthroughId/pick': typeof PlaythroughsPlaythroughIdPickRoute
+  '/playthroughs/$playthroughId/': typeof PlaythroughsPlaythroughIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -266,6 +321,7 @@ export interface FileRouteTypes {
     | '/'
     | '/nature-dex'
     | '/party'
+    | '/playthroughs'
     | '/scores'
     | '/share'
     | '/dex-run/play'
@@ -274,6 +330,8 @@ export interface FileRouteTypes {
     | '/match/result'
     | '/name-drop/play'
     | '/name-drop/result'
+    | '/playthroughs/$playthroughId'
+    | '/playthroughs/new'
     | '/quiz/play'
     | '/quiz/result'
     | '/scores/dex-run'
@@ -287,9 +345,12 @@ export interface FileRouteTypes {
     | '/dex-run/'
     | '/match/'
     | '/name-drop/'
+    | '/playthroughs/'
     | '/quiz/'
     | '/scores/'
     | '/simon/'
+    | '/playthroughs/$playthroughId/pick'
+    | '/playthroughs/$playthroughId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -302,6 +363,7 @@ export interface FileRouteTypes {
     | '/match/result'
     | '/name-drop/play'
     | '/name-drop/result'
+    | '/playthroughs/new'
     | '/quiz/play'
     | '/quiz/result'
     | '/scores/dex-run'
@@ -315,14 +377,18 @@ export interface FileRouteTypes {
     | '/dex-run'
     | '/match'
     | '/name-drop'
+    | '/playthroughs'
     | '/quiz'
     | '/scores'
     | '/simon'
+    | '/playthroughs/$playthroughId/pick'
+    | '/playthroughs/$playthroughId'
   id:
     | '__root__'
     | '/'
     | '/nature-dex'
     | '/party'
+    | '/playthroughs'
     | '/scores'
     | '/share'
     | '/dex-run/play'
@@ -331,6 +397,8 @@ export interface FileRouteTypes {
     | '/match/result'
     | '/name-drop/play'
     | '/name-drop/result'
+    | '/playthroughs/$playthroughId'
+    | '/playthroughs/new'
     | '/quiz/play'
     | '/quiz/result'
     | '/scores/dex-run'
@@ -344,15 +412,19 @@ export interface FileRouteTypes {
     | '/dex-run/'
     | '/match/'
     | '/name-drop/'
+    | '/playthroughs/'
     | '/quiz/'
     | '/scores/'
     | '/simon/'
+    | '/playthroughs/$playthroughId/pick'
+    | '/playthroughs/$playthroughId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   NatureDexRoute: typeof NatureDexRoute
   PartyRoute: typeof PartyRoute
+  PlaythroughsRoute: typeof PlaythroughsRouteWithChildren
   ScoresRoute: typeof ScoresRouteWithChildren
   ShareRoute: typeof ShareRoute
   DexRunPlayRoute: typeof DexRunPlayRoute
@@ -394,6 +466,13 @@ declare module '@tanstack/react-router' {
       path: '/party'
       fullPath: '/party'
       preLoaderRoute: typeof PartyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playthroughs': {
+      id: '/playthroughs'
+      path: '/playthroughs'
+      fullPath: '/playthroughs'
+      preLoaderRoute: typeof PlaythroughsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/scores': {
@@ -472,6 +551,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/name-drop/result'
       preLoaderRoute: typeof NameDropResultRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/playthroughs/': {
+      id: '/playthroughs/'
+      path: '/'
+      fullPath: '/playthroughs/'
+      preLoaderRoute: typeof PlaythroughsIndexRouteImport
+      parentRoute: typeof PlaythroughsRoute
+    }
+    '/playthroughs/$playthroughId': {
+      id: '/playthroughs/$playthroughId'
+      path: '/$playthroughId'
+      fullPath: '/playthroughs/$playthroughId'
+      preLoaderRoute: typeof PlaythroughsPlaythroughIdRouteImport
+      parentRoute: typeof PlaythroughsRoute
+    }
+    '/playthroughs/new': {
+      id: '/playthroughs/new'
+      path: '/new'
+      fullPath: '/playthroughs/new'
+      preLoaderRoute: typeof PlaythroughsNewRouteImport
+      parentRoute: typeof PlaythroughsRoute
     }
     '/quiz/': {
       id: '/quiz/'
@@ -564,8 +664,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeamTeamIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/playthroughs/$playthroughId/': {
+      id: '/playthroughs/$playthroughId/'
+      path: '/'
+      fullPath: '/playthroughs/$playthroughId/'
+      preLoaderRoute: typeof PlaythroughsPlaythroughIdIndexRouteImport
+      parentRoute: typeof PlaythroughsPlaythroughIdRoute
+    }
+    '/playthroughs/$playthroughId/pick': {
+      id: '/playthroughs/$playthroughId/pick'
+      path: '/pick'
+      fullPath: '/playthroughs/$playthroughId/pick'
+      preLoaderRoute: typeof PlaythroughsPlaythroughIdPickRouteImport
+      parentRoute: typeof PlaythroughsPlaythroughIdRoute
+    }
   }
 }
+
+interface PlaythroughsPlaythroughIdRouteChildren {
+  PlaythroughsPlaythroughIdPickRoute: typeof PlaythroughsPlaythroughIdPickRoute
+  PlaythroughsPlaythroughIdIndexRoute: typeof PlaythroughsPlaythroughIdIndexRoute
+}
+
+const PlaythroughsPlaythroughIdRouteChildren: PlaythroughsPlaythroughIdRouteChildren =
+  {
+    PlaythroughsPlaythroughIdPickRoute: PlaythroughsPlaythroughIdPickRoute,
+    PlaythroughsPlaythroughIdIndexRoute: PlaythroughsPlaythroughIdIndexRoute,
+  }
+
+const PlaythroughsPlaythroughIdRouteWithChildren =
+  PlaythroughsPlaythroughIdRoute._addFileChildren(
+    PlaythroughsPlaythroughIdRouteChildren,
+  )
+
+interface PlaythroughsRouteChildren {
+  PlaythroughsPlaythroughIdRoute: typeof PlaythroughsPlaythroughIdRouteWithChildren
+  PlaythroughsNewRoute: typeof PlaythroughsNewRoute
+  PlaythroughsIndexRoute: typeof PlaythroughsIndexRoute
+}
+
+const PlaythroughsRouteChildren: PlaythroughsRouteChildren = {
+  PlaythroughsPlaythroughIdRoute: PlaythroughsPlaythroughIdRouteWithChildren,
+  PlaythroughsNewRoute: PlaythroughsNewRoute,
+  PlaythroughsIndexRoute: PlaythroughsIndexRoute,
+}
+
+const PlaythroughsRouteWithChildren = PlaythroughsRoute._addFileChildren(
+  PlaythroughsRouteChildren,
+)
 
 interface ScoresRouteChildren {
   ScoresDexRunRoute: typeof ScoresDexRunRoute
@@ -592,6 +738,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   NatureDexRoute: NatureDexRoute,
   PartyRoute: PartyRoute,
+  PlaythroughsRoute: PlaythroughsRouteWithChildren,
   ScoresRoute: ScoresRouteWithChildren,
   ShareRoute: ShareRoute,
   DexRunPlayRoute: DexRunPlayRoute,

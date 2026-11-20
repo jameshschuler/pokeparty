@@ -315,11 +315,3 @@ export function loadRuns(): GameRun[] {
 export function saveRuns(runs: GameRun[]): void {
   localStorage.setItem(RUNS_STORAGE_KEY, JSON.stringify(runs));
 }
-
-export function formatPlayedAt(playedAt: number): string {
-  return new Date(playedAt).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
