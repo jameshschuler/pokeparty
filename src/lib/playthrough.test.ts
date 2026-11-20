@@ -15,6 +15,7 @@ import {
   speciesName,
   stintName,
   swapOut,
+  timelineEvents,
   timelineSteps,
   undoLastStep,
   updateMember,
@@ -336,6 +337,40 @@ describe("timelineSteps", () => {
       { step: 1, left: [], changed: [], joined: [left] },
       { step: 2, left: [], changed: [], joined: [pidgey] },
       { step: 3, left: [left], changed: [], joined: [growlithe] },
+    ]);
+  });
+});
+
+describe("timelineEvents", () => {
+  const rat = stint({ id: "rat", pokemonId: 20 });
+
+  it("turns each step into one event", () => {
+    const added = stintsOf(addMember([rat], member(16, 4)));
+    const updated = stintsOf(updateMember(added, "rat", 30, 20));
+    const swapped = stintsOf(swapOut(updated, "rat", 32, member(58, 30)));
+    const removed = stintsOf(swapOut(swapped, swapped[2].id, 31, null));
+
+    expect(timelineEvents(removed).map((event) => event.kind)).toEqual([
+      "joined",
+      "joined",
+      "changed",
+      "swap",
+      "left",
+    ]);
+  });
+
+  it("skips steps with nothing in them", () => {
+    expect(timelineEvents([{ ...rat, joinedStep: 3 }])).toEqual([
+      { kind: "joined", step: 3, stint: { ...rat, joinedStep: 3 } },
+    ]);
+  });
+
+  it("keeps every change when a step has more than one", () => {
+    const twins = [rat, { ...rat, id: "rat2" }];
+
+    expect(timelineEvents(twins).map((event) => event.kind)).toEqual([
+      "joined",
+      "joined",
     ]);
   });
 });

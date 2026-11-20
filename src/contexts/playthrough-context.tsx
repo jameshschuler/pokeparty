@@ -4,13 +4,14 @@ import {
   currentTeam,
   fixLevel,
   swapOut,
-  timelineSteps,
+  lastStep,
+  timelineEvents,
   undoLastStep,
   updateMember,
   type NewMember,
   type StintError,
   type StintResult,
-  type TimelineStep,
+  type TimelineEvent,
 } from "../lib/playthrough";
 import type { Playthrough, TeamStint } from "../types/playthrough";
 import { usePlaythroughsContext } from "./playthroughs-context";
@@ -18,7 +19,8 @@ import { usePlaythroughsContext } from "./playthroughs-context";
 export type PlaythroughContextValue = {
   playthrough: Playthrough;
   team: TeamStint[];
-  steps: TimelineStep[];
+  events: TimelineEvent[];
+  finalStep: number;
   addMember: (member: NewMember) => StintError | null;
   updateMember: (
     stintId: string,
@@ -62,7 +64,8 @@ export function PlaythroughProvider({
       value={{
         playthrough,
         team: currentTeam(stints),
-        steps: timelineSteps(stints),
+        events: timelineEvents(stints),
+        finalStep: lastStep(stints),
         addMember: (member) => apply(addMember(stints, member)),
         updateMember: (stintId, level, pokemonId) =>
           apply(updateMember(stints, stintId, level, pokemonId)),

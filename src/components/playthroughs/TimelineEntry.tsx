@@ -1,24 +1,85 @@
-import type { TimelineStep } from "../../lib/playthrough";
-import { ChangeLine } from "./ChangeLine";
-import { StintLine } from "./StintLine";
+import {
+  ArrowRight,
+  ArrowUp,
+  Minus,
+  Plus,
+  Repeat,
+  Sparkles,
+} from "lucide-react";
+import type { TimelineEvent } from "../../lib/playthrough";
+import { ChangeMention } from "./ChangeMention";
+import { StintMention } from "./StintMention";
+import { TimelineRow } from "./TimelineRow";
 
-export function TimelineEntry({ step }: { step: TimelineStep }) {
+const ICON = "size-4";
+
+export function TimelineEntry({ event }: { event: TimelineEvent }) {
+  const { step } = event;
+
+  if (event.kind === "swap") {
+    return (
+      <TimelineRow
+        step={step}
+        icon={<Repeat className={ICON} strokeWidth={2.5} aria-hidden />}
+        badgeClassName="bg-primary text-white"
+      >
+        <StintMention
+          stint={event.left}
+          edge="left"
+          step={step}
+          showVerb={false}
+        />
+        <ArrowRight className="text-ink/50 size-4 shrink-0" aria-hidden />
+        <span className="sr-only">swapped for</span>
+        <StintMention
+          stint={event.joined}
+          edge="joined"
+          step={step}
+          showVerb={false}
+        />
+      </TimelineRow>
+    );
+  }
+
+  if (event.kind === "joined") {
+    return (
+      <TimelineRow
+        step={step}
+        icon={<Plus className={ICON} strokeWidth={3} aria-hidden />}
+        badgeClassName="bg-primary text-white"
+      >
+        <StintMention stint={event.stint} edge="joined" step={step} />
+      </TimelineRow>
+    );
+  }
+
+  if (event.kind === "left") {
+    return (
+      <TimelineRow
+        step={step}
+        icon={<Minus className={ICON} strokeWidth={3} aria-hidden />}
+        badgeClassName="bg-white"
+        dimmed
+      >
+        <StintMention stint={event.stint} edge="left" step={step} />
+      </TimelineRow>
+    );
+  }
+  const evolved = event.change.update.pokemonId !== event.change.from;
+
   return (
-    <li className="border-ink flex gap-3 rounded-2xl border-[3px] bg-white p-3">
-      <span className="border-ink bg-accent flex size-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold">
-        {step.step}
-      </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        {step.left.map((stint) => (
-          <StintLine key={stint.id} stint={stint} edge="left" />
-        ))}
-        {step.changed.map((change) => (
-          <ChangeLine key={change.stint.id} change={change} />
-        ))}
-        {step.joined.map((stint) => (
-          <StintLine key={stint.id} stint={stint} edge="joined" />
-        ))}
-      </div>
-    </li>
+    <TimelineRow
+      step={step}
+      icon={
+        evolved ? (
+          <Sparkles className={ICON} strokeWidth={2.5} aria-hidden />
+        ) : (
+          <ArrowUp className={ICON} strokeWidth={3} aria-hidden />
+        )
+      }
+      badgeClassName={evolved ? "bg-accent" : "bg-white"}
+    >
+      <ChangeMention change={event.change} />
+    </TimelineRow>
   );
 }
