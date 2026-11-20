@@ -6,7 +6,7 @@ import { CurrentTeam } from "./CurrentTeam";
 import { Timeline } from "./Timeline";
 
 export function PlaythroughView() {
-  const { playthrough, steps } = usePlaythroughContext();
+  const { playthrough, events } = usePlaythroughContext();
   const gameName = findGame(playthrough.gameId).name;
 
   return (
@@ -19,7 +19,7 @@ export function PlaythroughView() {
         {playthrough.name && <p className="text-ink/70">{gameName}</p>}
       </div>
       <CurrentTeam />
-      {steps.length > 0 && <Timeline />}
+      {events.length > 0 && <Timeline />}
     </section>
   );
 }

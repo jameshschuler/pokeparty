@@ -48,6 +48,12 @@ export type TimelineStep = {
   joined: TeamStint[];
 };
 
+export type TimelineEvent =
+  | { kind: "joined"; step: number; stint: TeamStint }
+  | { kind: "left"; step: number; stint: TeamStint }
+  | { kind: "swap"; step: number; left: TeamStint; joined: TeamStint }
+  | { kind: "changed"; step: number; change: StintChange };
+
 export function isValidLevel(level: number): boolean {
   return Number.isInteger(level) && level >= MIN_LEVEL && level <= MAX_LEVEL;
 }
@@ -296,6 +302,36 @@ export function timelineSteps(stints: TeamStint[]): TimelineStep[] {
       joined: stints.filter((stint) => stint.joinedStep === step),
     };
   });
+}
+
+function stepEvents({
+  step,
+  left,
+  changed,
+  joined,
+}: TimelineStep): TimelineEvent[] {
+  const changes = changed.map((change): TimelineEvent => ({
+    kind: "changed",
+    step,
+    change,
+  }));
+
+  if (left.length === 1 && joined.length === 1) {
+    return [
+      { kind: "swap", step, left: left[0], joined: joined[0] },
+      ...changes,
+    ];
+  }
+
+  return [
+    ...left.map((stint): TimelineEvent => ({ kind: "left", step, stint })),
+    ...changes,
+    ...joined.map((stint): TimelineEvent => ({ kind: "joined", step, stint })),
+  ];
+}
+
+export function timelineEvents(stints: TeamStint[]): TimelineEvent[] {
+  return timelineSteps(stints).flatMap(stepEvents);
 }
 
 export function playthroughTitle(playthrough: Playthrough): string {

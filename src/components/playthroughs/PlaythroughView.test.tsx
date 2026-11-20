@@ -211,6 +211,37 @@ describe("playthrough", () => {
     expect(storedStints()[0].leftStep).toBeNull();
   });
 
+  it("shows each step as one row, a swap included", async () => {
+    seed([
+      { ...stint("rat", 20, 1), leftLevel: 32, leftStep: 3 },
+      {
+        ...stint("zap", 239, 2),
+        updates: [{ step: 4, level: 30, pokemonId: 125 }],
+      },
+      stint("gro", 58, 3),
+    ]);
+    renderApp("/playthroughs/p1");
+
+    const timeline = await screen.findByRole("region", { name: "Timeline" });
+    const rows = within(timeline).getAllByRole("listitem");
+
+    function levelButtons(row: HTMLElement) {
+      return within(row)
+        .getAllByRole("button", { name: /^Fix the level/ })
+        .map((button) => button.getAttribute("aria-label"));
+    }
+
+    expect(rows).toHaveLength(4);
+    expect(levelButtons(rows[2])).toEqual([
+      "Fix the level: Raticate left at Lv 32",
+      "Fix the level: Growlithe joined at Lv 20",
+    ]);
+    expect(rows[2]).toHaveTextContent("swapped for");
+    expect(levelButtons(rows[3])).toEqual([
+      "Fix the level: Elekid evolved at Lv 30",
+    ]);
+  });
+
   it("undoes the latest step", async () => {
     seed([stint("a", 1, 1), stint("b", 4, 2)]);
     const user = userEvent.setup();
